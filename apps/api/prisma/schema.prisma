@@ -1,0 +1,139 @@
+// PeakForm — Prisma schema
+// Models are added module by module, in the order tracked in
+// docs/IMPLEMENTATION_CHECKLIST.md (PRD 01 first). Do not add a model here
+// before its owning PRD's "Backend" checklist item is being worked on.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- PRD 01: Authentication & Account Management -------------------------
+
+enum Role {
+  ADMIN
+  PROFESSIONAL
+  CLIENT
+}
+
+enum UserStatus {
+  ACTIVE
+  DEACTIVATED
+}
+
+enum Specialization {
+  PERSONAL_TRAINER
+  NUTRITIONIST
+}
+
+enum ApprovalStatus {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+}
+
+enum BiologicalSex {
+  MALE
+  FEMALE
+}
+
+/// Base identity for every persona (base doc §6). `fullName` is not listed
+/// explicitly on User in PRD 01 §6 (only called out as a Professional signup
+/// field there), but every persona needs a display name — messaging (PRD 11),
+/// the admin console (PRD 13), and professional/client lists (PRD 02) all
+/// depend on it — so it lives here as a base field rather than being
+/// duplicated per-role.
+model User {
+  id                         String     @id @default(cuid())
+  email                      String     @unique
+  fullName                   String
+  passwordHash               String?
+  oauthProviders             String[]   @default([])
+  role                       Role
+  status                     UserStatus @default(ACTIVE)
+  emailVerifiedAt            DateTime?
+  createdAt                  DateTime   @default(now())
+  updatedAt                  DateTime   @updatedAt
+
+  /// Time-limited email-verification token (PRD 01 §5.2). Stored as a hash,
+  /// never the raw token, per base doc §9's secrets-handling guidance — the
+  /// raw token only ever exists in the emailed link. No new top-level entity
+  /// per PRD 01 §6, so these live as fields on User rather than their own table.
+  emailVerificationTokenHash String?
+  emailVerificationExpiresAt DateTime?
+
+  /// Time-limited password-reset token (PRD 01 §5.4), same hash-not-raw rule.
+  passwordResetTokenHash     String?
+  passwordResetExpiresAt     DateTime?
+
+  /// Bumped on every password reset; a JWT's embedded version must match this
+  /// or the token is rejected. This is how "password reset invalidates all
+  /// prior sessions" (PRD 01 §10) is enforced against stateless access/refresh
+  /// JWTs without a server-side session table.
+  tokenVersion               Int        @default(0)
+
+  professionalProfile        ProfessionalProfile?
+  clientProfile               ClientProfile?
+
+  /// Professional accounts this user approved/rejected as Admin (PRD 01 §5.6).
+  approvalDecisions          ProfessionalProfile[] @relation("ApprovalActor")
+
+  auditLogEntries            AuditLog[]
+
+  @@map("users")
+}
+
+/// 1:1 with a PROFESSIONAL User (PRD 01 §6).
+model ProfessionalProfile {
+  id               String          @id @default(cuid())
+  userId           String          @unique
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specializations  Specialization[]
+  approvalStatus   ApprovalStatus  @default(PENDING_APPROVAL)
+  verificationNote String
+  approvedById     String?
+  approvedBy       User?           @relation("ApprovalActor", fields: [approvedById], references: [id])
+  approvedAt       DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@map("professional_profiles")
+}
+
+/// 1:1 with a CLIENT User (PRD 01 §6). dateOfBirth/biologicalSex are required
+/// — they feed PRD 04's Jackson & Pollock formula and PRD 08's Mifflin-St
+/// Jeor estimate; age is always computed from dateOfBirth at calculation
+/// time, never stored, so no separate "age" field exists here.
+model ClientProfile {
+  id            String        @id @default(cuid())
+  userId        String        @unique
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dateOfBirth   DateTime      @db.Date
+  biologicalSex BiologicalSex
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@map("client_profiles")
+}
+
+/// Append-only compliance/accountability trail (base doc §6, §9). First
+/// consumer is PRD 01 §5.6 (approval/rejection decisions); later modules
+/// (PRD 02 force-unlink, PRD 06 contraindication overrides, PRD 13 admin
+/// actions) write to the same table rather than each owning their own log.
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  actor     User     @relation(fields: [actorId], references: [id])
+  action    String
+  entity    String
+  entityId  String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@map("audit_logs")
+}

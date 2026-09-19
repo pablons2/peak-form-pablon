@@ -1,0 +1,39 @@
+{
+  "name": "@peakform/web",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev --port 3000",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "bddgen && playwright test --pass-with-no-tests"
+  },
+  "dependencies": {
+    "@peakform/shared-types": "*",
+    "@peakform/validation": "*",
+    "@peakform/ui": "*",
+    "@tanstack/react-query": "^5.59.0",
+    "next": "^14.2.15",
+    "next-auth": "^4.24.8",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.53.0",
+    "@hookform/resolvers": "^3.9.0",
+    "zod": "^3.23.8",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "@types/node": "^22.7.5",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.15",
+    "playwright-bdd": "^9.2.1",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.13",
+    "typescript": "^5.6.3"
+  }
+}

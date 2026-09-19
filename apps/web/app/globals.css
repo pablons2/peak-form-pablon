@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * PeakForm design tokens — see /docs/design-system.md for full rationale,
+ * contrast math, and usage rules. Do not hand-edit a raw value here without
+ * updating that document too; they must stay in sync.
+ */
+
+@layer base {
+  :root {
+    --background: 30 20% 98%;
+    --foreground: 22 14% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 22 14% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 22 14% 10%;
+
+    --primary: 11 100% 61%;
+    --primary-foreground: 22 14% 10%;
+
+    --secondary: 30 12% 90%;
+    --secondary-foreground: 22 14% 10%;
+
+    --muted: 30 15% 95%;
+    --muted-foreground: 30 6% 48%;
+
+    --accent: 185 81% 29%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 358 75% 59%;
+    --destructive-foreground: 22 14% 10%;
+
+    --success: 146 67% 37%;
+    --success-foreground: 22 14% 10%;
+
+    --warning: 37 91% 55%;
+    --warning-foreground: 22 14% 10%;
+
+    --border: 30 10% 82%;
+    --input: 30 10% 82%;
+    --ring: 11 100% 61%;
+
+    --radius: 0.625rem;
+
+    --chart-1: 11 100% 61%;
+    --chart-2: 185 81% 29%;
+    --chart-3: 146 67% 37%;
+    --chart-4: 37 91% 55%;
+    --chart-5: 30 6% 48%;
+
+    --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+
+  .dark {
+    --background: 20 16% 6%;
+    --foreground: 30 20% 98%;
+
+    --card: 22 14% 10%;
+    --card-foreground: 30 20% 98%;
+
+    --popover: 22 14% 10%;
+    --popover-foreground: 30 20% 98%;
+
+    --primary: 11 100% 65%;
+    --primary-foreground: 22 14% 10%;
+
+    --secondary: 24 12% 16%;
+    --secondary-foreground: 30 20% 98%;
+
+    --muted: 24 12% 16%;
+    --muted-foreground: 30 8% 65%;
+
+    --accent: 185 60% 45%;
+    --accent-foreground: 22 14% 10%;
+
+    --destructive: 358 70% 62%;
+    --destructive-foreground: 22 14% 10%;
+
+    --success: 146 55% 45%;
+    --success-foreground: 22 14% 10%;
+
+    --warning: 37 85% 60%;
+    --warning-foreground: 22 14% 10%;
+
+    --border: 24 12% 16%;
+    --input: 24 12% 16%;
+    --ring: 11 100% 65%;
+
+    --chart-1: 11 100% 65%;
+    --chart-2: 185 60% 45%;
+    --chart-3: 146 55% 45%;
+    --chart-4: 37 85% 60%;
+    --chart-5: 30 8% 65%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}
