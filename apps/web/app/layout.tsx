@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
+import { Providers } from "./providers";
 import "./globals.css";
 
 // Registers the exact font family globals.css already references by name
@@ -24,7 +25,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" className={sans.className}>
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

@@ -47,6 +47,15 @@ import { Public } from "../../shared/decorators/public.decorator";
 import { clearRefreshTokenCookie, setRefreshTokenCookie } from "./cookies";
 import type { UserWithProfiles } from "../domain/ports/user.repository.port";
 
+// Per-route throttle limits stay at their production defaults unless the
+// matching env var overrides them — the local dev stack relaxes them
+// (AUTH_THROTTLE_*_LIMIT in .env) because the web BDD suite fires many
+// logins/signups from a single IP inside one 60s window.
+function throttleLimit(envVar: string, fallback: number): number {
+  const override = Number(process.env[envVar]);
+  return Number.isFinite(override) && override > 0 ? override : fallback;
+}
+
 function toPublicUser(user: UserWithProfiles) {
   return {
     id: user.id,
@@ -87,7 +96,12 @@ export class AuthController {
   ) {}
 
   @Public()
-  @Throttle({ default: { limit: 10, ttl: seconds(60) } })
+  @Throttle({
+    default: {
+      limit: throttleLimit("AUTH_THROTTLE_SIGNUP_LIMIT", 10),
+      ttl: seconds(60),
+    },
+  })
   @Post("signup/client")
   signupClientHandler(
     @Body(new ZodValidationPipe(signupClientSchema)) body: SignupClientInput,
@@ -96,7 +110,12 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: { limit: 10, ttl: seconds(60) } })
+  @Throttle({
+    default: {
+      limit: throttleLimit("AUTH_THROTTLE_SIGNUP_LIMIT", 10),
+      ttl: seconds(60),
+    },
+  })
   @Post("signup/professional")
   signupProfessionalHandler(
     @Body(new ZodValidationPipe(signupProfessionalSchema))
@@ -116,7 +135,12 @@ export class AuthController {
 
   @Public()
   @HttpCode(200)
-  @Throttle({ default: { limit: 5, ttl: seconds(60) } })
+  @Throttle({
+    default: {
+      limit: throttleLimit("AUTH_THROTTLE_LOGIN_LIMIT", 5),
+      ttl: seconds(60),
+    },
+  })
   @Post("login")
   async loginHandler(
     @Body(new ZodValidationPipe(loginSchema)) body: LoginInput,
@@ -153,7 +177,12 @@ export class AuthController {
 
   @Public()
   @HttpCode(200)
-  @Throttle({ default: { limit: 5, ttl: seconds(60) } })
+  @Throttle({
+    default: {
+      limit: throttleLimit("AUTH_THROTTLE_RESET_REQUEST_LIMIT", 5),
+      ttl: seconds(60),
+    },
+  })
   @Post("password-reset/request")
   async requestPasswordResetHandler(
     @Body(new ZodValidationPipe(requestPasswordResetSchema))
@@ -176,7 +205,12 @@ export class AuthController {
 
   @Public()
   @HttpCode(200)
-  @Throttle({ default: { limit: 10, ttl: seconds(60) } })
+  @Throttle({
+    default: {
+      limit: throttleLimit("AUTH_THROTTLE_OAUTH_LIMIT", 10),
+      ttl: seconds(60),
+    },
+  })
   @Post("oauth/google")
   googleOAuthHandler(
     @Body(new ZodValidationPipe(googleIdTokenSchema)) body: GoogleIdTokenInput,
