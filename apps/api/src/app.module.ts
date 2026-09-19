@@ -5,6 +5,7 @@ import { ThrottlerGuard, ThrottlerModule, seconds } from "@nestjs/throttler";
 import { AuthModule } from "./auth/auth.module";
 import { HealthModule } from "./health/health.module";
 import { PrismaModule } from "./prisma/prisma.module";
+import { RelationshipsModule } from "./relationships/relationships.module";
 
 // Feature modules land here as each PRD (docs/prds/01-*.md onward) is
 // implemented — see docs/IMPLEMENTATION_CHECKLIST.md for order.
@@ -20,6 +21,7 @@ import { PrismaModule } from "./prisma/prisma.module";
     PrismaModule,
     HealthModule,
     AuthModule,
+    RelationshipsModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

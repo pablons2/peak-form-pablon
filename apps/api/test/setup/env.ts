@@ -12,3 +12,6 @@ process.env.DATABASE_URL =
   "postgresql://peakform:peakform_dev@localhost:5432/peakform_test?schema=public";
 process.env.JWT_ACCESS_SECRET ??= "test_access_secret";
 process.env.JWT_REFRESH_SECRET ??= "test_refresh_secret";
+// BDD scenarios invoke RunCheckInDueJobUseCase directly for determinism —
+// keep the real 60s interval job out of the way during tests.
+process.env.CHECK_IN_SCHEDULER_DISABLED ??= "1";

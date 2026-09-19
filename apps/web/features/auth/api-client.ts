@@ -120,7 +120,10 @@ async function postJson<T>(
   return { ok: true, data };
 }
 
-async function fetchMe(accessToken: string): Promise<PublicUser | null> {
+// Exported for feature modules (PRD 02's invite form needs the caller's own
+// specializations) that need the current profile without duplicating this
+// fetch — auth remains the single owner of /auth/me's shape.
+export async function fetchMe(accessToken: string): Promise<PublicUser | null> {
   const res = await fetch(`${apiBaseUrl()}/auth/me`, {
     headers: { Authorization: `Bearer ${accessToken}` },
     cache: "no-store",

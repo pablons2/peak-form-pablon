@@ -107,6 +107,38 @@ export async function seedProfessional(
   return userId;
 }
 
+// PRD 02 — seeds an ACTIVE ProfessionalClientLink via the real API (invite +
+// accept), for web scenarios that need an existing relationship as a
+// precondition rather than exercising that flow itself.
+export async function seedActiveLink(
+  professionalEmail: string,
+  clientEmail: string,
+  specialization: "PERSONAL_TRAINER" | "NUTRITIONIST" = "PERSONAL_TRAINER",
+): Promise<string> {
+  const proLogin = await apiPost("/auth/login", {
+    email: professionalEmail,
+    password: TEST_PASSWORD,
+  });
+  const proToken = proLogin.body.accessToken as string;
+  const invite = await apiPost(
+    "/links/invites",
+    { clientEmail, specializations: [specialization] },
+    proToken,
+  );
+  const links = invite.body as unknown as { id: string }[];
+  const linkId = links[0]?.id;
+  if (!linkId) throw new Error(`invite failed: ${invite.status}`);
+
+  const clientLogin = await apiPost("/auth/login", {
+    email: clientEmail,
+    password: TEST_PASSWORD,
+  });
+  const clientToken = clientLogin.body.accessToken as string;
+  const accept = await apiPost(`/links/${linkId}/accept`, {}, clientToken);
+  if (accept.status !== 200) throw new Error(`accept failed: ${accept.status}`);
+  return linkId;
+}
+
 export const ADMIN_EMAIL = "bdd.admin@example.com";
 
 // Clean slate for one account (and its profiles via FK CASCADE): scenarios

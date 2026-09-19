@@ -1,4 +1,5 @@
 import { getServerSession } from "next-auth";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import { authOptions } from "@/features/auth/nextauth-options";
@@ -38,6 +39,20 @@ export default async function DashboardPage() {
           </span>
           .
         </p>
+        {session.user.role === "CLIENT" ? (
+          <p className="mt-4 text-sm">
+            <Link href="/team" className="text-accent hover:underline">
+              Meu Time
+            </Link>
+          </p>
+        ) : null}
+        {session.user.role === "PROFESSIONAL" ? (
+          <p className="mt-4 text-sm">
+            <Link href="/clients" className="text-accent hover:underline">
+              Meus Clientes
+            </Link>
+          </p>
+        ) : null}
         <div className="mt-5">
           <SignOutButton />
         </div>

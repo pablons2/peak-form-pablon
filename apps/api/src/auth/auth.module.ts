@@ -69,6 +69,14 @@ import { RolesGuard } from "./presentation/guards/roles.guard";
     { provide: APP_GUARD, useClass: RolesGuard },
     ApprovalStatusGuard,
   ],
-  exports: [ApprovalStatusGuard],
+  exports: [
+    // MAILER and USER_REPOSITORY are generic infrastructure (PRD 02's
+    // relationship module reuses both); ApprovalStatusGuard is exported for
+    // later modules to apply per-route (@UseGuards) once they have
+    // Professional-only endpoints.
+    MAILER,
+    USER_REPOSITORY,
+    ApprovalStatusGuard,
+  ],
 })
 export class AuthModule {}

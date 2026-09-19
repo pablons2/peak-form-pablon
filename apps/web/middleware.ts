@@ -30,5 +30,10 @@ export default withAuth(
 export const config = {
   // Only genuinely authenticated areas — auth pages and the landing page stay
   // public. New authenticated routes add their prefix here as modules land.
-  matcher: ["/dashboard/:path*", "/pending-approval"],
+  matcher: [
+    "/dashboard/:path*",
+    "/pending-approval",
+    "/team/:path*",
+    "/clients/:path*",
+  ],
 };

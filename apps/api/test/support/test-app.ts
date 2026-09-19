@@ -89,6 +89,32 @@ export class AuthTestWorld {
   // from states the API alone can't reach in one call (e.g. already-verified,
   // already-deactivated, APPROVED, or ADMIN users). ---
 
+  async seedLink(
+    professional: UserWithProfiles,
+    client: UserWithProfiles,
+    opts: {
+      specialization?: Specialization;
+      status?: "PENDING" | "ACTIVE" | "DECLINED" | "EXPIRED" | "UNLINKED";
+      invitedBy?: "PROFESSIONAL" | "CLIENT";
+      linkedAt?: Date;
+      expiresAt?: Date;
+    } = {},
+  ) {
+    return this.prisma.professionalClientLink.create({
+      data: {
+        professionalId: professional.id,
+        clientId: client.id,
+        specialization: opts.specialization ?? "PERSONAL_TRAINER",
+        status: opts.status ?? "PENDING",
+        invitedBy: opts.invitedBy ?? "PROFESSIONAL",
+        linkedAt: opts.linkedAt ?? null,
+        expiresAt:
+          opts.expiresAt ?? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      },
+      include: { professional: true, client: true },
+    });
+  }
+
   async seedAdmin(email: string): Promise<UserWithProfiles> {
     return this.seedUser({ email, fullName: "Test Admin", role: Role.ADMIN });
   }

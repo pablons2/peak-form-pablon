@@ -6,3 +6,4 @@
 // implemented.
 
 export * from "./auth/schemas";
+export * from "./relationships/schemas";

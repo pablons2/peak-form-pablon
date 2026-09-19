@@ -82,6 +82,13 @@ model User {
   /// Professional accounts this user approved/rejected as Admin (PRD 01 §5.6).
   approvalDecisions          ProfessionalProfile[] @relation("ApprovalActor")
 
+  /// PRD 02 — links where this user is the Professional / Client side, links
+  /// this user unlinked, and check-in schedules this user created.
+  professionalLinks         ProfessionalClientLink[] @relation("LinkProfessional")
+  clientLinks               ProfessionalClientLink[] @relation("LinkClient")
+  unlinkedLinks             ProfessionalClientLink[] @relation("LinkUnlinker")
+  createdCheckInSchedules   CheckInSchedule[]        @relation("CheckInScheduleCreator")
+
   auditLogEntries            AuditLog[]
 
   @@map("users")
@@ -136,4 +143,112 @@ model AuditLog {
 
   @@index([entity, entityId])
   @@map("audit_logs")
+}
+
+
+// --- PRD 02: Professional ↔ Client Relationship ---------------------------
+
+enum LinkStatus {
+  PENDING
+  ACTIVE
+  DECLINED
+  EXPIRED
+  UNLINKED
+}
+
+enum LinkInvitedBy {
+  PROFESSIONAL
+  CLIENT
+}
+
+/// The working relationship between a Professional and a Client for one
+/// specialization (PRD 02 §6). The invite/request IS this row in PENDING;
+/// it goes straight to ACTIVE on acceptance (no separate ACCEPTED status).
+/// "At most one ACTIVE row per (clientId, specialization)" (PRD 02 §6) is
+/// enforced in the Application layer (§5.3) rather than as a DB constraint,
+/// because history rows (DECLINED/EXPIRED/UNLINKED) for the same key are
+/// legitimate and a partial unique index isn't expressible here.
+model ProfessionalClientLink {
+  id             String         @id @default(cuid())
+  professionalId String
+  professional   User           @relation("LinkProfessional", fields: [professionalId], references: [id], onDelete: Cascade)
+  clientId       String
+  client         User           @relation("LinkClient", fields: [clientId], references: [id], onDelete: Cascade)
+  specialization Specialization
+  status         LinkStatus     @default(PENDING)
+  invitedBy      LinkInvitedBy
+
+  /// PENDING invites auto-expire to EXPIRED after 30 days (PRD 02 §5.1);
+  /// cleared on acceptance.
+  expiresAt DateTime?
+
+  linkedAt     DateTime?
+  unlinkedAt   DateTime?
+  unlinkedById String?
+  unlinkedBy   User?     @relation("LinkUnlinker", fields: [unlinkedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  checkInSchedules CheckInSchedule[]
+
+  @@index([clientId, specialization, status])
+  @@index([professionalId, status])
+  @@map("professional_client_links")
+}
+
+enum CheckInScheduleType {
+  ONE_OFF
+  RECURRING
+}
+
+enum CheckInCadence {
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+}
+
+enum CheckInScheduleStatus {
+  ACTIVE
+  FIRED
+  CANCELLED
+}
+
+/// Check-in reminder owned by PRD 02 §5.6, scoped to one
+/// ProfessionalClientLink (a PT and a Nutritionist schedule independently).
+/// `nextDueAt` is the firing job's query target (status ACTIVE + due) and the
+/// single source of truth PRD 09's dashboard and PRD 12's notification both read.
+model CheckInSchedule {
+  id     String              @id @default(cuid())
+  linkId String
+  link   ProfessionalClientLink @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  type    CheckInScheduleType
+  /// Required only for RECURRING (WEEKLY/BIWEEKLY: weekday 0-6; MONTHLY:
+  /// day-of-month 1-31, clamped to the month's length in date-math).
+  cadence CheckInCadence?
+  anchor  Int?
+  /// Required only for ONE_OFF.
+  dueDate DateTime?
+  /// Computed from cadence+anchor (RECURRING) or dueDate (ONE_OFF); indexed
+  /// because this is what the firing job queries (PRD 02 §5.6).
+  nextDueAt DateTime?
+  note      String?
+  status    CheckInScheduleStatus @default(ACTIVE)
+
+  createdById String
+  /// Cascade (not the Prisma default Restrict): a CheckInSchedule's `link`
+  /// FK already cascades from either party via ProfessionalClientLink, so a
+  /// Restrict here would still block that same delete outright the moment
+  /// the creator (always one of the link's two parties) is the target —
+  /// conflicting FK actions on the same row, not two independent rules.
+  createdBy User @relation("CheckInScheduleCreator", fields: [createdById], references: [id], onDelete: Cascade)
+
+  lastFiredAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status, nextDueAt])
+  @@index([linkId, status])
+  @@map("check_in_schedules")
 }
