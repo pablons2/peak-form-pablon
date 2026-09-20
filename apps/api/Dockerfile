@@ -44,6 +44,9 @@ RUN corepack enable
 COPY --from=build /repo/apps/api/dist ./apps/api/dist
 COPY --from=build /repo/apps/api/prisma ./apps/api/prisma
 COPY --from=build /repo/apps/api/package.json ./apps/api/package.json
+# The bundled exercise-catalog dataset the §5.1 import job reads by default
+# (EXERCISE_DATASET_DIR overrides it for a newer snapshot).
+COPY --from=build /repo/apps/api/exercise-catalog ./apps/api/exercise-catalog
 COPY --from=build /repo/node_modules ./node_modules
 COPY --from=build /repo/packages ./packages
 ENV NODE_ENV=production

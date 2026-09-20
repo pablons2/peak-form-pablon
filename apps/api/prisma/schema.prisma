@@ -89,6 +89,10 @@ model User {
   unlinkedLinks             ProfessionalClientLink[] @relation("LinkUnlinker")
   createdCheckInSchedules   CheckInSchedule[]        @relation("CheckInScheduleCreator")
 
+  /// PRD 05 — custom (private) exercises this user authored. Admin-authored
+  /// customs land here too when created through the custom endpoints.
+  ownedExercises             Exercise[]              @relation("ExerciseOwner")
+
   auditLogEntries            AuditLog[]
 
   @@map("users")
@@ -251,4 +255,107 @@ model CheckInSchedule {
   @@index([status, nextDueAt])
   @@index([linkId, status])
   @@map("check_in_schedules")
+}
+
+
+// --- PRD 05: Exercise Library ------------------------------------------------
+
+enum ExerciseVisibility {
+  GLOBAL
+  PRIVATE
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+// Controlled vocabularies for §5.4's search/filter — mirrored by the shared
+// zod enums in packages/validation (same pattern as Specialization). Kept as
+// DB enums so imported/custom rows can never drift into free-text values the
+// filters would silently miss.
+enum MuscleGroup {
+  CHEST
+  BACK
+  SHOULDERS
+  BICEPS
+  TRICEPS
+  FOREARMS
+  CORE
+  GLUTES
+  QUADRICEPS
+  HAMSTRINGS
+  CALVES
+  FULL_BODY
+}
+
+enum Equipment {
+  BODYWEIGHT
+  DUMBBELL
+  BARBELL
+  KETTLEBELL
+  RESISTANCE_BAND
+  CABLE
+  MACHINE
+  MEDICINE_BALL
+  BENCH
+  PULL_UP_BAR
+  STABILITY_BALL
+  FOAM_ROLLER
+}
+
+/// The contraindication vocabulary this module owns canonically (PRD 05 §2/§6).
+/// PRD 03 stores references to these `code` values on a Client's intake
+/// profile and PRD 06 cross-references them when flagging contraindicated
+/// prescriptions — it is a reference table, not an enum, because Admins
+/// extend it over time and rows carry display copy (label/description).
+/// Seeded by the prd05 migration's INSERTs (reference data, not a runtime
+/// import), so every environment gets the same vocabulary deterministically.
+model ContraindicationTag {
+  code        String  @id
+  label       String
+  description String
+  exercises   Exercise[]
+
+  @@map("contraindication_tags")
+}
+
+/// One catalog entry (PRD 05 §6 / base doc §3.3). Two provenances share the
+/// table: imported catalog rows (GLOBAL, sourceApiId+sourceHash set, no
+/// owner) and Professional/Admin-authored customs (PRIVATE, owned, no
+/// sourceApiId). Promotion flips visibility GLOBAL and clears the owner —
+/// §6's "ownerProfessionalId null for global" is enforced, with the
+/// previous owner kept in the promotion's audit-log metadata.
+model Exercise {
+  id           String              @id @default(cuid())
+  name         String
+  /// URL of the movement's GIF/video in our own object storage (PRD 05 §5.1 —
+  /// never the source dataset's host). Nullable because §5.3 doesn't require
+  /// Professionals to supply media for a custom exercise.
+  mediaUrl     String?
+  muscleGroups MuscleGroup[]
+  equipment    Equipment[]
+  difficulty   Difficulty
+  cues         String[]
+  mistakes     String[]
+
+  contraindicationTags ContraindicationTag[]
+
+  /// Stable external id from the imported dataset — the idempotency key for
+  /// §5.1's re-runnable import. Unique; null for authored exercises.
+  sourceApiId String? @unique
+  /// SHA-256 of the normalized dataset entry. A re-import whose entry hash
+  /// matches skips the row entirely (no update write, no media re-upload).
+  sourceHash  String?
+
+  ownerProfessionalId String?
+  ownerProfessional   User?   @relation("ExerciseOwner", fields: [ownerProfessionalId], references: [id], onDelete: Cascade)
+  visibility          ExerciseVisibility @default(GLOBAL)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([visibility, ownerProfessionalId])
+  @@map("exercises")
 }

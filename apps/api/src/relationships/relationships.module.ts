@@ -54,5 +54,8 @@ import { LinksController } from "./presentation/links.controller";
     // Scheduled job (no-op when CHECK_IN_SCHEDULER_DISABLED=1).
     CheckInDueJobService,
   ],
+  // Exported so PRD 05's ExerciseAccess can resolve which Professionals a
+  // Client is ACTIVELY linked to (private-custom-exercise visibility, §5.3).
+  exports: [LINK_REPOSITORY],
 })
 export class RelationshipsModule {}

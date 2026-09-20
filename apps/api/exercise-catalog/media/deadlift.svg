@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="320" viewBox="0 0 320 320" role="img" aria-label="Terra">
+  <rect width="320" height="320" fill="#0f172a"/>
+  <circle cx="160" cy="120" r="56" fill="none" stroke="#f97316" stroke-width="10"/>
+  <rect x="96" y="200" width="128" height="14" rx="7" fill="#f97316"/>
+  <rect x="120" y="226" width="80" height="10" rx="5" fill="#f97316" opacity="0.55"/>
+  <text x="160" y="280" font-family="system-ui, sans-serif" font-size="22" font-weight="600" fill="#e2e8f0" text-anchor="middle">Terra</text>
+</svg>

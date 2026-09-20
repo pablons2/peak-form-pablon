@@ -13,6 +13,7 @@ import type {
 } from "../../src/auth/domain/ports/google-token-verifier.port";
 import { ApprovalStatusGuard } from "../../src/auth/presentation/guards/approval-status.guard";
 import { Roles } from "../../src/auth/presentation/decorators/roles.decorator";
+import type { MediaStore } from "../../src/exercises/domain/ports/media-store.port";
 
 export interface SentMail {
   to: string;
@@ -66,6 +67,19 @@ export class FakeGoogleTokenVerifier implements GoogleTokenVerifier {
       return { email, emailVerified: false, fullName: rest.join(":") };
     }
     throw new UnauthorizedException("Invalid Google ID token");
+  }
+}
+
+// PRD 05 §5.1 — the import job re-hosts media in object storage; in tests the
+// S3 boundary is faked (PRD 15 §5.2) so scenarios run without MinIO and can
+// still assert that stored mediaUrl points at *our* host, not the source's.
+@Injectable()
+export class FakeMediaStore implements MediaStore {
+  readonly puts: { key: string; bytes: Buffer; contentType: string }[] = [];
+
+  async put(key: string, body: Buffer, contentType: string): Promise<string> {
+    this.puts.push({ key, bytes: body, contentType });
+    return `https://media.test/${key}`;
   }
 }
 

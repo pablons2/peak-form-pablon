@@ -1,0 +1,279 @@
+[
+  {
+    "sourceApiId": "dev-builtin-0001",
+    "name": "Agachamento Livre (Back Squat)",
+    "muscleGroups": ["QUADRICEPS", "GLUTES", "CORE"],
+    "equipment": ["BARBELL"],
+    "difficulty": "INTERMEDIATE",
+    "cues": [
+      "Apoie a barra no trapézio, pés na largura dos ombros",
+      "Desça empurrando o quadril para trás e flexionando os joelhos",
+      "Mantenha o peito aberto e o core firme durante toda a descida",
+      "Suba empurrando o chão com o pé inteiro"
+    ],
+    "mistakes": [
+      "Joelhos colapsando para dentro na subida",
+      "Tirar o calcanhar do chão",
+      "Arredondar a lombar no fundo do movimento"
+    ],
+    "contraindicationCodes": ["KNEE_LOAD_CAUTION", "LOWER_BACK_LOAD_CAUTION"],
+    "media": {
+      "file": "media/back-squat.svg",
+      "contentType": "image/svg+xml",
+      "extension": ".svg"
+    }
+  },
+  {
+    "sourceApiId": "dev-builtin-0002",
+    "name": "Supino Reto com Barra (Bench Press)",
+    "muscleGroups": ["CHEST", "TRICEPS", "SHOULDERS"],
+    "equipment": ["BARBELL", "BENCH"],
+    "difficulty": "INTERMEDIATE",
+    "cues": [
+      "Deite no banco com escápulas retraídas e pés firmes no chão",
+      "Desça a barra com controle até a linha do peito",
+      "Empurre em linha reta, sem deixar os cotovelos abrirem demais"
+    ],
+    "mistakes": [
+      "Quicar a barra no peito",
+      "Levantar o quadril do banco",
+      "Punhos hiperextendidos sob a barra"
+    ],
+    "contraindicationCodes": ["SHOULDER_IMPINGEMENT_CAUTION", "WRIST_LOAD_CAUTION"],
+    "media": {
+      "file": "media/bench-press.svg",
+      "contentType": "image/svg+xml",
+      "extension": ".svg"
+    }
+  },
+  {
+    "sourceApiId": "dev-builtin-0003",
+    "name": "Levantamento Terra (Deadlift)",
+    "muscleGroups": ["BACK", "GLUTES", "HAMSTRINGS"],
+    "equipment": ["BARBELL"],
+    "difficulty": "ADVANCED",
+    "cues": [
+      "Barra sobre o meio do pé, mãos fora dos joelhos",
+      "Estenda quadril e joelhos juntos, barra colada no corpo",
+      "Finalize em pé, sem hiperextender a lombar"
+    ],
+    "mistakes": [
+      "Puxar com a lombar arredondada",
+      "Deixar a barra afastar do corpo",
+      "Transformar a subida em agachamento com barra"
+    ],
+    "contraindicationCodes": ["LOWER_BACK_LOAD_CAUTION", "BLOOD_PRESSURE_CAUTION"],
+    "media": {
+      "file": "media/deadlift.svg",
+      "contentType": "image/svg+xml",
+      "extension": ".svg"
+    }
+  },
+  {
+    "sourceApiId": "dev-builtin-0004",
+    "name": "Flexão de Braços (Push-Up)",
+    "muscleGroups": ["CHEST", "TRICEPS", "CORE"],
+    "equipment": ["BODYWEIGHT"],
+    "difficulty": "BEGINNER",
+    "cues": [
+      "Mãos sob os ombros, corpo em linha reta da cabeça aos calcanhares",
+      "Desça o peito até quase tocar o chão, cotovelos a ~45°",
+      "Empurre o chão sem deixar o quadril cair"
+    ],
+    "mistakes": [
+      "Quadril caindo ou empinado",
+      "Cotovelos abrindo a 90°",
+      "Amplitude parcial no topo"
+    ],
+    "contraindicationCodes": ["WRIST_LOAD_CAUTION"],
+    "media": {
+      "file": "media/push-up.svg",
+      "contentType": "image/svg+xml",
+      "extension": ".svg"
+    }
+  },
+  {
+    "sourceApiId": "dev-builtin-0005",
+    "name": "Barra Fixa (Pull-Up)",
+    "muscleGroups": ["BACK", "BICEPS", "FOREARMS"],
+    "equipment": ["PULL_UP_BAR"],
+    "difficulty": "INTERMEDIATE",
+    "cues": [
+      "Pegada pronada um pouco além da largura dos ombros",
+      "Inicie puxando as escápulas para baixo antes de flexionar os cotovelos",
+      "Suba até o queixo passar da barra e desça com controle total"
+    ],
+    "mistakes": [
+      "Usar balanço (kipping) para vencer a amplitude",
+      "Encolher os ombros na subida",
+      "Descer em queda livre"
+    ],
+    "contraindicationCodes": ["SHOULDER_IMPINGEMENT_CAUTION", "ELBOW_OVERUSE_CAUTION"],
+    "media": {
+      "file": "media/pull-up.svg",
+      "contentType": "image/svg+xml",
+      "extension": ".svg"
+    }
+  },
+  {
+    "sourceApiId": "dev-builtin-0006",
+    "name": "Afundo (Lunge)",
+    "muscleGroups": ["QUADRICEPS", "GLUTES"],
+    "equipment": ["BODYWEIGHT"],
+    "difficulty": "BEGINNER",
+    "cues": [
+      "Passo longo, tronco ereto",
+      "Desça o joelho de trás em direção ao chão",
+      "Empurre com o pé da frente para voltar"
+    ],
+    "mistakes": [
+      "Joelho da frente ultrapassando muito a ponta do pé com peso nos dedos",
+      "Passo curto demais, joelho desabando para dentro",
+      "Tronco inclinando para frente"
+    ],
+    "contraindicationCodes": ["KNEE_LOAD_CAUTION", "HIP_MOBILITY_CAUTION"],
+    "media": {
+      "file": "media/lunge.svg",
+      "contentType": "image/svg+xml",
+      "extension": ".svg"
+    }
+  },
+  {
+    "sourceApiId": "dev-builtin-0007",
+    "name": "Prancha Isométrica (Plank)",
+    "muscleGroups": ["CORE"],
+    "equipment": ["BODYWEIGHT"],
+    "difficulty": "BEGINNER",
+    "cues": [
+      "Antebraços no chão, cotovelos sob os ombros",
+      "Corpo em linha reta, glúteos e abdômen contraídos",
+      "Respire normalmente, sem prender o ar"
+    ],
+    "mistakes": [
+      "Quadril caindo ou subindo demais",
+      "Prender a respiração",
+      "Cabeça pendurada para baixo"
+    ],
+    "contraindicationCodes": ["WRIST_LOAD_CAUTION"],
+    "media": {
+      "file": "media/plank.svg",
+      "contentType": "image/svg+xml",
+      "extension": ".svg"
+    }
+  },
+  {
+    "sourceApiId": "dev-builtin-0008",
+    "name": "Desenvolvimento com Halteres (Shoulder Press)",
+    "muscleGroups": ["SHOULDERS", "TRICEPS"],
+    "equipment": ["DUMBBELL", "BENCH"],
+    "difficulty": "INTERMEDIATE",
+    "cues": [
+      "Sentado com o tronco apoiado, halteres na altura dos ombros",
+      "Empurre para cima até quase estender os cotovelos",
+      "Desça com controle até a linha das orelhas"
+    ],
+    "mistakes": [
+      "Arquear a lombar para compensar a carga",
+      "Bater os halteres no topo",
+      "Descer rápido demais"
+    ],
+    "contraindicationCodes": ["SHOULDER_IMPINGEMENT_CAUTION", "NECK_STRAIN_CAUTION"],
+    "media": {
+      "file": "media/shoulder-press.svg",
+      "contentType": "image/svg+xml",
+      "extension": ".svg"
+    }
+  },
+  {
+    "sourceApiId": "dev-builtin-0009",
+    "name": "Remada Curvada (Bent-Over Row)",
+    "muscleGroups": ["BACK", "BICEPS"],
+    "equipment": ["BARBELL"],
+    "difficulty": "INTERMEDIATE",
+    "cues": [
+      "Tronco inclinado ~45°, coluna neutra, joelhos semiflexionados",
+      "Puxe a barra em direção ao umbigo",
+      "Escápulas se fecham no topo da puxada"
+    ],
+    "mistakes": [
+      "Arredondar a lombar sob carga",
+      "Puxar com os braços sem acionar as costas",
+      "Usar impulso do tronco"
+    ],
+    "contraindicationCodes": ["LOWER_BACK_LOAD_CAUTION", "ELBOW_OVERUSE_CAUTION"],
+    "media": {
+      "file": "media/bent-over-row.svg",
+      "contentType": "image/svg+xml",
+      "extension": ".svg"
+    }
+  },
+  {
+    "sourceApiId": "dev-builtin-0010",
+    "name": "Salto na Caixa (Box Jump)",
+    "muscleGroups": ["QUADRICEPS", "GLUTES", "CALVES"],
+    "equipment": ["BODYWEIGHT"],
+    "difficulty": "ADVANCED",
+    "cues": [
+      "Balanço de braços para gerar impulso",
+      "Aterrisse suave com joelhos alinhados aos pés",
+      "Desça da caixa com um pé de cada vez, sem saltar de volta"
+    ],
+    "mistakes": [
+      "Aterrissar com joelhos estendidos ou colapsando para dentro",
+      "Caixa alta demais para o nível do aluno",
+      "Saltar de volta da caixa (impacto desnecessário no tendão)"
+    ],
+    "contraindicationCodes": ["HIGH_IMPACT_CAUTION", "KNEE_LOAD_CAUTION"],
+    "media": {
+      "file": "media/box-jump.svg",
+      "contentType": "image/svg+xml",
+      "extension": ".svg"
+    }
+  },
+  {
+    "sourceApiId": "dev-builtin-0011",
+    "name": "Abdominal Crunch",
+    "muscleGroups": ["CORE"],
+    "equipment": ["BODYWEIGHT"],
+    "difficulty": "BEGINNER",
+    "cues": [
+      "Deitado, joelhos flexionados, mãos apoiadas atrás da cabeça sem puxar",
+      "Enrole a costela em direção à pelve — movimento curto",
+      "Expire na subida, controle a descida"
+    ],
+    "mistakes": [
+      "Puxar a nuca com as mãos",
+      "Subir com impulso usando o pescoço",
+      "Amplitude excessiva virando flexão de quadril"
+    ],
+    "contraindicationCodes": ["NECK_STRAIN_CAUTION"],
+    "media": {
+      "file": "media/crunch.svg",
+      "contentType": "image/svg+xml",
+      "extension": ".svg"
+    }
+  },
+  {
+    "sourceApiId": "dev-builtin-0012",
+    "name": "Rosca Direta (Bicep Curl)",
+    "muscleGroups": ["BICEPS", "FOREARMS"],
+    "equipment": ["DUMBBELL"],
+    "difficulty": "BEGINNER",
+    "cues": [
+      "Cotovelos fixos ao lado do corpo",
+      "Suba controlando, sem balançar o tronco",
+      "Desça até quase estender, mantendo tensão"
+    ],
+    "mistakes": [
+      "Balançar o tronco para subir a carga",
+      "Cotovelos viajando para frente",
+      "Descida em queda livre"
+    ],
+    "contraindicationCodes": ["ELBOW_OVERUSE_CAUTION"],
+    "media": {
+      "file": "media/bicep-curl.svg",
+      "contentType": "image/svg+xml",
+      "extension": ".svg"
+    }
+  }
+]

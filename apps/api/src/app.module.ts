@@ -6,6 +6,7 @@ import { AuthModule } from "./auth/auth.module";
 import { HealthModule } from "./health/health.module";
 import { PrismaModule } from "./prisma/prisma.module";
 import { RelationshipsModule } from "./relationships/relationships.module";
+import { ExercisesModule } from "./exercises/exercises.module";
 
 // Feature modules land here as each PRD (docs/prds/01-*.md onward) is
 // implemented — see docs/IMPLEMENTATION_CHECKLIST.md for order.
@@ -22,6 +23,7 @@ import { RelationshipsModule } from "./relationships/relationships.module";
     HealthModule,
     AuthModule,
     RelationshipsModule,
+    ExercisesModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

@@ -7,3 +7,4 @@
 
 export * from "./auth/schemas";
 export * from "./relationships/schemas";
+export * from "./exercises/schemas";

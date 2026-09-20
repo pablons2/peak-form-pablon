@@ -139,6 +139,47 @@ export async function seedActiveLink(
   return linkId;
 }
 
+// PRD 05 — seeds the exercise catalog by running the real import job inside
+// the api container (idempotent — re-runs skip unchanged entries). Scenarios
+// that need the library populated call this in a Given.
+export function ensureExerciseCatalog(): void {
+  const repoRoot = path.resolve(process.cwd(), "../..");
+  execSync("docker compose exec -T api npm run exercises:import", {
+    cwd: repoRoot,
+    stdio: "pipe",
+  });
+}
+
+// Creates a PRIVATE custom exercise through the real API as the given
+// professional — for scenarios that need one as a precondition rather than
+// exercising the authoring form itself.
+export async function seedCustomExercise(
+  professionalEmail: string,
+  name: string,
+): Promise<string> {
+  const login = await apiPost("/auth/login", {
+    email: professionalEmail,
+    password: TEST_PASSWORD,
+  });
+  const res = await apiPost(
+    "/exercises/custom",
+    {
+      name,
+      muscleGroups: ["CORE"],
+      equipment: ["BODYWEIGHT"],
+      difficulty: "BEGINNER",
+      cues: ["Execute devagar e com controle"],
+      mistakes: ["Fazer o movimento rápido demais"],
+      contraindicationCodes: [],
+    },
+    login.body.accessToken as string,
+  );
+  if (res.status !== 201) {
+    throw new Error(`custom exercise seed failed: ${res.status}`);
+  }
+  return res.body.id as string;
+}
+
 export const ADMIN_EMAIL = "bdd.admin@example.com";
 
 // Clean slate for one account (and its profiles via FK CASCADE): scenarios

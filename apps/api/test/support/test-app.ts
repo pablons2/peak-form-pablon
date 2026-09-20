@@ -14,11 +14,13 @@ import {
 import { AppModule } from "../../src/app.module";
 import { MAILER } from "../../src/auth/domain/ports/mailer.port";
 import { GOOGLE_TOKEN_VERIFIER } from "../../src/auth/domain/ports/google-token-verifier.port";
+import { MEDIA_STORE } from "../../src/exercises/domain/ports/media-store.port";
 import type { UserWithProfiles } from "../../src/auth/domain/ports/user.repository.port";
 import { PrismaService } from "../../src/prisma/prisma.service";
 import {
   FakeGoogleTokenVerifier,
   FakeMailer,
+  FakeMediaStore,
   ProfessionalOnlyProbeController,
 } from "./fakes";
 
@@ -37,11 +39,13 @@ export class AuthTestWorld {
     public readonly prisma: PrismaService,
     public readonly mailer: FakeMailer,
     public readonly google: FakeGoogleTokenVerifier,
+    public readonly mediaStore: FakeMediaStore,
   ) {}
 
   static async boot(): Promise<AuthTestWorld> {
     const mailer = new FakeMailer();
     const google = new FakeGoogleTokenVerifier();
+    const mediaStore = new FakeMediaStore();
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
       controllers: [ProfessionalOnlyProbeController],
@@ -50,6 +54,8 @@ export class AuthTestWorld {
       .useValue(mailer)
       .overrideProvider(GOOGLE_TOKEN_VERIFIER)
       .useValue(google)
+      .overrideProvider(MEDIA_STORE)
+      .useValue(mediaStore)
       .compile();
 
     const app = moduleRef.createNestApplication();
@@ -58,7 +64,13 @@ export class AuthTestWorld {
     app.use(cookieParser());
     await app.init();
 
-    return new AuthTestWorld(app, app.get(PrismaService), mailer, google);
+    return new AuthTestWorld(
+      app,
+      app.get(PrismaService),
+      mailer,
+      google,
+      mediaStore,
+    );
   }
 
   get http() {
@@ -68,9 +80,14 @@ export class AuthTestWorld {
 
   async reset(): Promise<void> {
     this.mailer.sent.length = 0;
+    this.mediaStore.puts.length = 0;
     // users CASCADE covers professional_profiles, client_profiles, audit_logs
-    // (all FK into users).
+    // (all FK into users). exercises CASCADE covers its tag join table and is
+    // also reachable via ownerProfessionalId → users. contraindication_tags
+    // is intentionally NOT truncated — it's migration-seeded reference data
+    // (PRD 05 §6), constant across scenarios like an enum table.
     await this.prisma.$executeRawUnsafe('TRUNCATE TABLE "users" CASCADE');
+    await this.prisma.$executeRawUnsafe('TRUNCATE TABLE "exercises" CASCADE');
     // Reset rate-limit hit counts so each scenario gets a fresh budget —
     // ThrottlerStorageService.storage is the in-memory Map keyed by
     // IP+throttler. (Internal API, but clearing it keeps the real guard

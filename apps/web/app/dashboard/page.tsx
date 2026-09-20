@@ -53,6 +53,21 @@ export default async function DashboardPage() {
             </Link>
           </p>
         ) : null}
+        <p className="mt-4 text-sm">
+          <Link href="/exercises" className="text-accent hover:underline">
+            Biblioteca de exercícios
+          </Link>
+        </p>
+        {session.user.role === "ADMIN" ? (
+          <p className="mt-2 text-sm">
+            <Link
+              href="/admin/exercises"
+              className="text-accent hover:underline"
+            >
+              Revisão de exercícios
+            </Link>
+          </p>
+        ) : null}
         <div className="mt-5">
           <SignOutButton />
         </div>

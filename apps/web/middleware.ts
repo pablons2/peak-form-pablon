@@ -35,5 +35,7 @@ export const config = {
     "/pending-approval",
     "/team/:path*",
     "/clients/:path*",
+    "/exercises/:path*",
+    "/admin/:path*",
   ],
 };
