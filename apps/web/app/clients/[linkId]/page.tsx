@@ -50,6 +50,20 @@ export default async function ClientDetailPage({
         <LinkCard link={link} viewerId={session.user.id!} />
       </ul>
 
+      <p className="text-sm">
+        <Link href={`/clients/${link.id}/intake`} className="text-accent hover:underline">
+          Ver triagem de saúde →
+        </Link>
+      </p>
+
+      {link.specialization === "PERSONAL_TRAINER" ? (
+        <p className="text-sm">
+          <Link href={`/clients/${link.id}/plans`} className="text-accent hover:underline">
+            Ver planos de treino →
+          </Link>
+        </p>
+      ) : null}
+
       <section className="rounded-lg border border-border bg-card p-4">
         <h2 className="text-sm font-medium text-foreground">Check-ins</h2>
         <div className="mt-3">

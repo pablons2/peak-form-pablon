@@ -3,6 +3,9 @@
   "compilerOptions": {
     "module": "CommonJS",
     "moduleResolution": "Node",
+    // Same rationale as packages/validation — node10 is deliberate for the
+    // CJS NestJS build; "5.0" is the value TS 5.9 accepts.
+    "ignoreDeprecations": "5.0",
     "target": "ES2022",
     "outDir": "./dist",
     "baseUrl": "./",

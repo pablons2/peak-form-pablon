@@ -8,3 +8,5 @@
 export * from "./auth/schemas";
 export * from "./relationships/schemas";
 export * from "./exercises/schemas";
+export * from "./intake/schemas";
+export * from "./training-plans/schemas";

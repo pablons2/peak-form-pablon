@@ -1,7 +1,7 @@
-import { Injectable } from "@nestjs/common";
+import { ConflictException, Injectable } from "@nestjs/common";
 import {
   ExerciseVisibility,
-  type Prisma,
+  Prisma,
   type Exercise,
 } from "@prisma/client";
 import { PrismaService } from "../../prisma/prisma.service";
@@ -103,6 +103,22 @@ export class PrismaExerciseRepository implements ExerciseRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await this.prisma.exercise.delete({ where: { id } });
+    try {
+      await this.prisma.exercise.delete({ where: { id } });
+    } catch (error) {
+      // PRD 06 introduced real referencing rows (WeeklyMicrocycleTemplateExercise,
+      // SessionExercise) with the default Restrict FK behavior on purpose —
+      // deleting an exercise a Client's plan/history depends on would corrupt
+      // that record. Surface it as a 409, not an opaque 500.
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2003"
+      ) {
+        throw new ConflictException(
+          "This exercise is used in a training plan and can't be deleted",
+        );
+      }
+      throw error;
+    }
   }
 }

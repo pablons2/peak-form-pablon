@@ -93,6 +93,19 @@ model User {
   /// customs land here too when created through the custom endpoints.
   ownedExercises             Exercise[]              @relation("ExerciseOwner")
 
+  /// PRD 03 — this Client's own versioned intake submissions, and clinical
+  /// notes this Professional authored on (any) Client's intake.
+  intakeAssessments          IntakeAssessment[]       @relation("IntakeClient")
+  professionalAnnotations    ProfessionalAnnotation[] @relation("IntakeAnnotationAuthor")
+
+  /// PRD 06 — plans this user is the Client of, plans this user authored as
+  /// the assigned Professional, and Starter Templates this user authored
+  /// (Professional or Admin) — exactly one of professionalId/authoredById is
+  /// set on a given TrainingPlan (PRD 06 §6).
+  trainingPlansAsClient       TrainingPlan[] @relation("TrainingPlanClient")
+  trainingPlansAsProfessional TrainingPlan[] @relation("TrainingPlanProfessional")
+  authoredTrainingPlans       TrainingPlan[] @relation("TrainingPlanAuthor")
+
   auditLogEntries            AuditLog[]
 
   @@map("users")
@@ -356,6 +369,363 @@ model Exercise {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  /// PRD 06 — prescriptions referencing this exercise, in a weekly template
+  /// or a dated Session. No `onDelete` override (defaults to Restrict): once
+  /// a Client has a plan or logged history built on this exercise, deleting
+  /// it out from under that history would corrupt the record — the delete
+  /// use-cases surface this as a 409, not a 500 (see
+  /// PrismaExerciseRepository.delete).
+  weeklyMicrocycleTemplateExercises WeeklyMicrocycleTemplateExercise[]
+  sessionExercises                  SessionExercise[]
+
   @@index([visibility, ownerProfessionalId])
   @@map("exercises")
+}
+
+
+// --- PRD 03: Onboarding / Intake (Anamnesis + PAR-Q) -----------------------
+
+enum IntakeStatus {
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED_WITH_ACKNOWLEDGEMENT
+}
+
+// Fixed body-map vocabulary for the front/back silhouette picker (PRD 03
+// §5.1/§7). Kept as a DB enum (not free text) so the Domain-layer
+// contraindication rule set (§5.2) can pattern-match deterministically —
+// same rationale as PRD 05's MuscleGroup/Equipment enums. PAR-Q question
+// codes are NOT a DB enum (they key the parqAnswers JSON blob) — they live
+// as a Domain-layer constant instead (src/intake/domain/par-q-questions.ts)
+// so a PT/physiotherapist can revise wording later (§9 open question)
+// without a migration.
+enum BodyRegion {
+  NECK
+  SHOULDER_LEFT
+  SHOULDER_RIGHT
+  UPPER_BACK
+  LOWER_BACK
+  CHEST
+  ABDOMEN
+  HIP_LEFT
+  HIP_RIGHT
+  ELBOW_LEFT
+  ELBOW_RIGHT
+  WRIST_LEFT
+  WRIST_RIGHT
+  KNEE_LEFT
+  KNEE_RIGHT
+  ANKLE_LEFT
+  ANKLE_RIGHT
+}
+
+enum MedicalCondition {
+  DIABETES
+  CARDIOVASCULAR_DISEASE
+  HYPERTENSION
+  ASTHMA_OR_RESPIRATORY
+  PREGNANCY
+  OTHER
+}
+
+enum PainRecency {
+  PAST
+  CURRENT
+}
+
+/// One versioned intake submission (PRD 03 §5.3/§6) — Client-authored fields
+/// only. A new version is started rather than editing a COMPLETED/SKIPPED
+/// row in place (§5.3); ProfessionalAnnotation rows stay tied to whichever
+/// version they were written against, so they're never overwritten by a
+/// later resubmission (§5.4). `contraindicationTagCodes` is derived at
+/// completion/skip time by the Domain-layer rule set (§5.2) from
+/// parqAnswers/painFlags/medicalConditions and only ever references PRD 05's
+/// ContraindicationTag.code vocabulary — this module defines no tags of its
+/// own (base doc §5 resolved coupling).
+model IntakeAssessment {
+  id       String       @id @default(cuid())
+  clientId String
+  client   User         @relation("IntakeClient", fields: [clientId], references: [id], onDelete: Cascade)
+  version  Int
+  status   IntakeStatus @default(IN_PROGRESS)
+
+  /// Keyed by a fixed PAR-Q question code (domain/par-q-questions.ts) →
+  /// boolean answer. Json rather than fixed columns for the same
+  /// revise-without-migration reason the question set isn't a DB enum.
+  parqAnswers Json?
+
+  /// Body-map pain flags (§5.1/§6) — a real related table, not Json, so the
+  /// BodyRegion enum stays genuinely enforced at the DB level and queryable
+  /// (unlike parqAnswers/equipmentAccess, which are free-form enough that
+  /// Json is the better fit, this is exactly the structured, safety-critical
+  /// data the contraindication rule set (§5.2) reads directly).
+  painFlags PainFlag[]
+
+  medicalConditions          MedicalCondition[] @default([])
+  /// Free-text "other" field for the medical-conditions checklist (§5.1) —
+  /// not itemized in §6's field list, added alongside `medications` for the
+  /// same reason PRD 01's User.fullName was: the UX requirement (§5.1's
+  /// "checklist ... with an 'other' free-text field") needs somewhere to live.
+  medicalConditionsOtherNote String?
+  medications                String?
+
+  /// { daysPerWeek: number, sessionDurationMinutes: number }
+  availability Json?
+  /// { location: "HOME"|"GYM", homeEquipment: string[] }
+  equipmentAccess Json?
+
+  contraindicationTagCodes String[] @default([])
+
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  annotations ProfessionalAnnotation[]
+
+  @@unique([clientId, version])
+  @@index([clientId, status])
+  @@map("intake_assessments")
+}
+
+/// One flagged body region on one intake version (PRD 03 §5.1/§6). A version
+/// is finalized (or re-saved) by replacing its whole set — deleteMany+create
+/// in the same transaction, same "set replaces wholesale" pattern PRD 05
+/// uses for Exercise.contraindicationTags.
+model PainFlag {
+  id                 String           @id @default(cuid())
+  intakeAssessmentId String
+  intakeAssessment   IntakeAssessment @relation(fields: [intakeAssessmentId], references: [id], onDelete: Cascade)
+  region             BodyRegion
+  /// 0-10 self-reported pain scale (§5.1).
+  severity           Int
+  pastOrCurrent      PainRecency
+
+  @@index([intakeAssessmentId])
+  @@map("pain_flags")
+}
+
+/// Professional clinical note tied to one specific intake version (PRD 03
+/// §5.4/§6) — its own record, never overwritten by the Client's next
+/// self-reported update.
+model ProfessionalAnnotation {
+  id                 String           @id @default(cuid())
+  intakeAssessmentId String
+  intakeAssessment   IntakeAssessment @relation(fields: [intakeAssessmentId], references: [id], onDelete: Cascade)
+  professionalId     String
+  professional       User             @relation("IntakeAnnotationAuthor", fields: [professionalId], references: [id], onDelete: Cascade)
+  note               String
+  createdAt          DateTime @default(now())
+
+  @@index([intakeAssessmentId])
+  @@map("professional_annotations")
+}
+
+
+// --- PRD 06: Training Plan Builder ------------------------------------------
+
+enum TrainingPlanStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+// Base doc §5.6 / PRD 06 §5.2 lists "goal (free text or enum)" — chosen as an
+// enum for the same reason PRD 05's Difficulty is one: a fixed vocabulary
+// keeps filtering/reporting possible later without free-text drift.
+enum MesocycleGoal {
+  HYPERTROPHY
+  STRENGTH
+  ENDURANCE
+  POWER
+  GENERAL_FITNESS
+  OTHER
+}
+
+enum Weekday {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum SessionStatus {
+  SCHEDULED
+  COMPLETED
+  MISSED
+  CANCELLED
+}
+
+/// The periodized plan root (PRD 06 §6). Exactly one of `professionalId`
+/// (a concrete assignment) or `authoredById` (a Starter Template, §5.8) is
+/// set at all times — enforced in the Application layer (base doc §7.2),
+/// not a DB constraint (Postgres has no portable "exactly one of two
+/// nullable columns" check short of a CHECK expression this schema doesn't
+/// otherwise use). `clientId` follows the same one-or-the-other rule as
+/// `professionalId`: both null together (Starter Template) or both set
+/// together (assigned plan) — a self-assigned-from-template plan (§5.8) is
+/// its own row with `clientId` set and `professionalId` still null,
+/// `authoredById` carried over from the template it was cloned from.
+model TrainingPlan {
+  id             String             @id @default(cuid())
+  clientId       String?
+  client         User?              @relation("TrainingPlanClient", fields: [clientId], references: [id], onDelete: Cascade)
+  professionalId String?
+  professional   User?              @relation("TrainingPlanProfessional", fields: [professionalId], references: [id], onDelete: Cascade)
+  authoredById   String?
+  authoredBy     User?              @relation("TrainingPlanAuthor", fields: [authoredById], references: [id], onDelete: Cascade)
+  name           String
+  startDate      DateTime           @db.Date
+  status         TrainingPlanStatus @default(DRAFT)
+  isStarterTemplate Boolean         @default(false)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  mesocycles Mesocycle[]
+
+  @@index([clientId])
+  @@index([professionalId])
+  @@index([isStarterTemplate])
+  @@map("training_plans")
+}
+
+/// A training block within a plan (PRD 06 §5.2/§6). Deliberately has no
+/// `startDate` of its own — its effective start date is always computed as
+/// `trainingPlan.startDate + sum(weeks of mesocycles with a lower order)`
+/// (§6), so resizing/reordering an earlier mesocycle correctly shifts every
+/// later one without a manual date-patching step. `order` is server-assigned
+/// (next integer after the plan's current max), never client-supplied, so
+/// it stays a total order with no gaps/conflicts to reconcile.
+model Mesocycle {
+  id             String        @id @default(cuid())
+  trainingPlanId String
+  trainingPlan   TrainingPlan  @relation(fields: [trainingPlanId], references: [id], onDelete: Cascade)
+  order          Int
+  weeks          Int
+  goal           MesocycleGoal
+  isDeload       Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  weeklyTemplates WeeklyMicrocycleTemplate[]
+  sessions        Session[]
+
+  @@unique([trainingPlanId, order])
+  @@map("mesocycles")
+}
+
+/// One weekday's prescribed session within a mesocycle (PRD 06 §5.3/§6).
+/// Simplified from §6's literal "weekday → sessionTemplate mapping" wording:
+/// v1 has no cross-weekday template reuse (each weekday owns its own
+/// exercise list outright, even if two weekdays end up identical) — the
+/// indirection of a separately-reusable "SessionTemplate" object isn't
+/// needed for what the UI actually does (fill out each weekday's session
+/// individually) and would only add an unused reuse mechanism. Saving this
+/// (§5.4) generates dated `Session` instances for the mesocycle's span; the
+/// generation is additive-only — it never touches a `date` slot that
+/// already has a generated `Session` row, so re-saving after a Client has
+/// already seen/logged sessions can't silently rewrite them.
+model WeeklyMicrocycleTemplate {
+  id          String    @id @default(cuid())
+  mesocycleId String
+  mesocycle   Mesocycle @relation(fields: [mesocycleId], references: [id], onDelete: Cascade)
+  weekday     Weekday
+  /// Display label for this weekday's session, e.g. "Push Day A".
+  name        String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  exercises WeeklyMicrocycleTemplateExercise[]
+
+  @@unique([mesocycleId, weekday])
+  @@map("weekly_microcycle_templates")
+}
+
+/// One prescribed exercise within a weekday template (PRD 06 §5.5/§6).
+/// `targetRepsMin`/`targetRepsMax` model "reps (or rep range)" as two ints
+/// (max null = a single fixed rep count) rather than a free-text field, to
+/// stay queryable/structured — same reasoning as PRD 03's `PainFlag` being a
+/// real table instead of free-form Json. `targetRpe`/`targetRir` are two
+/// separate nullable fields (mutually exclusive, same pattern as
+/// `targetLoad`/`targetPercent1RM`) rather than one value + a scale-type
+/// enum — RPE and RIR are different scales, so which one is set says which
+/// scale the Professional prescribed in (base doc §3.3 — autoregulated
+/// prescription).
+model WeeklyMicrocycleTemplateExercise {
+  id                         String                   @id @default(cuid())
+  weeklyMicrocycleTemplateId String
+  weeklyMicrocycleTemplate   WeeklyMicrocycleTemplate @relation(fields: [weeklyMicrocycleTemplateId], references: [id], onDelete: Cascade)
+  exerciseId                 String
+  exercise                   Exercise                 @relation(fields: [exerciseId], references: [id])
+  order                      Int
+  targetSets                 Int
+  targetRepsMin              Int
+  targetRepsMax              Int?
+  targetLoad                 Float?
+  targetPercent1RM           Float?
+  targetRpe                  Float?
+  targetRir                  Float?
+  restSeconds                Int?
+  tempo                      String?
+  notes                      String?
+
+  @@index([weeklyMicrocycleTemplateId])
+  @@map("weekly_microcycle_template_exercises")
+}
+
+/// One dated occurrence, auto-generated from a `WeeklyMicrocycleTemplate`
+/// (PRD 06 §5.4/§6). `@@unique([mesocycleId, date])` is what makes
+/// generation idempotent — a slot that already has a row is left untouched.
+/// `status` also carries `MISSED`, which only PRD 07's auto-flag job ever
+/// sets (§6 cross-reference) — this module only ever writes `SCHEDULED` or
+/// `CANCELLED`.
+model Session {
+  id                     String        @id @default(cuid())
+  mesocycleId            String
+  mesocycle              Mesocycle     @relation(fields: [mesocycleId], references: [id], onDelete: Cascade)
+  date                   DateTime      @db.Date
+  /// Set when a Professional moves this session to a different date (§5.4)
+  /// — preserves the template-implied date for audit/history.
+  originalDate           DateTime?     @db.Date
+  status                 SessionStatus @default(SCHEDULED)
+  /// True once this instance's date or exercises were manually edited away
+  /// from what the template would generate (§5.4).
+  overriddenFromTemplate Boolean       @default(false)
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+
+  sessionExercises SessionExercise[]
+
+  @@unique([mesocycleId, date])
+  @@index([mesocycleId, status])
+  @@map("sessions")
+}
+
+/// One exercise within a dated Session (PRD 06 §5.5/§6) — an independent
+/// copy made from `WeeklyMicrocycleTemplateExercise` at generation time, not
+/// a live reference, so editing this one instance (§5.4's "edit exercises"
+/// override) can never affect the template or any other generated session.
+model SessionExercise {
+  id                String   @id @default(cuid())
+  sessionId         String
+  session           Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  exerciseId        String
+  exercise          Exercise @relation(fields: [exerciseId], references: [id])
+  order             Int
+  targetSets        Int
+  targetRepsMin     Int
+  targetRepsMax     Int?
+  targetLoad        Float?
+  targetPercent1RM  Float?
+  targetRpe         Float?
+  targetRir         Float?
+  restSeconds       Int?
+  tempo             String?
+  notes             String?
+
+  @@index([sessionId])
+  @@map("session_exercises")
 }

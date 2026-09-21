@@ -52,8 +52,13 @@ export type DifficultyInput = z.infer<typeof difficultySchema>;
 const exerciseFields = {
   name: z.string().trim().min(2).max(120),
   // Optional: §5.3 doesn't require Professionals to supply media for a
-  // custom exercise. Imported/global records always carry one.
-  mediaUrl: z.string().trim().url().max(2000).nullish(),
+  // custom exercise. Imported/global records always carry one. An empty
+  // string (an untouched form field) normalizes to null rather than failing
+  // URL validation.
+  mediaUrl: z.preprocess(
+    (v) => (v === "" ? null : v),
+    z.string().trim().url().max(2000).nullish(),
+  ),
   muscleGroups: z.array(muscleGroupSchema).min(1).max(12),
   equipment: z.array(equipmentSchema).min(1).max(12),
   difficulty: difficultySchema,

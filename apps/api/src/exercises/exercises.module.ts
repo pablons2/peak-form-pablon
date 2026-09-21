@@ -58,5 +58,10 @@ import { ExercisesController } from "./presentation/exercises.controller";
     PromoteExerciseUseCase,
     ImportExerciseCatalogUseCase,
   ],
+  // PRD 06's Training Plan Builder needs read access to the catalog (the
+  // exercise picker) and each exercise's contraindicationTags (§5.6's
+  // cross-check against a Client's intake profile) — same cross-module
+  // export pattern as PRD 02's LINK_REPOSITORY / PRD 03's INTAKE_REPOSITORY.
+  exports: [EXERCISE_REPOSITORY, CONTRAINDICATION_TAG_REPOSITORY],
 })
 export class ExercisesModule {}

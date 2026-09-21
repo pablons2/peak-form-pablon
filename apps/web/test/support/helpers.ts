@@ -27,6 +27,22 @@ export async function apiPost(
   return { status: res.status, body: await res.json().catch(() => ({})) };
 }
 
+export async function apiPatch(
+  path: string,
+  body: unknown,
+  token: string,
+): Promise<{ status: number; body: Record<string, unknown> }> {
+  const res = await fetch(`${API}${path}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  });
+  return { status: res.status, body: await res.json().catch(() => ({})) };
+}
+
 export async function apiGet(
   path: string,
   token: string,
@@ -156,7 +172,17 @@ export function ensureExerciseCatalog(): void {
 export async function seedCustomExercise(
   professionalEmail: string,
   name: string,
+  contraindicationCodes: string[] = [],
 ): Promise<string> {
+  // Idempotent across reruns: a previous run's exercise may have been
+  // promoted to GLOBAL (owner cleared), in which case deleteUser's cascade
+  // can't reach it — delete by name instead.
+  const repoRoot = path.resolve(process.cwd(), "../..");
+  execSync("docker compose exec -T postgres psql -U peakform -d peakform", {
+    cwd: repoRoot,
+    input: `DELETE FROM exercises WHERE name = '${name.replaceAll("'", "''")}';`,
+    stdio: "pipe",
+  });
   const login = await apiPost("/auth/login", {
     email: professionalEmail,
     password: TEST_PASSWORD,
@@ -170,7 +196,7 @@ export async function seedCustomExercise(
       difficulty: "BEGINNER",
       cues: ["Execute devagar e com controle"],
       mistakes: ["Fazer o movimento rápido demais"],
-      contraindicationCodes: [],
+      contraindicationCodes,
     },
     login.body.accessToken as string,
   );
@@ -180,17 +206,74 @@ export async function seedCustomExercise(
   return res.body.id as string;
 }
 
+// PRD 03 — mirrors apps/api/src/intake/domain/par-q-questions.ts's
+// PARQ_QUESTION_CODES. Duplicated rather than imported (web and api are
+// separate deployable apps — same boundary reason ADMIN_PASSWORD_HASH below
+// is a precomputed literal instead of importing bcrypt).
+const PARQ_QUESTION_CODES = [
+  "HEART_CONDITION",
+  "CHEST_PAIN",
+  "DIZZINESS_BALANCE",
+  "BONE_JOINT_PROBLEM",
+  "BLOOD_PRESSURE_MEDICATION",
+  "OTHER_MEDICAL_REASON",
+];
+
+// Seeds a COMPLETED intake (all readiness questions "no", one CURRENT
+// LOWER_BACK pain flag) through the real API — for scenarios that need an
+// already-finalized intake as a precondition (the Professional review
+// screen) rather than exercising the wizard itself.
+export async function seedCompletedIntake(clientEmail: string): Promise<void> {
+  const login = await apiPost("/auth/login", {
+    email: clientEmail,
+    password: TEST_PASSWORD,
+  });
+  const token = login.body.accessToken as string;
+  const start = await apiPost("/intake", {}, token);
+  const intakeId = start.body.id as string;
+  await apiPatch(
+    `/intake/${intakeId}`,
+    {
+      parqAnswers: Object.fromEntries(PARQ_QUESTION_CODES.map((c) => [c, false])),
+      painFlags: [{ region: "LOWER_BACK", severity: 6, pastOrCurrent: "CURRENT" }],
+    },
+    token,
+  );
+  const complete = await apiPost(`/intake/${intakeId}/complete`, {}, token);
+  if (complete.status !== 200) {
+    throw new Error(`intake completion seed failed: ${complete.status}`);
+  }
+}
+
 export const ADMIN_EMAIL = "bdd.admin@example.com";
 
 // Clean slate for one account (and its profiles via FK CASCADE): scenarios
 // delete only the email they own, so parallel workers never wipe each
 // other's seeded users — and reruns stay idempotent (a previous run's
 // signup/password-reset state for that email never leaks in).
+//
+// PRD 06's WeeklyMicrocycleTemplateExercise/SessionExercise -> Exercise FK is
+// deliberately Restrict (not Cascade — see PrismaExerciseRepository.delete),
+// so `DELETE FROM users` alone can fail with a live FK violation once a
+// prior (possibly failed) run left a training_plans row referencing an
+// exercise this user owns. Sweeping training_plans this user is the
+// client/professional/author of first removes that reference via its own
+// Cascade chain (TrainingPlan -> Mesocycle -> WeeklyMicrocycleTemplate ->
+// ...Exercise rows) before the exercise itself is ever touched.
+// `audit_logs.actorId` is also Restrict (append-only trail, base doc §9) —
+// PRD 06 §5.6's contraindication-override entries are the first thing in
+// this test suite to make a *Professional* test account an audit actor, so
+// this is swept too.
 export function deleteUser(email: string): void {
   const repoRoot = path.resolve(process.cwd(), "../..");
   execSync("docker compose exec -T postgres psql -U peakform -d peakform", {
     cwd: repoRoot,
-    input: `DELETE FROM users WHERE email = '${email}';`,
+    input: `
+DELETE FROM training_plans WHERE "professionalId" IN (SELECT id FROM users WHERE email = '${email}')
+  OR "authoredById" IN (SELECT id FROM users WHERE email = '${email}')
+  OR "clientId" IN (SELECT id FROM users WHERE email = '${email}');
+DELETE FROM audit_logs WHERE "actorId" IN (SELECT id FROM users WHERE email = '${email}');
+DELETE FROM users WHERE email = '${email}';`,
     stdio: "pipe",
   });
 }

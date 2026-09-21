@@ -3,6 +3,10 @@
   "compilerOptions": {
     "module": "CommonJS",
     "moduleResolution": "Node",
+    // node10 resolution is intentional here — this package emits CJS for the
+    // NestJS api to require(). "5.0" (not "6.0") so the repo's own TS 5.9
+    // accepts it; it covers deprecations made before TS 6.
+    "ignoreDeprecations": "5.0",
     "outDir": "./dist",
     "rootDir": "./src",
     "declaration": true
