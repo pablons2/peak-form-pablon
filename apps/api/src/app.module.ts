@@ -14,6 +14,7 @@ import { ClientTrainingExecutionModule } from "./client-training-execution/clien
 import { NutritionModule } from "./nutrition/nutrition.module";
 import { MessagingModule } from "./messaging/messaging.module";
 import { ProductivityModule } from "./productivity/productivity.module";
+import { DashboardModule } from "./dashboard/dashboard.module";
 
 // Feature modules land here as each PRD (docs/prds/01-*.md onward) is
 // implemented — see docs/IMPLEMENTATION_CHECKLIST.md for order.
@@ -38,6 +39,7 @@ import { ProductivityModule } from "./productivity/productivity.module";
     NutritionModule,
     MessagingModule,
     ProductivityModule,
+    DashboardModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

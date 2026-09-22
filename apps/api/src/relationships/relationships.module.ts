@@ -56,6 +56,10 @@ import { LinksController } from "./presentation/links.controller";
   ],
   // Exported so PRD 05's ExerciseAccess can resolve which Professionals a
   // Client is ACTIVELY linked to (private-custom-exercise visibility, §5.3).
-  exports: [LINK_REPOSITORY],
+  // CHECK_IN_SCHEDULE_REPOSITORY is exported too, PRD 09 onward: the
+  // dashboard's "next check-in due" card walks the Client's own active
+  // links -> their ACTIVE schedules directly (a trivial repository read,
+  // the same nextDueAt field PRD 12's CHECK_IN_DUE notification uses).
+  exports: [LINK_REPOSITORY, CHECK_IN_SCHEDULE_REPOSITORY],
 })
 export class RelationshipsModule {}

@@ -37,5 +37,9 @@ import { MessagingController } from "./presentation/messaging.controller";
     // Subscribes to LINK_STATUS_CHANGED on module init.
     LinkStatusChangedListener,
   ],
+  // Exported so PRD 09's DashboardModule can show the Client's own unread
+  // count/preview via the exact same use-case /messaging/threads calls —
+  // the two surfaces can never disagree on what's unread.
+  exports: [ListMyThreadsUseCase],
 })
 export class MessagingModule {}

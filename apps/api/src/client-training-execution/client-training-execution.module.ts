@@ -39,5 +39,10 @@ import { TrainingExecutionController } from "./presentation/training-execution.c
     RunMissedSessionJobUseCase,
     MissedSessionJobService,
   ],
+  // Exported so PRD 09's DashboardModule can reuse the Client's own
+  // "today's session" and "full session history" queries verbatim instead
+  // of re-deriving them — the same numbers the /today and
+  // /training-execution/sessions routes already show.
+  exports: [GetTodaySessionUseCase, ListMySessionsUseCase],
 })
 export class ClientTrainingExecutionModule {}

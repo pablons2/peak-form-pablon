@@ -35,13 +35,22 @@ export const WEEKDAY_LABELS = [
   "Sábado",
 ];
 
+// CheckInSchedule.dueDate/nextDueAt are pure calendar dates — always
+// constructed as UTC midnight (see compute-next-due-date.ts's Date.UTC
+// calls), with no real time-of-day to speak of. Formatting them against
+// America/Sao_Paulo (UTC-3) would shift every value back to the previous
+// day (a UTC-midnight instant is always 21:00 the prior day there) — the
+// same class of bug features/client-training-execution's
+// session-history-list.tsx already avoids for Session.date by pinning to
+// UTC instead. Fixed here (PRD 09) after it surfaced live via the
+// dashboard's checkInDue card, which reuses this same formatter.
 export function formatDate(value: string | null): string {
   if (!value) return "—";
   return new Date(value).toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-    timeZone: "America/Sao_Paulo",
+    timeZone: "UTC",
   });
 }
 

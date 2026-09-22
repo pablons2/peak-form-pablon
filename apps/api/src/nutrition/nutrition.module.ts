@@ -55,5 +55,11 @@ import { NutritionController } from "./presentation/nutrition.controller";
     GetHydrationUseCase,
     GetWeeklyAdherenceSummaryUseCase,
   ],
+  // Exported so PRD 09's DashboardModule can show the Client's own
+  // meals-vs-target Today card via the exact same use-case the
+  // /nutrition/mine/diary route already calls (its `activeTarget` field
+  // already covers what a separate GetMyActiveNutritionPlanUseCase call
+  // would otherwise duplicate).
+  exports: [GetDailyFoodDiaryUseCase],
 })
 export class NutritionModule {}

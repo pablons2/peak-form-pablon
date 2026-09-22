@@ -326,6 +326,105 @@ export class AuthTestWorld {
     });
   }
 
+  // PRD 09 — direct-DB seeders mirroring seedHabit/seedMessageThread's role:
+  // a Session/BodyAssessment/CheckInSchedule is a precondition for the
+  // dashboard's aggregation, not the thing under test (PRD 06/07/04/02's own
+  // suites already exercise the real create/generate/log/complete HTTP
+  // flows end to end). seedTrainingSession creates a throwaway
+  // TrainingPlan+Mesocycle to hang the Session off, since PRD 09's
+  // scenarios only ever care about the Session's own date/status/logs.
+  async seedExercise(opts: { name?: string } = {}) {
+    return this.prisma.exercise.create({
+      data: {
+        name: opts.name ?? "Agachamento livre",
+        muscleGroups: ["QUADRICEPS"],
+        equipment: ["BARBELL"],
+        difficulty: "BEGINNER",
+        cues: ["Desça controlado"],
+        mistakes: ["Perder a lordose lombar"],
+        visibility: "GLOBAL",
+      },
+    });
+  }
+
+  async seedTrainingSession(
+    client: UserWithProfiles,
+    professional: UserWithProfiles,
+    opts: {
+      date: string;
+      status?: "SCHEDULED" | "COMPLETED" | "MISSED" | "CANCELLED";
+      exerciseId?: string;
+      loggedSets?: Array<{ actualReps: number; actualLoad: number | null }>;
+    },
+  ) {
+    const exerciseId = opts.exerciseId ?? (await this.seedExercise()).id;
+    const plan = await this.prisma.trainingPlan.create({
+      data: {
+        clientId: client.id,
+        professionalId: professional.id,
+        name: "Plano de teste",
+        startDate: new Date(`${opts.date}T00:00:00.000Z`),
+        status: "ACTIVE",
+      },
+    });
+    const mesocycle = await this.prisma.mesocycle.create({
+      data: { trainingPlanId: plan.id, order: 1, weeks: 1, goal: "GENERAL_FITNESS" },
+    });
+    const session = await this.prisma.session.create({
+      data: {
+        mesocycleId: mesocycle.id,
+        date: new Date(`${opts.date}T00:00:00.000Z`),
+        status: opts.status ?? "SCHEDULED",
+        sessionExercises: {
+          create: [{ exerciseId, order: 1, targetSets: 3, targetRepsMin: 8 }],
+        },
+      },
+      include: { sessionExercises: true },
+    });
+    for (const [i, log] of (opts.loggedSets ?? []).entries()) {
+      await this.prisma.exerciseLog.create({
+        data: {
+          sessionExerciseId: session.sessionExercises[0]!.id,
+          setNumber: i + 1,
+          actualReps: log.actualReps,
+          actualLoad: log.actualLoad,
+        },
+      });
+    }
+    return session;
+  }
+
+  async seedBodyAssessment(
+    clientId: string,
+    opts: { weight: number; recordedAt: string },
+  ) {
+    return this.prisma.bodyAssessment.create({
+      data: {
+        clientId,
+        source: "SELF_REPORTED",
+        weight: opts.weight,
+        recordedAt: new Date(`${opts.recordedAt}T00:00:00.000Z`),
+      },
+    });
+  }
+
+  async seedCheckInSchedule(
+    link: { id: string },
+    createdById: string,
+    opts: { nextDueAt: string; status?: "ACTIVE" | "FIRED" | "CANCELLED" },
+  ) {
+    return this.prisma.checkInSchedule.create({
+      data: {
+        linkId: link.id,
+        type: "ONE_OFF",
+        dueDate: new Date(`${opts.nextDueAt}T00:00:00.000Z`),
+        nextDueAt: new Date(`${opts.nextDueAt}T00:00:00.000Z`),
+        status: opts.status ?? "ACTIVE",
+        createdById,
+      },
+    });
+  }
+
   private async seedUser(input: {
     email: string;
     fullName: string;

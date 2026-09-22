@@ -44,5 +44,9 @@ import { TodayController } from "./presentation/today.controller";
 
     GetTodayUseCase,
   ],
+  // Exported so PRD 09's DashboardModule can drop this exact use-case into
+  // its own "Today" composition (built self-contained specifically for
+  // this, per this file's own get-today.use-case.ts comment).
+  exports: [GetTodayUseCase],
 })
 export class ProductivityModule {}
