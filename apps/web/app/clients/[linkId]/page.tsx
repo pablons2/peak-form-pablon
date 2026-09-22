@@ -64,6 +64,40 @@ export default async function ClientDetailPage({
         </p>
       ) : null}
 
+      {link.specialization === "PERSONAL_TRAINER" ? (
+        <p className="text-sm">
+          <Link
+            href={`/clients/${link.id}/training-execution`}
+            className="text-accent hover:underline"
+          >
+            Ver execução dos treinos →
+          </Link>
+        </p>
+      ) : null}
+
+      <p className="text-sm">
+        <Link
+          href={`/clients/${link.id}/body-assessments`}
+          className="text-accent hover:underline"
+        >
+          Ver avaliação corporal →
+        </Link>
+      </p>
+
+      {link.specialization === "NUTRITIONIST" ? (
+        <p className="text-sm">
+          <Link href={`/clients/${link.id}/nutrition`} className="text-accent hover:underline">
+            Ver nutrição →
+          </Link>
+        </p>
+      ) : null}
+
+      <p className="text-sm">
+        <Link href={`/messages/with/${link.client.id}`} className="text-accent hover:underline">
+          Ver mensagens →
+        </Link>
+      </p>
+
       <section className="rounded-lg border border-border bg-card p-4">
         <h2 className="text-sm font-medium text-foreground">Check-ins</h2>
         <div className="mt-3">

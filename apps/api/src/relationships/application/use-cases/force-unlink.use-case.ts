@@ -7,6 +7,12 @@ import {
 import { LinkStatus } from "@prisma/client";
 import { AuditLogService } from "../../../shared/audit-log/audit-log.service";
 import {
+  DOMAIN_EVENT_BUS,
+  LINK_STATUS_CHANGED,
+  type DomainEventBus,
+  type LinkStatusChangedPayload,
+} from "../../../shared/domain-events/domain-event-bus.port";
+import {
   CHECK_IN_SCHEDULE_REPOSITORY,
   type CheckInScheduleRepository,
 } from "../../domain/ports/check-in-schedule.repository.port";
@@ -26,6 +32,7 @@ export class ForceUnlinkUseCase {
     @Inject(CHECK_IN_SCHEDULE_REPOSITORY)
     private readonly schedules: CheckInScheduleRepository,
     private readonly auditLog: AuditLogService,
+    @Inject(DOMAIN_EVENT_BUS) private readonly events: DomainEventBus,
   ) {}
 
   async execute(input: { adminId: string; linkId: string }) {
@@ -54,6 +61,15 @@ export class ForceUnlinkUseCase {
         specialization: link.specialization,
       },
     });
+
+    // PRD 11 §5.3 — same read-only transition as a party-initiated unlink.
+    const payload: LinkStatusChangedPayload = {
+      linkId: unlinked.id,
+      professionalId: unlinked.professionalId,
+      clientId: unlinked.clientId,
+      status: "UNLINKED",
+    };
+    await this.events.emit({ name: LINK_STATUS_CHANGED, payload });
 
     return unlinked;
   }

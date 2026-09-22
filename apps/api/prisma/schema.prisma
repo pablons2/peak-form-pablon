@@ -106,6 +106,24 @@ model User {
   trainingPlansAsProfessional TrainingPlan[] @relation("TrainingPlanProfessional")
   authoredTrainingPlans       TrainingPlan[] @relation("TrainingPlanAuthor")
 
+  /// PRD 04 — this Client's own append-only measurement history, and formal
+  /// assessments this Professional/Admin validated on (any) Client's history.
+  bodyAssessments          BodyAssessment[] @relation("BodyAssessmentClient")
+  validatedBodyAssessments BodyAssessment[] @relation("BodyAssessmentValidator")
+
+  /// PRD 08 — this Client's own nutrition targets/food diary/hydration, and
+  /// plans this Nutritionist authored/confirmed for (any) Client.
+  nutritionPlansAsClient       NutritionPlan[]   @relation("NutritionPlanClient")
+  nutritionPlansAsNutritionist NutritionPlan[]   @relation("NutritionPlanNutritionist")
+  foodDiaryEntries             FoodDiaryEntry[]  @relation("FoodDiaryEntryClient")
+  hydrationLogs                HydrationLog[]    @relation("HydrationLogClient")
+
+  /// PRD 11 — message threads this user is a party to (one side or the
+  /// other), and messages this user sent across any thread.
+  messageThreadsAsProfessional MessageThread[] @relation("MessageThreadProfessional")
+  messageThreadsAsClient       MessageThread[] @relation("MessageThreadClient")
+  sentMessages                 Message[]       @relation("MessageSender")
+
   auditLogEntries            AuditLog[]
 
   @@map("users")
@@ -726,6 +744,307 @@ model SessionExercise {
   tempo             String?
   notes             String?
 
+  exerciseLogs ExerciseLog[]
+
   @@index([sessionId])
   @@map("session_exercises")
+}
+
+
+// --- PRD 04: Body Assessment ------------------------------------------------
+
+enum BodyAssessmentSource {
+  SELF_REPORTED
+  PROFESSIONAL_VALIDATED
+}
+
+enum BodyFatSource {
+  COMPUTED_POLLOCK7
+  MANUAL_OVERRIDE
+}
+
+// §5.2's "structured goal type" — a real scalar column, so a genuine Prisma
+// enum (unlike circumferences/skinfolds/postureScreening below, which stay
+// Json and are validated by packages/validation's zod schemas only, since
+// none of their sub-fields need to be a real Prisma column type anywhere
+// else — that's what makes the PRD 03 "BodyRegion silently omitted from
+// @prisma/client because it was only ever referenced inside a Json field"
+// trap not apply here: we simply never declare a DB enum for a value that's
+// only ever nested inside Json).
+enum BodyAssessmentGoalType {
+  WEIGHT_LOSS
+  MUSCLE_GAIN
+  RECOMPOSITION
+  PERFORMANCE
+  REHABILITATION
+  OTHER
+}
+
+/// Append-only clinical measurement history (PRD 04 §5.4/§6). Enforced at the
+/// repository layer (base doc §7.2), not a DB trigger — BodyAssessmentRepository
+/// (apps/api/src/body-assessments/domain/ports) exposes no update/delete
+/// method at all, so a misuse would be a compile error, not a runtime check.
+/// `circumferences`/`skinfolds`/`postureScreening`/`photos` are Json per PRD
+/// 04 §6's own field-list formatting — see the BodyAssessmentGoalType comment
+/// above for why that's safe here (none of their sub-fields are DB enums).
+/// `photos` stores object-storage *keys* only (`[{ key, tag }]`), never a
+/// URL — signed, time-limited GET URLs are minted at serialize time (§5.7).
+model BodyAssessment {
+  id            String               @id @default(cuid())
+  clientId      String
+  client        User                 @relation("BodyAssessmentClient", fields: [clientId], references: [id], onDelete: Cascade)
+  source        BodyAssessmentSource
+  validatedById String?
+  validatedBy   User?                @relation("BodyAssessmentValidator", fields: [validatedById], references: [id], onDelete: SetNull)
+  recordedAt    DateTime             @default(now())
+  /// "pollock7-v1" (§5.6) for PROFESSIONAL_VALIDATED rows; null for
+  /// SELF_REPORTED (no protocol applies to a quick weight log).
+  protocolVersion String?
+
+  weight Float
+  height Float?
+  bmi    Float?
+
+  /// { neck, chest, waist, hip, armRelaxed, armFlexed, thigh, calf, bilateral? } (cm)
+  circumferences Json?
+  waistHipRatio  Float?
+  /// { chest, midaxillary, triceps, subscapular, abdominal, suprailiac, thigh } (mm)
+  skinfolds        Json?
+  bodyFatPercent   Float?
+  bodyFatSource    BodyFatSource?
+  /// Required by the Application-layer rule whenever bodyFatSource is
+  /// MANUAL_OVERRIDE (§5.2) — enforced by packages/validation's zod schema,
+  /// not a DB constraint (same "conditional requirement lives above the DB"
+  /// pattern as this codebase's other modules).
+  bodyFatOverrideNote String?
+  /// Structured posture-screening checklist (§5.2) — string-literal fields,
+  /// validated by zod, not DB enums (see model-level comment above).
+  postureScreening Json?
+  photos           Json?
+
+  goalType        BodyAssessmentGoalType?
+  goalTargetValue Float?
+  goalTargetDate  DateTime?               @db.Date
+  goalNote        String?
+
+  /// Optional free-text note on a SELF_REPORTED entry (§5.1) — distinct from
+  /// goalNote, which only applies to a formal assessment's goal section.
+  note String?
+
+  createdAt DateTime @default(now())
+
+  @@index([clientId, recordedAt])
+  @@map("body_assessments")
+}
+
+// --- PRD 07: Client Training Execution ---------------------------------------
+
+/// One logged set of an exercise, recorded by the Client against one dated
+/// Session (§5.2/§6). `setNumber` is server-assigned — the count of existing
+/// logs for this `sessionExerciseId` plus one — so the Client's UI is just
+/// "log the next set", no manual numbering. `loggedAt` is the real-world
+/// moment it was recorded, deliberately independent of the parent
+/// `Session.date`: a Client logging Monday's session on Tuesday (§5.4 "late
+/// logging") must never be conflated with the session's target date, or
+/// adherence reporting couldn't tell the two apart.
+///
+/// `sessionExerciseId`'s FK is the Prisma-default Restrict (left unset) —
+/// the same "logged history outlives a later edit" precedent as
+/// `WeeklyMicrocycleTemplateExercise`/`SessionExercise` → `Exercise` (PRD 06
+/// §6): a Professional replacing a Session's exercises (PRD 06 §5.4,
+/// `ReplaceSessionExercisesUseCase`, which wipes and recreates
+/// `SessionExercise` rows) must never be able to silently destroy a
+/// Client's already-logged performance by deleting the row it's attached
+/// to. `PrismaSessionRepository.replaceExercises` now catches that FK's
+/// P2003 and surfaces a 409 instead — found while verifying this phase live
+/// (see the Phase 9 checklist note).
+model ExerciseLog {
+  id                String          @id @default(cuid())
+  sessionExerciseId String
+  sessionExercise   SessionExercise @relation(fields: [sessionExerciseId], references: [id])
+  setNumber         Int
+  actualReps        Int
+  actualLoad        Float?
+  actualRpeOrRir    Float?
+  note              String?
+  loggedAt          DateTime        @default(now())
+
+  @@unique([sessionExerciseId, setNumber])
+  @@index([sessionExerciseId])
+  @@map("exercise_logs")
+}
+
+// --- PRD 08: Nutrition Module ------------------------------------------------
+
+enum NutritionPlanStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+/// §5.1/§5.2 — a calorie/macro target. Created as DRAFT by the
+/// Mifflin-St-Jeor estimate (system- or Nutritionist-triggered); never
+/// visible to the Client, never touched by any background job, until a
+/// Nutritionist explicitly confirms it (ACTIVE + confirmedByProfessionalAt
+/// set in the same write — §3's Non-Goal: no code path may set one without
+/// the other). A Client-facing query must filter to ACTIVE only; this is
+/// enforced in the Application layer (NutritionAccess/serializer), not the
+/// schema — same "conditional/visibility rule lives above the DB" pattern
+/// this codebase uses throughout (e.g. PRD 04's bodyFatOverrideNote).
+model NutritionPlan {
+  id                       String              @id @default(cuid())
+  clientId                 String
+  client                   User                @relation("NutritionPlanClient", fields: [clientId], references: [id], onDelete: Cascade)
+  nutritionistId           String
+  nutritionist             User                @relation("NutritionPlanNutritionist", fields: [nutritionistId], references: [id], onDelete: Cascade)
+  calorieTarget            Int
+  /// { protein, carbs, fat } in grams.
+  macroTargets             Json
+  status                   NutritionPlanStatus @default(DRAFT)
+  confirmedByProfessionalAt DateTime?
+  /// §5.2's optional structured meal plan — meal slots with suggested
+  /// foods, Nutritionist-authored. Nullable Json rather than a child table:
+  /// it's an optional, wholly-replaced-on-edit attachment with no field
+  /// that needs to be queried/joined on its own, unlike e.g. skinfolds'
+  /// per-site structure.
+  mealPlan                 Json?
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+
+  @@index([clientId, status])
+  @@map("nutrition_plans")
+}
+
+enum MealSlot {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
+/// §5.3/§6 — one logged food entry. `nutrientsSnapshot` is a full copy of
+/// the resolved FoodItemCache entry's nutrients *at log time*, deliberately
+/// duplicated rather than joined — a later correction to the cache row (a
+/// re-fetch, a manual fix) must never retroactively change what a historical
+/// entry displays (§10 AC, "snapshot immutability").
+model FoodDiaryEntry {
+  id                String   @id @default(cuid())
+  clientId          String
+  client            User     @relation("FoodDiaryEntryClient", fields: [clientId], references: [id], onDelete: Cascade)
+  foodItemCacheId   String?
+  foodItemCache     FoodItemCache? @relation(fields: [foodItemCacheId], references: [id])
+  /// Free-text label for a manual-entry fallback (no matching cache row —
+  /// e.g. Open Food Facts "not found", §5.3/§7).
+  customFoodName    String?
+  quantity          Float
+  mealSlot          MealSlot
+  loggedAt          DateTime @default(now())
+  /// { calories, protein, carbs, fat } for the logged quantity — captured at
+  /// log time, see model comment above.
+  nutrientsSnapshot Json
+
+  @@index([clientId, loggedAt])
+  @@map("food_diary_entries")
+}
+
+enum FoodSource {
+  OPEN_FOOD_FACTS
+  USDA
+  CUSTOM
+}
+
+/// §5.3/§6 — the normalization layer both external food APIs write through
+/// (base doc §7.5 caching architecture), so a Client's search/scan
+/// experience doesn't depend on live third-party latency after the first
+/// lookup. Unique on (source, externalId) so a repeat lookup of the same
+/// barcode/fdcId hits the cache instead of duplicating a row — same
+/// idempotency reasoning as PRD 05's Exercise import keying on sourceApiId.
+model FoodItemCache {
+  id         String     @id @default(cuid())
+  source     FoodSource
+  externalId String
+  name       String
+  /// Per-100g (Open Food Facts) or per-serving (USDA) — { calories, protein,
+  /// carbs, fat } plus whichever basis applies; the normalization adapter
+  /// records which so a diary entry's quantity math stays correct.
+  nutrients  Json
+  fetchedAt  DateTime   @default(now())
+
+  diaryEntries FoodDiaryEntry[]
+
+  @@unique([source, externalId])
+  @@map("food_item_cache")
+}
+
+/// §5.4 — one Client's water-intake count for one calendar day. A simple
+/// per-day upsertable row (not a per-glass event log) — the PRD only asks
+/// for a running daily counter, not a timestamped history of each glass.
+model HydrationLog {
+  id       String   @id @default(cuid())
+  clientId String
+  client   User     @relation("HydrationLogClient", fields: [clientId], references: [id], onDelete: Cascade)
+  date     DateTime @db.Date
+  /// Count of logged units (e.g. 250ml glasses) for this day.
+  amount   Int      @default(0)
+
+  @@unique([clientId, date])
+  @@map("hydration_logs")
+}
+
+// --- PRD 11: Messaging ----------------------------------------------------
+
+enum MessageThreadStatus {
+  ACTIVE
+  READ_ONLY
+}
+
+/// PRD 11 §6 — a real, explicit entity with its own id (the "no separate
+/// setup step" language in §5.1 describes the UX, not the data model).
+/// Created (or synced) the moment the underlying ProfessionalClientLink
+/// (PRD 02) becomes ACTIVE or UNLINKED, via the LINK_STATUS_CHANGED domain
+/// event RelationshipsModule emits — see
+/// relationships/application/use-cases/{accept-link,unlink,force-unlink}
+/// .use-case.ts and messaging/infrastructure/link-status-changed-listener
+/// .service.ts. Keyed on the (professionalId, clientId) pair, not the link
+/// row or its specialization — §5.1's "a Client linked to both a PT and a
+/// Nutritionist gets two independent threads, one per Professional" falls
+/// out naturally from a pair-level unique constraint rather than needing
+/// special-casing per specialization.
+model MessageThread {
+  id             String              @id @default(cuid())
+  professionalId String
+  professional   User                @relation("MessageThreadProfessional", fields: [professionalId], references: [id], onDelete: Cascade)
+  clientId       String
+  client         User                @relation("MessageThreadClient", fields: [clientId], references: [id], onDelete: Cascade)
+  status         MessageThreadStatus @default(ACTIVE)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  messages Message[]
+
+  @@unique([professionalId, clientId])
+  @@map("message_threads")
+}
+
+/// PRD 11 §6/§5.4 — plain text only; the API stores/returns the raw string
+/// as-is, the never-render-raw-HTML discipline is a frontend rendering rule
+/// (React's default text rendering already escapes everything — the real
+/// risk is only introduced if a future change adds
+/// dangerouslySetInnerHTML). `attachments` is reserved, unused in v1 (§8
+/// fast-follow). `readAt` is nullable and unambiguous because a thread
+/// always has exactly one other party — it's set when that other party
+/// reads the message, never the sender's own.
+model Message {
+  id          String        @id @default(cuid())
+  threadId    String
+  thread      MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  senderId    String
+  sender      User          @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  body        String
+  attachments Json          @default("[]")
+  sentAt      DateTime      @default(now())
+  readAt      DateTime?
+
+  @@index([threadId, sentAt])
+  @@map("messages")
 }

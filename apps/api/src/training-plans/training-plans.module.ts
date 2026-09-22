@@ -71,6 +71,10 @@ import { TrainingPlansController } from "./presentation/training-plans.controlle
   ],
   // Exported so PRD 07 (Client Training Execution — consumes generated
   // Sessions) and PRD 12 ("plan updated" trigger) can depend on this module.
-  exports: [TRAINING_PLAN_REPOSITORY, SESSION_REPOSITORY],
+  // TrainingPlanAccess is exported too, Phase 9 onward: its
+  // requirePlanForSession ownership walk (Session -> Mesocycle ->
+  // TrainingPlan.clientId) is exactly what PRD 07's Client-self checks need,
+  // and duplicating that walk in a second module would drift.
+  exports: [TRAINING_PLAN_REPOSITORY, SESSION_REPOSITORY, TrainingPlanAccess],
 })
 export class TrainingPlansModule {}

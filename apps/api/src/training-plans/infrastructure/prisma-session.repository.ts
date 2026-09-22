@@ -1,5 +1,5 @@
-import { Injectable } from "@nestjs/common";
-import { SessionStatus, type Prisma } from "@prisma/client";
+import { ConflictException, Injectable } from "@nestjs/common";
+import { Prisma, SessionStatus } from "@prisma/client";
 import { PrismaService } from "../../prisma/prisma.service";
 import type { WeeklyTemplateExerciseWriteData } from "../domain/ports/training-plan.repository.port";
 import type {
@@ -85,16 +85,72 @@ export class PrismaSessionRepository implements SessionRepository {
     id: string,
     exercises: WeeklyTemplateExerciseWriteData[],
   ): Promise<SessionWithExercises> {
-    await this.prisma.$transaction([
-      this.prisma.sessionExercise.deleteMany({ where: { sessionId: id } }),
-      this.prisma.session.update({
-        where: { id },
-        data: {
-          overriddenFromTemplate: true,
-          sessionExercises: { create: exercises },
-        },
-      }),
-    ]);
+    try {
+      await this.prisma.$transaction([
+        this.prisma.sessionExercise.deleteMany({ where: { sessionId: id } }),
+        this.prisma.session.update({
+          where: { id },
+          data: {
+            overriddenFromTemplate: true,
+            sessionExercises: { create: exercises },
+          },
+        }),
+      ]);
+    } catch (error) {
+      // PRD 07 §6 — ExerciseLog.sessionExerciseId is the Prisma-default
+      // Restrict, deliberately: a Client's already-logged performance for
+      // this Session must never be silently deleted just because a
+      // Professional edited the day's exercises afterward. Surface the
+      // conflict, same "409 instead of a raw 500" precedent
+      // PrismaExerciseRepository.delete established for Exercise deletion.
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2003"
+      ) {
+        throw new ConflictException(
+          "This session already has logged performance and its exercises can't be replaced",
+        );
+      }
+      throw error;
+    }
     return (await this.findById(id))!;
+  }
+
+  findByClientAndDate(clientId: string, date: Date): Promise<SessionWithExercises | null> {
+    return this.prisma.session.findFirst({
+      where: { date, mesocycle: { trainingPlan: { clientId } } },
+      include: WITH_EXERCISES,
+    });
+  }
+
+  listForClient(clientId: string): Promise<SessionWithExercises[]> {
+    return this.prisma.session.findMany({
+      where: { mesocycle: { trainingPlan: { clientId } } },
+      include: WITH_EXERCISES,
+      orderBy: { date: "desc" },
+    });
+  }
+
+  findScheduledPastDue(before: Date): Promise<SessionWithExercises[]> {
+    return this.prisma.session.findMany({
+      where: { status: SessionStatus.SCHEDULED, date: { lt: before } },
+      include: WITH_EXERCISES,
+    });
+  }
+
+  markMissed(id: string): Promise<SessionWithExercises> {
+    return this.prisma.session.update({
+      where: { id },
+      data: { status: SessionStatus.MISSED },
+      include: WITH_EXERCISES,
+    });
+  }
+
+  markCompleted(id: string): Promise<SessionWithExercises> {
+    return this.prisma.session.update({
+      where: { id },
+      data: { status: SessionStatus.COMPLETED },
+      include: WITH_EXERCISES,
+    });
   }
 }

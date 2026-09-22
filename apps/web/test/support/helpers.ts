@@ -93,14 +93,14 @@ export async function seedClient(email: string): Promise<void> {
 
 export async function seedProfessional(
   email: string,
-  opts: { approved?: boolean } = {},
+  opts: { approved?: boolean; specializations?: ("PERSONAL_TRAINER" | "NUTRITIONIST")[] } = {},
 ): Promise<string> {
   deleteUser(email);
   const signup = await apiPost("/auth/signup/professional", {
     email,
     password: TEST_PASSWORD,
     fullName: "BDD Professional",
-    specializations: ["PERSONAL_TRAINER"],
+    specializations: opts.specializations ?? ["PERSONAL_TRAINER"],
     verificationNote: "CREF 12345-G/SP",
   });
   if (signup.status !== 201) {
@@ -245,6 +245,153 @@ export async function seedCompletedIntake(clientEmail: string): Promise<void> {
   }
 }
 
+// PRD 07 — seeds a plan/mesocycle/weekly-template through the real API whose
+// generated Session lands exactly on today's real date (UTC), so the
+// Client's actual "/today" page (which always resolves against the real
+// clock, not a fixture) has something to show. Mirrors
+// apps/api's own client-training-execution BDD date math.
+const WEEKDAYS = [
+  "SUNDAY",
+  "MONDAY",
+  "TUESDAY",
+  "WEDNESDAY",
+  "THURSDAY",
+  "FRIDAY",
+  "SATURDAY",
+];
+function todayUTC(): Date {
+  const n = new Date();
+  return new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate()));
+}
+function isoDate(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+export async function seedPlanWithTodaySession(
+  professionalEmail: string,
+  clientEmail: string,
+  exerciseId: string,
+  opts: { targetSets?: number } = {},
+): Promise<{ sessionId: string }> {
+  // PRD 06 §5.1 — plan creation is gated on the Client's intake being
+  // finalized. This module's own scenarios aren't testing that gate (PRD
+  // 06's suite already does), so it's satisfied here as an implementation
+  // detail of "getting to a session that exists" rather than a step every
+  // .feature scenario has to spell out.
+  await seedCompletedIntake(clientEmail);
+  const proLogin = await apiPost("/auth/login", {
+    email: professionalEmail,
+    password: TEST_PASSWORD,
+  });
+  const proToken = proLogin.body.accessToken as string;
+  const clientLogin = await apiPost("/auth/login", {
+    email: clientEmail,
+    password: TEST_PASSWORD,
+  });
+  const clientRes = await apiGet("/auth/me", clientLogin.body.accessToken as string);
+  const today = todayUTC();
+  const plan = await apiPost(
+    "/training-plans",
+    { clientId: clientRes.body.id, name: "Plano BDD", startDate: isoDate(today) },
+    proToken,
+  );
+  const planId = plan.body.id as string;
+  const meso = await apiPost(
+    `/training-plans/${planId}/mesocycles`,
+    { weeks: 1, goal: "GENERAL_FITNESS", isDeload: false },
+    proToken,
+  );
+  const mesocycleId = meso.body.id as string;
+  await apiPost(
+    `/mesocycles/${mesocycleId}/weekly-template`,
+    {
+      entries: [
+        {
+          weekday: WEEKDAYS[today.getUTCDay()],
+          name: "Treino",
+          exercises: [
+            {
+              exerciseId,
+              order: 1,
+              targetSets: opts.targetSets ?? 3,
+              targetRepsMin: 8,
+              targetRepsMax: 10,
+              restSeconds: 90,
+            },
+          ],
+        },
+      ],
+    },
+    proToken,
+  );
+  const sessions = await apiGet(`/mesocycles/${mesocycleId}/sessions`, proToken);
+  const sessionId = (sessions.body as unknown as { id: string }[])[0]?.id;
+  if (!sessionId) throw new Error("today's session was not generated");
+  return { sessionId };
+}
+
+// PRD 08 §5.1 — the Mifflin-St Jeor draft needs a body assessment on file;
+// seeded through the real formal-assessment API as Admin (bypasses the
+// ACTIVE-link check entirely, PRD 04 §4's Admin row), the same way this
+// module's own API-level BDD suite does it — simplest path to "has a body
+// assessment" without also standing up a PERSONAL_TRAINER/NUTRITIONIST link
+// first.
+export async function seedBodyAssessment(clientId: string): Promise<void> {
+  const adminToken = await adminLogin();
+  const res = await apiPost(
+    `/body-assessments/clients/${clientId}/formal`,
+    { weight: 75, height: 178 },
+    adminToken,
+  );
+  if (res.status !== 201) {
+    throw new Error(`body assessment seed failed: ${res.status}`);
+  }
+}
+
+// PRD 08 §5.1/§5.2 — seeds an ACTIVE NUTRITIONIST link + body assessment +
+// a confirmed (ACTIVE) nutrition target through the real API, for scenarios
+// that need an existing confirmed target as a precondition rather than
+// exercising the draft/confirm flow itself (already covered by the
+// "Nutritionist confirms a draft" scenario in this same suite).
+export async function seedConfirmedNutritionTarget(
+  professionalEmail: string,
+  clientEmail: string,
+  calorieTarget = 2000,
+): Promise<void> {
+  await seedProfessional(professionalEmail, {
+    approved: true,
+    specializations: ["NUTRITIONIST"],
+  });
+  await seedClient(clientEmail);
+  const clientLogin = await apiPost("/auth/login", {
+    email: clientEmail,
+    password: TEST_PASSWORD,
+  });
+  const clientRes = await apiGet("/auth/me", clientLogin.body.accessToken as string);
+  await seedBodyAssessment(clientRes.body.id as string);
+  await seedActiveLink(professionalEmail, clientEmail, "NUTRITIONIST");
+
+  const proLogin = await apiPost("/auth/login", {
+    email: professionalEmail,
+    password: TEST_PASSWORD,
+  });
+  const proToken = proLogin.body.accessToken as string;
+  const draft = await apiPost(
+    `/nutrition/clients/${clientRes.body.id}/draft`,
+    {},
+    proToken,
+  );
+  const planId = draft.body.id as string;
+  const confirm = await apiPost(
+    `/nutrition/plans/${planId}/confirm`,
+    { calorieTarget, macroTargets: { protein: 150, carbs: 200, fat: 65 } },
+    proToken,
+  );
+  if (confirm.status !== 200) {
+    throw new Error(`nutrition target confirm seed failed: ${confirm.status}`);
+  }
+}
+
 export const ADMIN_EMAIL = "bdd.admin@example.com";
 
 // Clean slate for one account (and its profiles via FK CASCADE): scenarios
@@ -264,11 +411,29 @@ export const ADMIN_EMAIL = "bdd.admin@example.com";
 // PRD 06 §5.6's contraindication-override entries are the first thing in
 // this test suite to make a *Professional* test account an audit actor, so
 // this is swept too.
+//
+// PRD 07 adds the same problem one hop deeper: `exercise_logs.sessionExerciseId`
+// is also Restrict (deliberately — see prd07's schema comment: a Professional
+// editing a Session's exercises must not silently destroy a Client's already
+// -logged performance). Once any scenario logs a set, deleting that user's
+// `training_plans` row would try to cascade-delete its `session_exercises`
+// rows while a Restrict `exercise_logs` row still points at one, hard-failing
+// the whole sweep — so the logs are swept first, before the plan sweep ever
+// reaches the sessions they're attached to.
 export function deleteUser(email: string): void {
   const repoRoot = path.resolve(process.cwd(), "../..");
   execSync("docker compose exec -T postgres psql -U peakform -d peakform", {
     cwd: repoRoot,
     input: `
+DELETE FROM exercise_logs WHERE "sessionExerciseId" IN (
+  SELECT se.id FROM session_exercises se
+  JOIN sessions s ON s.id = se."sessionId"
+  JOIN mesocycles m ON m.id = s."mesocycleId"
+  JOIN training_plans tp ON tp.id = m."trainingPlanId"
+  WHERE tp."professionalId" IN (SELECT id FROM users WHERE email = '${email}')
+     OR tp."authoredById" IN (SELECT id FROM users WHERE email = '${email}')
+     OR tp."clientId" IN (SELECT id FROM users WHERE email = '${email}')
+);
 DELETE FROM training_plans WHERE "professionalId" IN (SELECT id FROM users WHERE email = '${email}')
   OR "authoredById" IN (SELECT id FROM users WHERE email = '${email}')
   OR "clientId" IN (SELECT id FROM users WHERE email = '${email}');

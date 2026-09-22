@@ -15,12 +15,20 @@ import { AppModule } from "../../src/app.module";
 import { MAILER } from "../../src/auth/domain/ports/mailer.port";
 import { GOOGLE_TOKEN_VERIFIER } from "../../src/auth/domain/ports/google-token-verifier.port";
 import { MEDIA_STORE } from "../../src/exercises/domain/ports/media-store.port";
+import { SIGNED_MEDIA_STORE } from "../../src/body-assessments/domain/ports/signed-media-store.port";
+import {
+  OPEN_FOOD_FACTS_CLIENT,
+  USDA_FOOD_DATA_CLIENT,
+} from "../../src/nutrition/domain/ports/food-lookup.port";
 import type { UserWithProfiles } from "../../src/auth/domain/ports/user.repository.port";
 import { PrismaService } from "../../src/prisma/prisma.service";
 import {
   FakeGoogleTokenVerifier,
   FakeMailer,
   FakeMediaStore,
+  FakeOpenFoodFactsClient,
+  FakeSignedMediaStore,
+  FakeUsdaFoodDataClient,
   ProfessionalOnlyProbeController,
 } from "./fakes";
 
@@ -40,12 +48,18 @@ export class AuthTestWorld {
     public readonly mailer: FakeMailer,
     public readonly google: FakeGoogleTokenVerifier,
     public readonly mediaStore: FakeMediaStore,
+    public readonly signedMediaStore: FakeSignedMediaStore,
+    public readonly openFoodFacts: FakeOpenFoodFactsClient,
+    public readonly usda: FakeUsdaFoodDataClient,
   ) {}
 
   static async boot(): Promise<AuthTestWorld> {
     const mailer = new FakeMailer();
     const google = new FakeGoogleTokenVerifier();
     const mediaStore = new FakeMediaStore();
+    const signedMediaStore = new FakeSignedMediaStore();
+    const openFoodFacts = new FakeOpenFoodFactsClient();
+    const usda = new FakeUsdaFoodDataClient();
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
       controllers: [ProfessionalOnlyProbeController],
@@ -56,6 +70,12 @@ export class AuthTestWorld {
       .useValue(google)
       .overrideProvider(MEDIA_STORE)
       .useValue(mediaStore)
+      .overrideProvider(SIGNED_MEDIA_STORE)
+      .useValue(signedMediaStore)
+      .overrideProvider(OPEN_FOOD_FACTS_CLIENT)
+      .useValue(openFoodFacts)
+      .overrideProvider(USDA_FOOD_DATA_CLIENT)
+      .useValue(usda)
       .compile();
 
     const app = moduleRef.createNestApplication();
@@ -70,6 +90,9 @@ export class AuthTestWorld {
       mailer,
       google,
       mediaStore,
+      signedMediaStore,
+      openFoodFacts,
+      usda,
     );
   }
 
@@ -81,13 +104,22 @@ export class AuthTestWorld {
   async reset(): Promise<void> {
     this.mailer.sent.length = 0;
     this.mediaStore.puts.length = 0;
-    // users CASCADE covers professional_profiles, client_profiles, audit_logs
-    // (all FK into users). exercises CASCADE covers its tag join table and is
-    // also reachable via ownerProfessionalId → users. contraindication_tags
-    // is intentionally NOT truncated — it's migration-seeded reference data
+    this.signedMediaStore.uploadRequests.length = 0;
+    this.signedMediaStore.downloadRequests.length = 0;
+    // users CASCADE covers professional_profiles, client_profiles, audit_logs,
+    // nutrition_plans, food_diary_entries, hydration_logs (all FK into
+    // users). exercises CASCADE covers its tag join table and is also
+    // reachable via ownerProfessionalId → users. contraindication_tags is
+    // intentionally NOT truncated — it's migration-seeded reference data
     // (PRD 05 §6), constant across scenarios like an enum table.
+    // food_item_cache has no FK into users (PRD 08 §6 — it's normalized,
+    // source-agnostic reference data), so it's truncated explicitly rather
+    // than relying on the users cascade to reach it — otherwise a barcode
+    // seeded via FakeOpenFoodFactsClient in one scenario would silently
+    // satisfy a cache lookup in a later, unrelated scenario.
     await this.prisma.$executeRawUnsafe('TRUNCATE TABLE "users" CASCADE');
     await this.prisma.$executeRawUnsafe('TRUNCATE TABLE "exercises" CASCADE');
+    await this.prisma.$executeRawUnsafe('TRUNCATE TABLE "food_item_cache" CASCADE');
     // Reset rate-limit hit counts so each scenario gets a fresh budget —
     // ThrottlerStorageService.storage is the in-memory Map keyed by
     // IP+throttler. (Internal API, but clearing it keeps the real guard
@@ -168,6 +200,16 @@ export class AuthTestWorld {
     })) as UserWithProfiles;
   }
 
+  // PRD 04 §5.2/§10 — a Client whose ClientProfile row doesn't exist at all
+  // (the only way dateOfBirth/biologicalSex can actually be "missing" in
+  // this schema — both are required-not-null once the row exists, PRD 01
+  // §6). Real signup always creates one; this seeder reaches the otherwise
+  // unreachable-via-HTTP state directly, the same way seedAdmin bypasses
+  // the (deliberately nonexistent) admin-signup endpoint.
+  async seedClientMissingProfile(email: string): Promise<UserWithProfiles> {
+    return this.seedUser({ email, fullName: "Profile-less Client", role: Role.CLIENT });
+  }
+
   async seedProfessional(
     email: string,
     opts: {
@@ -200,6 +242,36 @@ export class AuthTestWorld {
       where: { id: user.id },
       include: { clientProfile: true, professionalProfile: true },
     })) as UserWithProfiles;
+  }
+
+  // PRD 11 — direct-DB seeder for scenarios where an existing thread is a
+  // precondition, not the thing under test (mirrors seedLink's role for PRD
+  // 02 — the real accept/unlink HTTP flow is exercised separately, in the
+  // scenarios that specifically prove the LINK_STATUS_CHANGED-driven
+  // auto-creation/read-only transition).
+  async seedMessageThread(
+    professional: UserWithProfiles,
+    client: UserWithProfiles,
+    opts: { status?: "ACTIVE" | "READ_ONLY" } = {},
+  ) {
+    return this.prisma.messageThread.create({
+      data: {
+        professionalId: professional.id,
+        clientId: client.id,
+        status: opts.status ?? "ACTIVE",
+      },
+    });
+  }
+
+  async seedMessage(
+    threadId: string,
+    senderId: string,
+    body: string,
+    opts: { readAt?: Date } = {},
+  ) {
+    return this.prisma.message.create({
+      data: { threadId, senderId, body, readAt: opts.readAt ?? null },
+    });
   }
 
   private async seedUser(input: {

@@ -41,6 +41,13 @@ export default async function DashboardPage() {
         </p>
         {session.user.role === "CLIENT" ? (
           <p className="mt-4 text-sm">
+            <Link href="/today" className="text-accent hover:underline">
+              Treino de hoje
+            </Link>
+          </p>
+        ) : null}
+        {session.user.role === "CLIENT" ? (
+          <p className="mt-2 text-sm">
             <Link href="/team" className="text-accent hover:underline">
               Meu Time
             </Link>
@@ -57,6 +64,27 @@ export default async function DashboardPage() {
           <p className="mt-2 text-sm">
             <Link href="/plans" className="text-accent hover:underline">
               Meus planos de treino
+            </Link>
+          </p>
+        ) : null}
+        {session.user.role === "CLIENT" ? (
+          <p className="mt-2 text-sm">
+            <Link href="/body-assessments" className="text-accent hover:underline">
+              Avaliação corporal
+            </Link>
+          </p>
+        ) : null}
+        {session.user.role === "CLIENT" ? (
+          <p className="mt-2 text-sm">
+            <Link href="/nutrition" className="text-accent hover:underline">
+              Nutrição
+            </Link>
+          </p>
+        ) : null}
+        {session.user.role === "CLIENT" || session.user.role === "PROFESSIONAL" ? (
+          <p className="mt-2 text-sm">
+            <Link href="/messages" className="text-accent hover:underline">
+              Mensagens
             </Link>
           </p>
         ) : null}

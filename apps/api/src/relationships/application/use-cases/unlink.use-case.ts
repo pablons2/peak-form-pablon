@@ -13,6 +13,12 @@ import {
   type UserRepository,
 } from "../../../auth/domain/ports/user.repository.port";
 import {
+  DOMAIN_EVENT_BUS,
+  LINK_STATUS_CHANGED,
+  type DomainEventBus,
+  type LinkStatusChangedPayload,
+} from "../../../shared/domain-events/domain-event-bus.port";
+import {
   CHECK_IN_SCHEDULE_REPOSITORY,
   type CheckInScheduleRepository,
 } from "../../domain/ports/check-in-schedule.repository.port";
@@ -37,6 +43,7 @@ export class UnlinkUseCase {
     @Inject(CHECK_IN_SCHEDULE_REPOSITORY)
     private readonly schedules: CheckInScheduleRepository,
     @Inject(MAILER) private readonly mailer: Mailer,
+    @Inject(DOMAIN_EVENT_BUS) private readonly events: DomainEventBus,
   ) {}
 
   async execute(input: { actorId: string; linkId: string }) {
@@ -64,6 +71,16 @@ export class UnlinkUseCase {
       unlinkedAt: new Date(),
       unlinkedById: input.actorId,
     });
+
+    // PRD 11 §5.3 — the pair's MessageThread becomes read-only, history
+    // preserved. Awaited for the same determinism reason as AcceptLinkUseCase.
+    const payload: LinkStatusChangedPayload = {
+      linkId: unlinked.id,
+      professionalId: unlinked.professionalId,
+      clientId: unlinked.clientId,
+      status: "UNLINKED",
+    };
+    await this.events.emit({ name: LINK_STATUS_CHANGED, payload });
 
     const initiator =
       input.actorId === link.professionalId

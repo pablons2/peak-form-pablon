@@ -82,7 +82,7 @@ export class RunCheckInDueJobUseCase {
         dueAt: schedule.nextDueAt,
         note: schedule.note,
       };
-      this.events.emit({ name: CHECK_IN_DUE, payload });
+      await this.events.emit({ name: CHECK_IN_DUE, payload });
       fired.push(schedule.id);
     }
 

@@ -84,6 +84,14 @@ export default async function TeamPage() {
               return (
                 <div key={link.id} className="rounded-lg border border-border bg-card p-4">
                   <LinkCard link={link} viewerId={session.user.id!} />
+                  <p className="mt-3 text-sm">
+                    <Link
+                      href={`/messages/with/${link.professional.id}`}
+                      className="text-accent hover:underline"
+                    >
+                      Ver mensagens →
+                    </Link>
+                  </p>
                   <div className="mt-4 border-t border-border pt-4">
                     <h3 className="text-sm font-medium text-foreground">
                       Próximos check-ins

@@ -36,4 +36,22 @@ export interface SessionRepository {
     id: string,
     exercises: WeeklyTemplateExerciseWriteData[],
   ): Promise<SessionWithExercises>;
+
+  /// PRD 07 §5.1 — "today" resolution walks Session -> Mesocycle ->
+  /// TrainingPlan.clientId, the same ownership-walk pattern
+  /// TrainingPlanAccess already uses for Professional-side checks. Session
+  /// carries no owner of its own, so this query lives on the port that owns
+  /// Session rather than in PRD 07's own module (same "the owning module
+  /// extends its own port when a new module needs a new query on it"
+  /// precedent IntakeModule/IntakeGatingService set for PRD 06).
+  findByClientAndDate(clientId: string, date: Date): Promise<SessionWithExercises | null>;
+  /// A Client's full session history across every plan, newest first (PRD 07
+  /// §5.1/§5.4 — also read by the Professional's read-only view, §4).
+  listForClient(clientId: string): Promise<SessionWithExercises[]>;
+  /// Still-SCHEDULED sessions whose date is strictly before `before` — PRD 07
+  /// §5.4's missed-session job candidates (CANCELLED sessions are excluded by
+  /// the status filter itself, not by the caller).
+  findScheduledPastDue(before: Date): Promise<SessionWithExercises[]>;
+  markMissed(id: string): Promise<SessionWithExercises>;
+  markCompleted(id: string): Promise<SessionWithExercises>;
 }

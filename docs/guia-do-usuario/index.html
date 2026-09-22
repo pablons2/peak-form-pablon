@@ -1,0 +1,905 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guia do Usuário — PeakForm</title>
+  <meta name="description" content="Guia completo e interativo do PeakForm: passo a passo operacional para Cliente, Profissional e Administrador, com status de cada módulo, glossário, FAQ e matriz de permissões." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#conteudo-principal">Ir para o conteúdo principal</a>
+
+  <header class="app-header">
+    <div class="app-header__bar">
+      <button type="button" class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="sidebar">
+        <span class="menu-toggle__icon" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+        <span class="menu-toggle__label">Menu</span>
+      </button>
+
+      <a class="app-header__brand" href="#topo">
+        <span class="app-header__logo" aria-hidden="true">PF</span>
+        <span>Guia do Usuário PeakForm</span>
+      </a>
+
+      <div class="app-header__search">
+        <label class="visually-hidden" for="searchInput">Buscar no guia</label>
+        <input
+          type="search"
+          id="searchInput"
+          placeholder="Buscar por palavra-chave (ex.: nutrição, senha, aprovação)…"
+          autocomplete="off"
+        />
+        <output id="searchResultCount" for="searchInput" class="app-header__search-count" aria-live="polite"></output>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-shell">
+    <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+
+    <nav class="sidebar" id="sidebar" aria-label="Navegação do guia">
+      <div class="sidebar__section">
+        <h2 class="sidebar__heading">Comece por aqui</h2>
+        <ul class="sidebar__list">
+          <li><a href="#topo" class="sidebar__link">Visão geral</a></li>
+          <li><a href="#papeis" class="sidebar__link">Papéis e permissões</a></li>
+          <li><a href="#legenda-status" class="sidebar__link">Legenda de status</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar__section">
+        <h2 class="sidebar__heading">Módulos (PRDs 01–13)</h2>
+        <ul class="sidebar__list" id="chapterNavList">
+          <!-- preenchido também estaticamente abaixo para funcionar sem JS -->
+          <li><a href="#prd-01" class="sidebar__link">01 · Autenticação e Conta</a></li>
+          <li><a href="#prd-02" class="sidebar__link">02 · Vínculo Profissional↔Cliente</a></li>
+          <li><a href="#prd-03" class="sidebar__link">03 · Intake / Anamnese</a></li>
+          <li><a href="#prd-04" class="sidebar__link">04 · Avaliação Física</a></li>
+          <li><a href="#prd-05" class="sidebar__link">05 · Biblioteca de Exercícios</a></li>
+          <li><a href="#prd-06" class="sidebar__link">06 · Construtor de Planos</a></li>
+          <li><a href="#prd-07" class="sidebar__link">07 · Execução do Treino</a></li>
+          <li><a href="#prd-08" class="sidebar__link">08 · Nutrição</a></li>
+          <li><a href="#prd-09" class="sidebar__link">09 · Painel Hoje / Semana</a></li>
+          <li><a href="#prd-10" class="sidebar__link">10 · Hábitos e Tarefas</a></li>
+          <li><a href="#prd-11" class="sidebar__link">11 · Mensagens</a></li>
+          <li><a href="#prd-12" class="sidebar__link">12 · Notificações</a></li>
+          <li><a href="#prd-13" class="sidebar__link">13 · Console Admin</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar__section">
+        <h2 class="sidebar__heading">Consulta rápida</h2>
+        <ul class="sidebar__list">
+          <li><a href="#matriz-permissoes" class="sidebar__link">Matriz de permissões</a></li>
+          <li><a href="#glossario" class="sidebar__link">Glossário</a></li>
+          <li><a href="#faq" class="sidebar__link">Perguntas frequentes</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <main id="conteudo-principal" class="content">
+      <section id="topo" class="hero" aria-labelledby="hero-title">
+        <p class="hero__eyebrow">Guia do Usuário</p>
+        <h1 id="hero-title">Como usar o PeakForm</h1>
+        <p class="hero__lede">
+          Este guia explica, em português, como cada papel — <strong>Cliente</strong>,
+          <strong>Profissional</strong> (Personal Trainer e/ou Nutricionista) e
+          <strong>Administrador</strong> — usa o PeakForm hoje. Cada módulo mostra um
+          selo de status real (Disponível, Parcial ou Planejado) para que você saiba
+          exatamente o que já pode fazer no sistema e o que ainda está em construção.
+        </p>
+
+        <div class="hero__notice" role="note">
+          <strong>Aviso de precisão:</strong> os selos de status deste guia refletem o
+          estado real do código na data desta publicação. Funcionalidades marcadas como
+          "Parcial" ou "Planejada" podem mudar sem aviso prévio neste documento — consulte
+          sempre a equipe de produto se precisar de uma confirmação oficial antes de uma
+          decisão importante.
+        </div>
+
+        <div class="filter-bar" role="group" aria-labelledby="filtro-titulo">
+          <h2 id="filtro-titulo" class="filter-bar__title">Filtrar módulos</h2>
+
+          <fieldset class="filter-group">
+            <legend>Por papel</legend>
+            <label class="chip">
+              <input type="checkbox" class="filter-role" value="cliente" checked />
+              <span>Cliente</span>
+            </label>
+            <label class="chip">
+              <input type="checkbox" class="filter-role" value="profissional" checked />
+              <span>Profissional</span>
+            </label>
+            <label class="chip">
+              <input type="checkbox" class="filter-role" value="admin" checked />
+              <span>Administrador</span>
+            </label>
+          </fieldset>
+
+          <fieldset class="filter-group">
+            <legend>Por status</legend>
+            <label class="chip">
+              <input type="checkbox" class="filter-status" value="disponivel" checked />
+              <span>Disponível</span>
+            </label>
+            <label class="chip">
+              <input type="checkbox" class="filter-status" value="parcial" checked />
+              <span>Parcial</span>
+            </label>
+            <label class="chip">
+              <input type="checkbox" class="filter-status" value="planejado" checked />
+              <span>Planejado</span>
+            </label>
+          </fieldset>
+
+          <button type="button" class="button button--ghost" id="resetFilters">
+            Limpar filtros
+          </button>
+        </div>
+
+        <p class="filter-bar__count" id="filterResultCount" aria-live="polite"></p>
+      </section>
+
+      <section id="papeis" class="panel" aria-labelledby="papeis-title">
+        <h2 id="papeis-title">Papéis e permissões no PeakForm</h2>
+        <p>
+          O PeakForm tem três papéis fixos. Não há papéis configuráveis nem
+          hierarquias adicionais — cada conta tem exatamente um papel, definido no
+          cadastro (Cliente ou Profissional) ou atribuído pelo Administrador.
+        </p>
+
+        <div class="role-cards">
+          <article class="role-card">
+            <h3>Cliente <span class="role-card__badge">Aluno</span></h3>
+            <p>
+              A pessoa que treina, se alimenta melhor e acompanha o próprio progresso.
+              Executa os planos criados pelo seu Profissional (ou usa um modelo
+              inicial, se ainda não tiver Profissional vinculado), registra séries,
+              refeições e medidas, acompanha o painel "Hoje/Semana" e troca mensagens
+              com quem o acompanha.
+            </p>
+          </article>
+          <article class="role-card">
+            <h3>Profissional <span class="role-card__badge">PT / Nutricionista</span></h3>
+            <p>
+              Especialista licenciado, aprovado pelo Administrador antes de acessar o
+              sistema. Pode ter a especialização <strong>Personal Trainer</strong>,
+              <strong>Nutricionista</strong>, ou ambas na mesma conta. É o único papel
+              autorizado a criar/editar planos de treino e metas nutricionais
+              prescritivas para os Clientes vinculados a ele.
+            </p>
+          </article>
+          <article class="role-card">
+            <h3>Administrador <span class="role-card__badge">Operador da plataforma</span></h3>
+            <p>
+              Responsável por aprovar cadastros de Profissionais, curar a biblioteca
+              global de exercícios, resolver disputas de vínculo (desvínculo forçado),
+              revisar o log de auditoria e acompanhar métricas agregadas de uso. Não
+              cria planos nem prescreve treino/nutrição.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="legenda-status" class="panel" aria-labelledby="legenda-title">
+        <h2 id="legenda-title">Legenda de status dos módulos</h2>
+        <p>Cada módulo abaixo carrega um destes três selos, sempre com ícone e texto (nunca só cor), para não depender de percepção de cor:</p>
+        <ul class="status-legend">
+          <li>
+            <span class="badge badge--disponivel"><span aria-hidden="true">✓</span> Disponível</span>
+            já funciona de ponta a ponta em produção, com telas reais para o fluxo descrito.
+          </li>
+          <li>
+            <span class="badge badge--parcial"><span aria-hidden="true">◐</span> Parcial</span>
+            parte do fluxo já funciona (às vezes só para um papel, ou só a base de dados/API), mas falta alguma tela ou capacidade descrita no PRD.
+          </li>
+          <li>
+            <span class="badge badge--planejado"><span aria-hidden="true">○</span> Planejado</span>
+            módulo ainda não implementado — descrito aqui para você saber o que vem a seguir.
+          </li>
+        </ul>
+      </section>
+
+      <section id="capitulos" aria-labelledby="capitulos-title">
+        <h2 id="capitulos-title" class="visually-hidden">Capítulos por módulo (PRD 01 a 13)</h2>
+
+        <!-- ============ PRD 01 ============ -->
+        <article class="chapter" id="prd-01" data-roles="cliente profissional" data-status="disponivel">
+          <h3 class="chapter__header">
+            <button type="button" class="chapter__toggle" aria-expanded="true" aria-controls="prd-01-body">
+              <span class="chapter__title">01 · Autenticação e Gestão de Conta</span>
+              <span class="badge badge--disponivel"><span aria-hidden="true">✓</span> Disponível</span>
+              <span class="chapter__chevron" aria-hidden="true">▾</span>
+            </button>
+          </h3>
+          <div class="chapter__body" id="prd-01-body">
+            <p class="chapter__roles"><strong>Papéis:</strong> Cliente, Profissional</p>
+            <p>
+              Cobre cadastro, verificação de e-mail, login, recuperação de senha e o
+              portão de aprovação que todo Profissional precisa passar antes de acessar
+              o sistema.
+            </p>
+
+            <h4>Passo a passo — Cliente: criar conta</h4>
+            <ol class="steps">
+              <li>Na tela inicial, escolha <strong>"Criar conta"</strong> e selecione o tipo <strong>Cliente</strong>.</li>
+              <li>Preencha nome, e-mail e senha e envie o formulário.</li>
+              <li>Verifique sua caixa de entrada: um e-mail com um código de verificação chega em poucos instantes.</li>
+              <li>Volte à tela de verificação, informe o código recebido e confirme.</li>
+              <li>Faça login com o e-mail e a senha cadastrados — você será levado direto ao seu painel.</li>
+            </ol>
+
+            <h4>Passo a passo — Profissional: criar conta e aguardar aprovação</h4>
+            <ol class="steps">
+              <li>Escolha <strong>"Criar conta"</strong> e selecione o tipo <strong>Profissional</strong>.</li>
+              <li>Informe seus dados e a(s) especialização(ões) desejada(s): Personal Trainer, Nutricionista, ou ambas.</li>
+              <li>Verifique o e-mail como no fluxo do Cliente.</li>
+              <li>Após verificar, você é direcionado a uma tela de <strong>"Aguardando aprovação"</strong> — o acesso completo só é liberado depois que um Administrador aprova o cadastro.</li>
+              <li>Você recebe uma notificação por e-mail quando a decisão (aprovado ou rejeitado) é tomada.</li>
+            </ol>
+
+            <h4>Recuperar senha</h4>
+            <ol class="steps">
+              <li>Na tela de login, use o link <strong>"Esqueci minha senha"</strong>.</li>
+              <li>Informe o e-mail cadastrado; um link de redefinição chega por e-mail.</li>
+              <li>Abra o link, defina a nova senha e faça login normalmente.</li>
+            </ol>
+
+            <div class="tip tip--warning">
+              <strong>Segurança:</strong> a validação de formulário na tela (formato de
+              e-mail, tamanho de senha) é apenas uma conveniência de interface — toda
+              regra de segurança real (senha forte, e-mail já verificado, limite de
+              tentativas) é sempre reforçada pelo servidor, mesmo que o formulário
+              "deixe passar" algo no navegador.
+            </div>
+
+            <h4>O que ainda não está disponível</h4>
+            <p>Login social via Google ainda não está habilitado em todos os ambientes (depende de credenciais externas configuradas pela operação).</p>
+          </div>
+        </article>
+
+        <!-- ============ PRD 02 ============ -->
+        <article class="chapter" id="prd-02" data-roles="cliente profissional" data-status="disponivel">
+          <h3 class="chapter__header">
+            <button type="button" class="chapter__toggle" aria-expanded="false" aria-controls="prd-02-body">
+              <span class="chapter__title">02 · Vínculo Profissional ↔ Cliente</span>
+              <span class="badge badge--disponivel"><span aria-hidden="true">✓</span> Disponível</span>
+              <span class="chapter__chevron" aria-hidden="true">▾</span>
+            </button>
+          </h3>
+          <div class="chapter__body" id="prd-02-body" hidden>
+            <p class="chapter__roles"><strong>Papéis:</strong> Cliente, Profissional</p>
+            <p>
+              Define como um Profissional passa a acompanhar um Cliente: convite,
+              aceite, histórico e desvínculo. Um Cliente pode ter no máximo um Personal
+              Trainer e um Nutricionista ativos ao mesmo tempo.
+            </p>
+
+            <h4>Passo a passo — Profissional convida um Cliente</h4>
+            <ol class="steps">
+              <li>Acesse a página <strong>"Clientes"</strong> no menu.</li>
+              <li>Clique em <strong>"Convidar cliente"</strong> e informe o e-mail do Cliente.</li>
+              <li>Escolha a especialização do vínculo (Personal Trainer ou Nutricionista).</li>
+              <li>Envie o convite — o Cliente verá o convite pendente na área "Equipe" dele.</li>
+            </ol>
+
+            <h4>Passo a passo — Cliente aceita o convite</h4>
+            <ol class="steps">
+              <li>Abra a página <strong>"Equipe"</strong>.</li>
+              <li>Localize o convite pendente e escolha <strong>"Aceitar"</strong> (ou "Rejeitar").</li>
+              <li>Após aceitar, o vínculo fica <strong>Ativo</strong> e o Profissional passa a ver seus dados relevantes (treino, nutrição, avaliações), conforme a especialização do vínculo.</li>
+            </ol>
+
+            <h4>Desvincular</h4>
+            <p>
+              Qualquer uma das partes pode encerrar o vínculo pela página "Clientes"
+              (Profissional) ou "Equipe" (Cliente). O histórico de planos e mensagens é
+              preservado, mas passa a ficar somente leitura — nenhuma edição nova é
+              permitida após o desvínculo.
+            </p>
+
+            <div class="tip">
+              O Administrador também pode forçar um desvínculo em caso de disputa —
+              veja o capítulo <a href="#prd-13">13 · Console Admin</a>.
+            </div>
+          </div>
+        </article>
+
+        <!-- ============ PRD 03 ============ -->
+        <article class="chapter" id="prd-03" data-roles="cliente profissional" data-status="disponivel">
+          <h3 class="chapter__header">
+            <button type="button" class="chapter__toggle" aria-expanded="false" aria-controls="prd-03-body">
+              <span class="chapter__title">03 · Intake / Anamnese</span>
+              <span class="badge badge--disponivel"><span aria-hidden="true">✓</span> Disponível</span>
+              <span class="chapter__chevron" aria-hidden="true">▾</span>
+            </button>
+          </h3>
+          <div class="chapter__body" id="prd-03-body" hidden>
+            <p class="chapter__roles"><strong>Papéis:</strong> Cliente, Profissional</p>
+            <p>
+              Questionário inicial de saúde: prontidão para exercício, mapa corporal de
+              dores/lesões, condições de saúde, disponibilidade e equipamentos. Gera um
+              perfil de contraindicações usado depois pelo construtor de planos
+              (módulo 06).
+            </p>
+
+            <h4>Passo a passo — Cliente responde ao questionário</h4>
+            <ol class="steps">
+              <li>Acesse <strong>"Intake"</strong> no menu (também pode aparecer como etapa obrigatória logo após o primeiro login).</li>
+              <li>Responda a etapa de <strong>prontidão</strong> (perguntas de triagem de saúde).</li>
+              <li>Marque no <strong>mapa corporal</strong> qualquer região com dor, lesão ou limitação.</li>
+              <li>Informe condições de saúde relevantes e sua disponibilidade/equipamentos de treino.</li>
+              <li>Ao final, revise o <strong>perfil de contraindicações</strong> gerado automaticamente.</li>
+            </ol>
+            <p>
+              Se preferir, é possível pular a etapa com um aviso de risco reconhecido —
+              o Profissional ainda poderá revisar e completar depois.
+            </p>
+
+            <h4>Passo a passo — Profissional revisa o intake de um Cliente vinculado</h4>
+            <ol class="steps">
+              <li>Abra a página do Cliente (a partir de "Clientes").</li>
+              <li>Acesse a aba <strong>"Intake"</strong> para ver as respostas finalizadas.</li>
+              <li>Adicione uma <strong>anotação clínica</strong>, se necessário — as anotações ficam registradas e não substituem as respostas originais do Cliente.</li>
+            </ol>
+          </div>
+        </article>
+
+        <!-- ============ PRD 04 ============ -->
+        <article class="chapter" id="prd-04" data-roles="cliente profissional" data-status="disponivel">
+          <h3 class="chapter__header">
+            <button type="button" class="chapter__toggle" aria-expanded="false" aria-controls="prd-04-body">
+              <span class="chapter__title">04 · Avaliação Física (Body Assessment)</span>
+              <span class="badge badge--disponivel"><span aria-hidden="true">✓</span> Disponível</span>
+              <span class="chapter__chevron" aria-hidden="true">▾</span>
+            </button>
+          </h3>
+          <div class="chapter__body" id="prd-04-body" hidden>
+            <p class="chapter__roles"><strong>Papéis:</strong> Cliente, Profissional</p>
+            <p>
+              Histórico de peso, medidas e composição corporal. Cada registro é
+              somativo (append-only): nada é sobrescrito, então o histórico completo
+              sempre fica disponível.
+            </p>
+
+            <h4>Passo a passo — Cliente registra o próprio peso</h4>
+            <ol class="steps">
+              <li>Abra <strong>"Avaliações"</strong> no menu.</li>
+              <li>Use o campo de <strong>registro rápido</strong> para lançar o peso do dia.</li>
+              <li>Confirme — o novo ponto aparece no histórico marcado como "autorregistrado pelo Cliente".</li>
+            </ol>
+
+            <h4>Passo a passo — Profissional registra uma avaliação formal</h4>
+            <ol class="steps">
+              <li>Abra a página do Cliente vinculado e vá para <strong>"Avaliações"</strong>.</li>
+              <li>Preencha o formulário completo (peso, dobras cutâneas/medidas conforme o método escolhido).</li>
+              <li>O sistema calcula automaticamente os valores derivados (ex.: percentual de gordura estimado) no servidor.</li>
+              <li>Se precisar sobrepor um valor calculado manualmente, use a opção de <strong>ajuste manual</strong> — ela exige uma justificativa em texto antes de salvar.</li>
+            </ol>
+
+            <div class="tip tip--warning">
+              Sem data de nascimento e sexo registrados no perfil do Cliente, algumas
+              fórmulas de composição corporal não podem ser calculadas — o sistema
+              avisa quando falta essa informação em vez de estimar um valor errado.
+            </div>
+          </div>
+        </article>
+
+        <!-- ============ PRD 05 ============ -->
+        <article class="chapter" id="prd-05" data-roles="cliente profissional admin" data-status="disponivel">
+          <h3 class="chapter__header">
+            <button type="button" class="chapter__toggle" aria-expanded="false" aria-controls="prd-05-body">
+              <span class="chapter__title">05 · Biblioteca de Exercícios</span>
+              <span class="badge badge--disponivel"><span aria-hidden="true">✓</span> Disponível</span>
+              <span class="chapter__chevron" aria-hidden="true">▾</span>
+            </button>
+          </h3>
+          <div class="chapter__body" id="prd-05-body" hidden>
+            <p class="chapter__roles"><strong>Papéis:</strong> Cliente, Profissional, Administrador</p>
+            <p>
+              Catálogo de exercícios pesquisável por todos os papéis. Profissionais
+              podem criar exercícios personalizados; o Administrador cura o catálogo
+              global.
+            </p>
+
+            <h4>Passo a passo — Buscar exercícios (qualquer papel)</h4>
+            <ol class="steps">
+              <li>Abra <strong>"Exercícios"</strong> no menu.</li>
+              <li>Digite um termo de busca (nome do exercício, grupo muscular) na caixa de pesquisa.</li>
+              <li>Clique em um exercício para ver detalhes, instruções e contraindicações associadas.</li>
+            </ol>
+
+            <h4>Passo a passo — Profissional cria um exercício personalizado</h4>
+            <ol class="steps">
+              <li>Em "Exercícios", escolha <strong>"Novo exercício"</strong>.</li>
+              <li>Preencha nome, grupo muscular, instruções e, se aplicável, contraindicações conhecidas.</li>
+              <li>Salve — o exercício fica disponível para uso nos planos que você cria, com visibilidade privada até ser promovido pelo Administrador.</li>
+            </ol>
+
+            <h4>Passo a passo — Administrador promove um exercício para o catálogo global</h4>
+            <ol class="steps">
+              <li>Abra <strong>"Admin → Exercícios"</strong>.</li>
+              <li>Revise os exercícios personalizados propostos por Profissionais.</li>
+              <li>Aprove para tornar o exercício visível a todos, ou edite antes de aprovar.</li>
+            </ol>
+          </div>
+        </article>
+
+        <!-- ============ PRD 06 ============ -->
+        <article class="chapter" id="prd-06" data-roles="cliente profissional" data-status="disponivel">
+          <h3 class="chapter__header">
+            <button type="button" class="chapter__toggle" aria-expanded="false" aria-controls="prd-06-body">
+              <span class="chapter__title">06 · Construtor de Planos de Treino</span>
+              <span class="badge badge--disponivel"><span aria-hidden="true">✓</span> Disponível</span>
+              <span class="chapter__chevron" aria-hidden="true">▾</span>
+            </button>
+          </h3>
+          <div class="chapter__body" id="prd-06-body" hidden>
+            <p class="chapter__roles"><strong>Papéis:</strong> Cliente, Profissional (especialização Personal Trainer)</p>
+            <p>
+              É onde o Personal Trainer monta a prescrição: mesociclo, modelo semanal e
+              as sessões geradas automaticamente a partir dele.
+            </p>
+
+            <h4>Passo a passo — Profissional cria um plano</h4>
+            <ol class="steps">
+              <li>Abra a página do Cliente vinculado e acesse <strong>"Planos"</strong>.</li>
+              <li>Crie um novo <strong>mesociclo</strong> (bloco de treino com duração definida).</li>
+              <li>Monte o <strong>modelo semanal</strong> escolhendo exercícios, séries, repetições, carga e descanso, dia a dia.</li>
+              <li>Confirme — o sistema gera automaticamente as <strong>sessões</strong> do calendário a partir do modelo.</li>
+            </ol>
+
+            <div class="tip tip--warning">
+              Se você tentar incluir um exercício que conflita com uma contraindicação
+              registrada no intake do Cliente (módulo 03), um aviso persistente aparece
+              junto ao exercício — ele não some até você trocar o exercício ou
+              confirmar conscientemente a exceção.
+            </div>
+
+            <h4>Passo a passo — Cliente sem Profissional usa um modelo inicial</h4>
+            <ol class="steps">
+              <li>Em <strong>"Planos"</strong>, escolha <strong>"Modelos iniciais" (Starter Templates)</strong>.</li>
+              <li>Selecione um modelo pronto e o autoassigne.</li>
+              <li>O modelo pode ser executado normalmente, mas não pode ser editado pelo Cliente — apenas um Profissional edita a prescrição.</li>
+            </ol>
+
+            <div class="tip">
+              O construtor de planos só fica disponível para um Cliente depois que o
+              intake (módulo 03) estiver completo — essa é uma trava intencional para
+              evitar prescrição sem triagem de saúde.
+            </div>
+          </div>
+        </article>
+
+        <!-- ============ PRD 07 ============ -->
+        <article class="chapter" id="prd-07" data-roles="cliente profissional" data-status="disponivel">
+          <h3 class="chapter__header">
+            <button type="button" class="chapter__toggle" aria-expanded="false" aria-controls="prd-07-body">
+              <span class="chapter__title">07 · Execução do Treino pelo Cliente</span>
+              <span class="badge badge--disponivel"><span aria-hidden="true">✓</span> Disponível</span>
+              <span class="chapter__chevron" aria-hidden="true">▾</span>
+            </button>
+          </h3>
+          <div class="chapter__body" id="prd-07-body" hidden>
+            <p class="chapter__roles"><strong>Papéis:</strong> Cliente, Profissional (leitura)</p>
+            <p>
+              A tela usada durante o treino: sessão do dia, registro de séries e
+              histórico de "última vez que fiz esse exercício".
+            </p>
+
+            <h4>Passo a passo — Cliente treina hoje</h4>
+            <ol class="steps">
+              <li>Abra <strong>"Hoje"</strong> ou <strong>"Treino"</strong> no menu.</li>
+              <li>Veja a sessão programada para o dia, com a lista de exercícios.</li>
+              <li>Para cada série, registre peso e repetições executadas.</li>
+              <li>Ao concluir todas as séries planejadas, a sessão é marcada automaticamente como <strong>concluída</strong>.</li>
+              <li>Se não houver sessão programada, a tela mostra claramente um estado de <strong>dia de descanso</strong> — não uma tela vazia.</li>
+            </ol>
+
+            <p>
+              O botão de vídeo de checagem de forma ("form-check video") aparece
+              desabilitado nesta versão — é um recurso futuro reservado, não uma
+              funcionalidade quebrada.
+            </p>
+
+            <h4>Passo a passo — Profissional acompanha a execução (somente leitura)</h4>
+            <ol class="steps">
+              <li>Abra a página do Cliente vinculado e acesse <strong>"Execução do treino"</strong>.</li>
+              <li>Veja o histórico de sessões e séries registradas — não é possível editar os registros do Cliente por aqui.</li>
+            </ol>
+          </div>
+        </article>
+
+        <!-- ============ PRD 08 ============ -->
+        <article class="chapter" id="prd-08" data-roles="cliente profissional" data-status="disponivel">
+          <h3 class="chapter__header">
+            <button type="button" class="chapter__toggle" aria-expanded="false" aria-controls="prd-08-body">
+              <span class="chapter__title">08 · Módulo de Nutrição</span>
+              <span class="badge badge--disponivel"><span aria-hidden="true">✓</span> Disponível</span>
+              <span class="chapter__chevron" aria-hidden="true">▾</span>
+            </button>
+          </h3>
+          <div class="chapter__body" id="prd-08-body" hidden>
+            <p class="chapter__roles"><strong>Papéis:</strong> Cliente, Profissional (especialização Nutricionista)</p>
+            <p>
+              Metas nutricionais prescritas por um Nutricionista e diário alimentar do
+              Cliente, com totais comparados à meta ativa.
+            </p>
+
+            <h4>Passo a passo — Nutricionista gera e confirma uma meta</h4>
+            <ol class="steps">
+              <li>Abra a página do Cliente vinculado (precisa ter uma avaliação física registrada) e acesse <strong>"Nutrição"</strong>.</li>
+              <li>Clique em <strong>"Gerar meta (rascunho)"</strong> — o sistema calcula uma sugestão inicial de calorias e macros.</li>
+              <li>Revise e ajuste o rascunho se necessário.</li>
+              <li>Confirme — a meta passa a ser a <strong>meta ativa</strong> do Cliente. Rascunhos nunca aparecem para o Cliente antes dessa confirmação.</li>
+            </ol>
+
+            <h4>Passo a passo — Cliente registra o diário alimentar</h4>
+            <ol class="steps">
+              <li>Abra <strong>"Nutrição"</strong> no menu.</li>
+              <li>Adicione um alimento buscando por nome ou por código de barras.</li>
+              <li>Se o código de barras não for encontrado, o sistema oferece automaticamente o cadastro manual do alimento, sem travar o registro.</li>
+              <li>Veja os totais do dia comparados à meta ativa e o resumo semanal.</li>
+              <li>Use o contador de hidratação para registrar água consumida.</li>
+            </ol>
+          </div>
+        </article>
+
+        <!-- ============ PRD 09 ============ -->
+        <article class="chapter" id="prd-09" data-roles="cliente" data-status="parcial">
+          <h3 class="chapter__header">
+            <button type="button" class="chapter__toggle" aria-expanded="false" aria-controls="prd-09-body">
+              <span class="chapter__title">09 · Painel "Hoje / Esta Semana"</span>
+              <span class="badge badge--parcial"><span aria-hidden="true">◐</span> Parcial</span>
+              <span class="chapter__chevron" aria-hidden="true">▾</span>
+            </button>
+          </h3>
+          <div class="chapter__body" id="prd-09-body" hidden>
+            <p class="chapter__roles"><strong>Papéis:</strong> Cliente</p>
+            <p>
+              Painel inicial do Cliente que deveria reunir, em uma única tela: sessão
+              de treino do dia, refeições vs. meta, hábitos pendentes, mensagens não
+              lidas e o próximo check-in agendado, além de uma visão semanal com
+              tendências.
+            </p>
+
+            <h4>O que já funciona</h4>
+            <ol class="steps">
+              <li>Ao fazer login como Cliente, você é levado a um <strong>painel inicial mínimo</strong> em <strong>"Dashboard"</strong>.</li>
+              <li>A partir dele, ainda é possível navegar manualmente para treino, nutrição e mensagens pelos respectivos menus.</li>
+            </ol>
+
+            <h4>O que ainda falta (não confie neste painel como fonte única)</h4>
+            <ul class="feature-gap-list">
+              <li>A faixa "Esta Semana" com status de 7 dias (treino concluído/perdido, nutrição registrada) ainda não existe nesta tela.</li>
+              <li>O cartão de resumo semanal (adesão %, tendência de volume, tendência de peso) ainda não é exibido aqui.</li>
+              <li>Os "nudges" inline (sessão perdida, alimentação não registrada, check-in vencido, nova mensagem, plano atualizado) ainda não aparecem consolidados neste painel.</li>
+            </ul>
+            <div class="tip">
+              Enquanto este módulo evolui, use a navegação pelo menu (Treino, Nutrição,
+              Mensagens, Equipe) para acompanhar cada área separadamente — os dados em
+              si já existem e estão corretos, apenas ainda não foram agregados numa
+              única tela.
+            </div>
+          </div>
+        </article>
+
+        <!-- ============ PRD 10 ============ -->
+        <article class="chapter" id="prd-10" data-roles="cliente" data-status="planejado">
+          <h3 class="chapter__header">
+            <button type="button" class="chapter__toggle" aria-expanded="false" aria-controls="prd-10-body">
+              <span class="chapter__title">10 · Produtividade / Hábitos</span>
+              <span class="badge badge--planejado"><span aria-hidden="true">○</span> Planejado</span>
+              <span class="chapter__chevron" aria-hidden="true">▾</span>
+            </button>
+          </h3>
+          <div class="chapter__body" id="prd-10-body" hidden>
+            <p class="chapter__roles"><strong>Papéis previstos:</strong> Cliente (uso exclusivamente pessoal)</p>
+            <p>
+              Módulo ainda não implementado. Quando disponível, permitirá ao Cliente
+              criar hábitos próprios (ex.: "beber água", "dormir 8h", "mobilidade"),
+              marcar check-ins diários com contagem de sequência (streak) e manter uma
+              lista simples de tarefas pessoais — sem qualquer visibilidade para
+              Profissionais ou Administrador, por ser dado não clínico e pessoal por
+              definição.
+            </p>
+            <p>
+              Não confundir com o contador de hidratação da Nutrição (módulo 08), que
+              já existe e é a fonte oficial de hidratação — o futuro módulo de hábitos
+              poderá ter um hábito complementar de "beber água" apenas como lembrete
+              pessoal, não como contador oficial.
+            </p>
+          </div>
+        </article>
+
+        <!-- ============ PRD 11 ============ -->
+        <article class="chapter" id="prd-11" data-roles="cliente profissional admin" data-status="parcial">
+          <h3 class="chapter__header">
+            <button type="button" class="chapter__toggle" aria-expanded="false" aria-controls="prd-11-body">
+              <span class="chapter__title">11 · Mensagens</span>
+              <span class="badge badge--parcial"><span aria-hidden="true">◐</span> Parcial</span>
+              <span class="chapter__chevron" aria-hidden="true">▾</span>
+            </button>
+          </h3>
+          <div class="chapter__body" id="prd-11-body" hidden>
+            <p class="chapter__roles"><strong>Papéis:</strong> Cliente, Profissional — Disponível · Administrador (suporte) — Parcial</p>
+            <p>
+              Conversa em texto entre um Cliente e cada Profissional vinculado a ele.
+              Não é um chat geral: só existe conversa entre pares com vínculo ativo.
+            </p>
+
+            <h4>Passo a passo — Cliente e Profissional conversam <span class="badge badge--disponivel badge--inline"><span aria-hidden="true">✓</span> Disponível</span></h4>
+            <ol class="steps">
+              <li>Abra <strong>"Mensagens"</strong> no menu — a lista de conversas mostra uma por Profissional/Cliente vinculado.</li>
+              <li>Selecione a conversa desejada para abrir a thread.</li>
+              <li>Digite a mensagem (somente texto, sem anexos nesta versão) e envie.</li>
+              <li>Se um vínculo for desfeito, a conversa correspondente passa a ficar <strong>somente leitura</strong> — o histórico continua visível, mas o campo de nova mensagem desaparece.</li>
+            </ol>
+            <div class="tip tip--warning">
+              Por segurança, o conteúdo das mensagens é sempre exibido como texto
+              simples — nunca como HTML interpretado — mesmo que alguém digite algo
+              parecido com código ou marcação.
+            </div>
+
+            <h4>Administrador — suporte via mensagens <span class="badge badge--parcial badge--inline"><span aria-hidden="true">◐</span> Parcial</span></h4>
+            <p>
+              A API e o modelo de dados já sustentam o acesso de suporte do
+              Administrador a qualquer thread (somente leitura, para resolução de
+              disputas), mas a <strong>tela de caixa de entrada administrativa</strong>
+              ainda não foi construída na interface — por isso este uso específico é
+              tratado como parcial, mesmo com a mensageria entre Cliente e Profissional
+              já totalmente disponível.
+            </p>
+          </div>
+        </article>
+
+        <!-- ============ PRD 12 ============ -->
+        <article class="chapter" id="prd-12" data-roles="cliente profissional admin" data-status="planejado">
+          <h3 class="chapter__header">
+            <button type="button" class="chapter__toggle" aria-expanded="false" aria-controls="prd-12-body">
+              <span class="chapter__title">12 · Notificações</span>
+              <span class="badge badge--planejado"><span aria-hidden="true">○</span> Planejado</span>
+              <span class="chapter__chevron" aria-hidden="true">▾</span>
+            </button>
+          </h3>
+          <div class="chapter__body" id="prd-12-body" hidden>
+            <p class="chapter__roles"><strong>Papéis previstos:</strong> Cliente, Profissional, Administrador</p>
+            <p>
+              Módulo transversal de entrega de notificações ainda não implementado
+              como capacidade dedicada — os únicos e-mails automáticos hoje em
+              funcionamento (verificação de e-mail e redefinição de senha, do módulo
+              01) são enviados diretamente pelo módulo de Autenticação, não por este
+              módulo de notificações preferenciais.
+            </p>
+            <p>Quando implementado, este módulo cobrirá, por e-mail e opcionalmente push web (PWA):</p>
+            <ul class="feature-gap-list">
+              <li>Lembrete de sessão agendada e sessão/registro alimentar perdidos.</li>
+              <li>Nova mensagem recebida.</li>
+              <li>Plano de treino ou meta nutricional atualizado pelo Profissional.</li>
+              <li>Resumo semanal disponível.</li>
+              <li>Check-in vencido, conforme a agenda definida no vínculo (módulo 02).</li>
+              <li>Decisão de aprovação/rejeição de cadastro profissional.</li>
+              <li>Preferências configuráveis por evento e por canal, por usuário.</li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- ============ PRD 13 ============ -->
+        <article class="chapter" id="prd-13" data-roles="admin" data-status="parcial">
+          <h3 class="chapter__header">
+            <button type="button" class="chapter__toggle" aria-expanded="false" aria-controls="prd-13-body">
+              <span class="chapter__title">13 · Console do Administrador</span>
+              <span class="badge badge--parcial"><span aria-hidden="true">◐</span> Parcial</span>
+              <span class="chapter__chevron" aria-hidden="true">▾</span>
+            </button>
+          </h3>
+          <div class="chapter__body" id="prd-13-body" hidden>
+            <p class="chapter__roles"><strong>Papéis:</strong> Administrador</p>
+            <p>
+              Superfície operacional para gestão de usuários, aprovação de
+              Profissionais, curadoria do catálogo global de exercícios, auditoria e
+              analytics agregado.
+            </p>
+
+            <h4>O que já funciona hoje</h4>
+            <ol class="steps">
+              <li>Aprovar ou rejeitar cadastros de Profissionais pendentes (a API e a lógica de aprovação já existem e são usadas no fluxo do módulo 01).</li>
+              <li>Curar exercícios: revisar exercícios personalizados propostos por Profissionais e promovê-los ao catálogo global em <strong>"Admin → Exercícios"</strong>.</li>
+            </ol>
+
+            <h4>O que ainda falta</h4>
+            <ul class="feature-gap-list">
+              <li>Tela dedicada de gestão de usuários (listar, buscar, ativar/desativar contas com filtros) ainda não existe como interface completa.</li>
+              <li>Tela de supervisão de vínculos com botão de desvínculo forçado, para resolução de disputas, ainda não está exposta na interface administrativa.</li>
+              <li>Visualização do log de auditoria (quem fez o quê, quando) ainda não está disponível como tela.</li>
+              <li>Painel de analytics agregado (Clientes ativos, Profissionais ativos por especialização, adesão média) ainda não existe.</li>
+            </ul>
+            <div class="tip">
+              Por isso este módulo é classificado como Parcial: as capacidades de
+              back-end de aprovação e curadoria de exercícios já existem e podem ser
+              usadas, mas o console administrativo completo descrito no PRD 13 ainda
+              está em construção.
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section id="matriz-permissoes" class="panel" aria-labelledby="matriz-title">
+        <h2 id="matriz-title">Matriz de permissões por módulo</h2>
+        <p>
+          Resumo de "quem pode fazer o quê" em cada módulo. ✅ pode · ➕ pode em modo
+          restrito (ex.: apenas propor) · ❌ não pode · — não se aplica ao papel.
+        </p>
+        <div class="table-scroll">
+          <table>
+            <caption class="visually-hidden">Matriz de permissões por módulo e papel</caption>
+            <thead>
+              <tr>
+                <th scope="col">Módulo</th>
+                <th scope="col">Administrador</th>
+                <th scope="col">Profissional</th>
+                <th scope="col">Cliente</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">01 · Conta própria (cadastro, login, senha)</th><td>✅</td><td>✅</td><td>✅</td></tr>
+              <tr><th scope="row">01 · Aprovar cadastro de Profissional</th><td>✅</td><td>❌</td><td>—</td></tr>
+              <tr><th scope="row">02 · Convidar/aceitar vínculo</th><td>—</td><td>✅ (convida)</td><td>✅ (aceita)</td></tr>
+              <tr><th scope="row">02 · Forçar desvínculo</th><td>✅</td><td>❌</td><td>❌</td></tr>
+              <tr><th scope="row">03 · Responder ao intake</th><td>—</td><td>—</td><td>✅ (próprio)</td></tr>
+              <tr><th scope="row">03 · Revisar intake e anotar</th><td>❌</td><td>✅ (clientes vinculados)</td><td>—</td></tr>
+              <tr><th scope="row">04 · Autorregistrar peso</th><td>—</td><td>—</td><td>✅ (próprio)</td></tr>
+              <tr><th scope="row">04 · Avaliação formal completa</th><td>❌</td><td>✅ (clientes vinculados)</td><td>❌</td></tr>
+              <tr><th scope="row">05 · Buscar exercícios</th><td>✅</td><td>✅</td><td>✅</td></tr>
+              <tr><th scope="row">05 · Criar exercício personalizado</th><td>✅</td><td>✅ (privado até promover)</td><td>❌</td></tr>
+              <tr><th scope="row">05 · Gerenciar catálogo global</th><td>✅</td><td>➕ propor apenas</td><td>❌</td></tr>
+              <tr><th scope="row">06 · Criar/editar plano de treino</th><td>❌</td><td>✅ (Personal Trainer, clientes vinculados)</td><td>❌</td></tr>
+              <tr><th scope="row">06 · Autoassinar modelo inicial</th><td>—</td><td>—</td><td>✅ (sem edição)</td></tr>
+              <tr><th scope="row">07 · Executar/registrar treino</th><td>—</td><td>❌</td><td>✅ (próprio)</td></tr>
+              <tr><th scope="row">07 · Ver histórico de execução</th><td>❌</td><td>✅ (somente leitura, vinculados)</td><td>✅ (próprio)</td></tr>
+              <tr><th scope="row">08 · Criar/confirmar meta nutricional</th><td>❌</td><td>✅ (Nutricionista, vinculados)</td><td>❌</td></tr>
+              <tr><th scope="row">08 · Registrar diário alimentar</th><td>—</td><td>—</td><td>✅ (próprio)</td></tr>
+              <tr><th scope="row">09 · Painel Hoje/Semana</th><td>❌</td><td>❌</td><td>✅ (próprio, versão parcial)</td></tr>
+              <tr><th scope="row">10 · Hábitos e tarefas pessoais</th><td>❌ (planejado)</td><td>❌ (planejado)</td><td>✅ (planejado, próprio)</td></tr>
+              <tr><th scope="row">11 · Enviar/ler mensagens</th><td>—</td><td>✅ (clientes vinculados)</td><td>✅ (profissionais vinculados)</td></tr>
+              <tr><th scope="row">11 · Suporte administrativo (ler qualquer thread)</th><td>➕ parcial (API existe, UI não)</td><td>❌</td><td>❌</td></tr>
+              <tr><th scope="row">12 · Receber notificações</th><td>✅ (planejado)</td><td>✅ (planejado)</td><td>✅ (planejado)</td></tr>
+              <tr><th scope="row">13 · Aprovar Profissionais / curar exercícios</th><td>✅</td><td>❌</td><td>—</td></tr>
+              <tr><th scope="row">13 · Gestão de usuários, auditoria, analytics</th><td>➕ parcial (em construção)</td><td>❌</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="glossario" class="panel" aria-labelledby="glossario-title">
+        <h2 id="glossario-title">Glossário</h2>
+        <dl class="glossary">
+          <div class="glossary__item">
+            <dt>Vínculo (Professional-Client Link)</dt>
+            <dd>Relação formal entre um Cliente e um Profissional, com uma especialização (Personal Trainer ou Nutricionista) e um status (Ativo, Pendente, Histórico/Desvinculado).</dd>
+          </div>
+          <div class="glossary__item">
+            <dt>Intake / Anamnese</dt>
+            <dd>Questionário inicial de saúde do Cliente (prontidão, mapa corporal de dores, condições, disponibilidade) que gera o perfil de contraindicações.</dd>
+          </div>
+          <div class="glossary__item">
+            <dt>Contraindicação</dt>
+            <dd>Restrição associada a um exercício que conflita com uma condição de saúde do Cliente, sinalizada com aviso persistente ao montar o plano.</dd>
+          </div>
+          <div class="glossary__item">
+            <dt>Mesociclo</dt>
+            <dd>Bloco de treino com duração definida (ex.: 4 a 8 semanas) dentro do qual um modelo semanal é aplicado.</dd>
+          </div>
+          <div class="glossary__item">
+            <dt>Modelo semanal (Weekly Template)</dt>
+            <dd>Estrutura de treino por dia da semana (exercícios, séries, repetições, carga) usada para gerar as sessões do calendário.</dd>
+          </div>
+          <div class="glossary__item">
+            <dt>Sessão (Session)</dt>
+            <dd>Treino agendado para um dia específico, gerado a partir do modelo semanal; tem status (agendada, concluída, perdida, cancelada, descanso).</dd>
+          </div>
+          <div class="glossary__item">
+            <dt>Modelo inicial (Starter Template)</dt>
+            <dd>Plano de treino pronto que um Cliente sem Profissional vinculado pode autoassinar; pode ser executado, mas não editado pelo Cliente.</dd>
+          </div>
+          <div class="glossary__item">
+            <dt>Meta nutricional (rascunho / ativa)</dt>
+            <dd>Sugestão de calorias/macros calculada pelo sistema (rascunho, visível só ao Nutricionista) até ser revisada e confirmada, quando passa a ser a meta ativa vista pelo Cliente.</dd>
+          </div>
+          <div class="glossary__item">
+            <dt>Diário alimentar (Food Diary)</dt>
+            <dd>Registro diário de alimentos consumidos pelo Cliente, comparado à meta ativa.</dd>
+          </div>
+          <div class="glossary__item">
+            <dt>Check-in</dt>
+            <dd>Acompanhamento periódico agendado pelo Profissional dentro de um vínculo ativo (ex.: revisão semanal), com data prevista para a próxima ocorrência.</dd>
+          </div>
+          <div class="glossary__item">
+            <dt>Thread (conversa)</dt>
+            <dd>Conversa de mensagens de texto entre um Cliente e um Profissional vinculado; fica somente leitura após o desvínculo.</dd>
+          </div>
+          <div class="glossary__item">
+            <dt>Desvínculo forçado</dt>
+            <dd>Encerramento de um vínculo realizado pelo Administrador, usado para resolver disputas ou limpar vínculos após a desativação de um Profissional.</dd>
+          </div>
+          <div class="glossary__item">
+            <dt>Log de auditoria</dt>
+            <dd>Registro append-only (nunca editável ou removível pela interface) de ações administrativas e prescritivas sensíveis, como aprovações e desvínculos forçados.</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section id="faq" class="panel" aria-labelledby="faq-title">
+        <h2 id="faq-title">Perguntas frequentes</h2>
+
+        <div class="faq-list">
+          <details class="faq-item">
+            <summary>Por que meu cadastro de Profissional não me dá acesso completo imediatamente?</summary>
+            <p>Todo cadastro de Profissional passa por aprovação de um Administrador antes de liberar o acesso completo. Enquanto isso, sua conta fica em "Aguardando aprovação". Você recebe um e-mail assim que a decisão for tomada.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>Posso ter dois Personal Trainers ao mesmo tempo?</summary>
+            <p>Não. Um Cliente pode ter no máximo um Personal Trainer ativo e um Nutricionista ativo simultaneamente. Para trocar, é preciso desvincular o vínculo atual antes de aceitar um novo convite da mesma especialização.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>O que acontece com meu histórico de treino/mensagens se eu desvincular do meu Profissional?</summary>
+            <p>Nada é apagado. O histórico de planos e mensagens permanece visível, mas passa a ser somente leitura para ambas as partes — não é possível criar novos planos, sessões ou mensagens naquele vínculo depois do desvínculo.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>Por que não vejo o painel "Hoje/Esta Semana" completo, com resumo semanal e avisos?</summary>
+            <p>Esse módulo (PRD 09) está parcialmente implementado: hoje existe apenas um painel inicial mínimo. A faixa semanal, o cartão de resumo e os avisos consolidados ainda estão em construção — use os menus de Treino, Nutrição e Mensagens separadamente enquanto isso.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>Existe um app de hábitos/tarefas pessoais?</summary>
+            <p>Ainda não. O módulo de Produtividade/Hábitos (PRD 10) está planejado, mas não implementado. O contador de hidratação dentro de Nutrição já existe e continua sendo a fonte oficial de hidratação.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>Recebo notificações por e-mail ou push do sistema?</summary>
+            <p>Hoje, apenas os e-mails de verificação de conta e redefinição de senha são enviados automaticamente (parte do módulo de Autenticação). O módulo geral de Notificações (lembretes de sessão, novas mensagens, plano atualizado, resumo semanal, check-in vencido) ainda está planejado.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>O Administrador pode ler minhas mensagens com meu Profissional?</summary>
+            <p>O modelo de acesso do sistema prevê que o Administrador tenha acesso de leitura de suporte a qualquer conversa para resolução de disputas. Hoje essa capacidade existe na API, mas ainda não há uma tela de caixa de entrada administrativa construída — por isso está listada como Parcial.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>Posso editar um plano de treino como Cliente?</summary>
+            <p>Não. Apenas o Profissional (com especialização Personal Trainer) cria e edita planos prescritivos. Um Cliente sem Profissional vinculado pode autoassinar um Modelo Inicial pronto, mas não pode editá-lo — apenas executá-lo.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>O que faço se o código de barras de um alimento não for encontrado?</summary>
+            <p>O sistema recai automaticamente para o cadastro manual do alimento — você preenche os dados nutricionais manualmente e o registro no diário alimentar continua normalmente, sem travar o fluxo.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>A validação de formulário no navegador é suficiente para garantir a segurança dos meus dados?</summary>
+            <p>Não — a validação em tela existe para dar retorno imediato e melhorar a experiência, mas toda regra de segurança e integridade de dados relevante é sempre reforçada pelo servidor, independentemente do que o navegador aceitar ou rejeitar primeiro.</p>
+          </details>
+        </div>
+      </section>
+
+      <footer class="content-footer">
+        <p>
+          Guia estático, sem dependências externas — funciona diretamente ao abrir
+          <code>index.html</code> no navegador, sem servidor ou build.
+        </p>
+        <p>
+          <button type="button" class="button button--ghost" id="backToTop">Voltar ao topo ↑</button>
+        </p>
+      </footer>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

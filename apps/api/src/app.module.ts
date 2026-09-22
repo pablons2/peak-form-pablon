@@ -9,6 +9,10 @@ import { RelationshipsModule } from "./relationships/relationships.module";
 import { ExercisesModule } from "./exercises/exercises.module";
 import { IntakeModule } from "./intake/intake.module";
 import { TrainingPlansModule } from "./training-plans/training-plans.module";
+import { BodyAssessmentsModule } from "./body-assessments/body-assessments.module";
+import { ClientTrainingExecutionModule } from "./client-training-execution/client-training-execution.module";
+import { NutritionModule } from "./nutrition/nutrition.module";
+import { MessagingModule } from "./messaging/messaging.module";
 
 // Feature modules land here as each PRD (docs/prds/01-*.md onward) is
 // implemented — see docs/IMPLEMENTATION_CHECKLIST.md for order.
@@ -28,6 +32,10 @@ import { TrainingPlansModule } from "./training-plans/training-plans.module";
     ExercisesModule,
     IntakeModule,
     TrainingPlansModule,
+    BodyAssessmentsModule,
+    ClientTrainingExecutionModule,
+    NutritionModule,
+    MessagingModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

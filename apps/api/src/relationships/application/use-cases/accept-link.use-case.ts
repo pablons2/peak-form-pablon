@@ -16,6 +16,12 @@ import {
   type UserWithProfiles,
 } from "../../../auth/domain/ports/user.repository.port";
 import {
+  DOMAIN_EVENT_BUS,
+  LINK_STATUS_CHANGED,
+  type DomainEventBus,
+  type LinkStatusChangedPayload,
+} from "../../../shared/domain-events/domain-event-bus.port";
+import {
   LINK_REPOSITORY,
   type LinkRepository,
   type LinkWithParties,
@@ -32,6 +38,7 @@ export class AcceptLinkUseCase {
   constructor(
     @Inject(USER_REPOSITORY) private readonly users: UserRepository,
     @Inject(LINK_REPOSITORY) private readonly links: LinkRepository,
+    @Inject(DOMAIN_EVENT_BUS) private readonly events: DomainEventBus,
   ) {}
 
   async execute(input: { actor: UserWithProfiles; linkId: string }) {
@@ -72,11 +79,25 @@ export class AcceptLinkUseCase {
       );
     }
 
-    return this.links.update(link.id, {
+    const activated = await this.links.update(link.id, {
       status: LinkStatus.ACTIVE,
       linkedAt: new Date(),
       expiresAt: null,
     });
+
+    // PRD 11 §5.1 — a MessageThread is created/reused the moment this pair's
+    // link becomes ACTIVE. Awaited so the thread genuinely exists before
+    // this request's HTTP response goes out (see the port's own comment on
+    // why emit() is awaitable at all).
+    const payload: LinkStatusChangedPayload = {
+      linkId: activated.id,
+      professionalId: activated.professionalId,
+      clientId: activated.clientId,
+      status: "ACTIVE",
+    };
+    await this.events.emit({ name: LINK_STATUS_CHANGED, payload });
+
+    return activated;
   }
 
   private assertCounterpart(link: LinkWithParties, actor: UserWithProfiles): void {

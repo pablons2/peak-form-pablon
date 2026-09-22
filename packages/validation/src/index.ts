@@ -10,3 +10,7 @@ export * from "./relationships/schemas";
 export * from "./exercises/schemas";
 export * from "./intake/schemas";
 export * from "./training-plans/schemas";
+export * from "./body-assessments/schemas";
+export * from "./client-training-execution/schemas";
+export * from "./nutrition/schemas";
+export * from "./messaging/schemas";

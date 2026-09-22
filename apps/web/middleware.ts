@@ -37,8 +37,12 @@ export const config = {
     "/clients/:path*",
     "/exercises/:path*",
     "/intake/:path*",
+    "/body-assessments/:path*",
     "/plans/:path*",
     "/sessions/:path*",
+    "/today/:path*",
+    "/nutrition/:path*",
+    "/messages/:path*",
     "/admin/:path*",
   ],
 };

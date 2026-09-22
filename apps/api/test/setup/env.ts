@@ -15,3 +15,6 @@ process.env.JWT_REFRESH_SECRET ??= "test_refresh_secret";
 // BDD scenarios invoke RunCheckInDueJobUseCase directly for determinism —
 // keep the real 60s interval job out of the way during tests.
 process.env.CHECK_IN_SCHEDULER_DISABLED ??= "1";
+// Same reasoning, PRD 07 §5.4 — scenarios invoke RunMissedSessionJobUseCase
+// directly.
+process.env.MISSED_SESSION_SCHEDULER_DISABLED ??= "1";
