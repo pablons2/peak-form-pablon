@@ -124,6 +124,12 @@ model User {
   messageThreadsAsClient       MessageThread[] @relation("MessageThreadClient")
   sentMessages                 Message[]       @relation("MessageSender")
 
+  /// PRD 10 — this Client's own health-adjacent habit definitions (their
+  /// check-ins hang off the definitions) and personal tasks. Client-only
+  /// by design (§4): nothing here is visible to Professionals or Admin.
+  habitDefinitions             HabitDefinition[] @relation("HabitClient")
+  personalTasks                PersonalTask[]    @relation("PersonalTaskClient")
+
   auditLogEntries            AuditLog[]
 
   @@map("users")
@@ -1047,4 +1053,74 @@ model Message {
 
   @@index([threadId, sentAt])
   @@map("messages")
+}
+
+// --- PRD 10: Productivity / Habits (health-adjacent, Client-only) -----------
+
+enum HabitCadence {
+  DAILY
+  SPECIFIC_WEEKDAYS
+}
+
+/// PRD 10 §6/§5.1 — one Client's custom health-adjacent habit ("stretch
+/// 10 min", "take vitamin D"). Client-only by design (§4) — the only FK
+/// here is into users; deliberately NO FK into TrainingPlan/NutritionPlan/
+/// BodyAssessment (§10's isolation AC is proven by a schema-level BDD
+/// scenario). `weekdays` reuses PRD 06's Weekday enum vocabulary and is
+/// only meaningful under SPECIFIC_WEEKDAYS — under DAILY every calendar
+/// day is a due day. `archivedAt` is the soft-delete: archiving hides the
+/// habit from today's checklist but keeps its check-in history.
+model HabitDefinition {
+  id           String       @id @default(cuid())
+  clientId     String
+  client       User         @relation("HabitClient", fields: [clientId], references: [id], onDelete: Cascade)
+  name         String
+  cadence      HabitCadence @default(DAILY)
+  weekdays     Weekday[]    @default([])
+  /// Optional "HH:MM" time-of-day — a display hint only in v1 (reminder
+  /// delivery belongs to PRD 12, not here). A plain String, not @db.Time:
+  /// a bare time-of-day has no timezone to pin, and Postgres `time` would
+  /// surface in the Prisma client as a 1970-dated DateTime anyway.
+  reminderTime String?
+  createdAt    DateTime     @default(now())
+  archivedAt   DateTime?
+
+  checkIns HabitCheckIn[]
+
+  @@index([clientId])
+  @@map("habit_definitions")
+}
+
+/// PRD 10 §6/§5.2 — one check-off of one habit on one calendar day.
+/// @@unique(habitDefinitionId, date) makes "check off" naturally
+/// idempotent (a double-tap upserts, never duplicates). Append-only
+/// history: a missed day resets the streak but never deletes past
+/// check-ins (§10).
+model HabitCheckIn {
+  id                String          @id @default(cuid())
+  habitDefinitionId String
+  habit             HabitDefinition @relation(fields: [habitDefinitionId], references: [id], onDelete: Cascade)
+  date              DateTime        @db.Date
+  checkedAt         DateTime        @default(now())
+
+  @@unique([habitDefinitionId, date])
+  @@map("habit_check_ins")
+}
+
+/// PRD 10 §6/§5.3 — a flat personal to-do: text, optional due date,
+/// done/not-done. No sub-tasks, no priorities, no sharing (§3). Hard
+/// delete is fine — §6 defines no archivedAt and a finished/deleted task
+/// carries no history worth preserving, unlike a habit's check-in trail.
+model PersonalTask {
+  id          String    @id @default(cuid())
+  clientId    String
+  client      User      @relation("PersonalTaskClient", fields: [clientId], references: [id], onDelete: Cascade)
+  text        String
+  dueDate     DateTime? @db.Date
+  done        Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@index([clientId])
+  @@map("personal_tasks")
 }

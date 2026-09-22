@@ -107,9 +107,12 @@ export class AuthTestWorld {
     this.signedMediaStore.uploadRequests.length = 0;
     this.signedMediaStore.downloadRequests.length = 0;
     // users CASCADE covers professional_profiles, client_profiles, audit_logs,
-    // nutrition_plans, food_diary_entries, hydration_logs (all FK into
-    // users). exercises CASCADE covers its tag join table and is also
-    // reachable via ownerProfessionalId → users. contraindication_tags is
+    // nutrition_plans, food_diary_entries, hydration_logs, habit_definitions,
+    // personal_tasks (all FK into users) — habit_check_ins is reachable
+    // transitively via habit_definitions' own onDelete: Cascade FK, so no
+    // separate TRUNCATE is needed for any of PRD 10's three tables. exercises
+    // CASCADE covers its tag join table and is also reachable via
+    // ownerProfessionalId → users. contraindication_tags is
     // intentionally NOT truncated — it's migration-seeded reference data
     // (PRD 05 §6), constant across scenarios like an enum table.
     // food_item_cache has no FK into users (PRD 08 §6 — it's normalized,
@@ -271,6 +274,55 @@ export class AuthTestWorld {
   ) {
     return this.prisma.message.create({
       data: { threadId, senderId, body, readAt: opts.readAt ?? null },
+    });
+  }
+
+  // PRD 10 — direct-DB seeders mirroring seedMessageThread/seedMessage's
+  // role: scenarios where an existing habit/check-in/task is a
+  // precondition, not the thing under test (the real create/check-in HTTP
+  // flows are exercised separately).
+  async seedHabit(
+    clientId: string,
+    opts: {
+      name?: string;
+      cadence?: "DAILY" | "SPECIFIC_WEEKDAYS";
+      weekdays?: Array<
+        "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY"
+      >;
+      archivedAt?: Date | null;
+      createdAt?: Date;
+    } = {},
+  ) {
+    return this.prisma.habitDefinition.create({
+      data: {
+        clientId,
+        name: opts.name ?? "Beber agua",
+        cadence: opts.cadence ?? "DAILY",
+        weekdays: opts.weekdays ?? [],
+        archivedAt: opts.archivedAt ?? null,
+        createdAt: opts.createdAt ?? new Date("2024-01-01T00:00:00.000Z"),
+      },
+    });
+  }
+
+  async seedHabitCheckIn(habitId: string, date: string) {
+    return this.prisma.habitCheckIn.create({
+      data: { habitDefinitionId: habitId, date: new Date(`${date}T00:00:00.000Z`) },
+    });
+  }
+
+  async seedTask(
+    clientId: string,
+    opts: { text?: string; dueDate?: string | null; done?: boolean } = {},
+  ) {
+    return this.prisma.personalTask.create({
+      data: {
+        clientId,
+        text: opts.text ?? "Comprar suplemento",
+        dueDate: opts.dueDate ? new Date(`${opts.dueDate}T00:00:00.000Z`) : null,
+        done: opts.done ?? false,
+        completedAt: opts.done ? new Date() : null,
+      },
     });
   }
 

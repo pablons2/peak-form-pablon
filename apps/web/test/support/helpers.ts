@@ -53,6 +53,17 @@ export async function apiGet(
   return { status: res.status, body: await res.json().catch(() => ({})) };
 }
 
+export async function apiDelete(
+  path: string,
+  token: string,
+): Promise<{ status: number; body: Record<string, unknown> }> {
+  const res = await fetch(`${API}${path}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return { status: res.status, body: await res.json().catch(() => ({})) };
+}
+
 interface MailhogMessage {
   To: { Mailbox: string; Domain: string }[];
   Content: { Headers: { Subject?: string[] }; Body: string };
@@ -390,6 +401,30 @@ export async function seedConfirmedNutritionTarget(
   if (confirm.status !== 200) {
     throw new Error(`nutrition target confirm seed failed: ${confirm.status}`);
   }
+}
+
+// PRD 10 — seeds a DAILY habit through the real API as the given client,
+// for scenarios that need an existing habit as a precondition (e.g. the
+// "Today" checklist card) rather than exercising the create-habit UI form
+// itself. Returns the habit id.
+export async function seedHabit(clientEmail: string, name: string): Promise<string> {
+  const login = await apiPost("/auth/login", { email: clientEmail, password: TEST_PASSWORD });
+  const token = login.body.accessToken as string;
+  const res = await apiPost("/habits", { name, cadence: "DAILY" }, token);
+  if (res.status !== 201) throw new Error(`habit seed failed: ${res.status}`);
+  return res.body.id as string;
+}
+
+// PRD 10 — seeds a personal task due today (real clock, UTC — mirrors
+// seedPlanWithTodaySession's own date math) through the real API as the
+// given client, for scenarios asserting the "Today" checklist card shows a
+// due task without exercising the add-task UI form itself.
+export async function seedTask(clientEmail: string, text: string): Promise<string> {
+  const login = await apiPost("/auth/login", { email: clientEmail, password: TEST_PASSWORD });
+  const token = login.body.accessToken as string;
+  const res = await apiPost("/tasks", { text, dueDate: isoDate(todayUTC()) }, token);
+  if (res.status !== 201) throw new Error(`task seed failed: ${res.status}`);
+  return res.body.id as string;
 }
 
 export const ADMIN_EMAIL = "bdd.admin@example.com";

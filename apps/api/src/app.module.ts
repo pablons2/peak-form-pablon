@@ -13,6 +13,7 @@ import { BodyAssessmentsModule } from "./body-assessments/body-assessments.modul
 import { ClientTrainingExecutionModule } from "./client-training-execution/client-training-execution.module";
 import { NutritionModule } from "./nutrition/nutrition.module";
 import { MessagingModule } from "./messaging/messaging.module";
+import { ProductivityModule } from "./productivity/productivity.module";
 
 // Feature modules land here as each PRD (docs/prds/01-*.md onward) is
 // implemented — see docs/IMPLEMENTATION_CHECKLIST.md for order.
@@ -36,6 +37,7 @@ import { MessagingModule } from "./messaging/messaging.module";
     ClientTrainingExecutionModule,
     NutritionModule,
     MessagingModule,
+    ProductivityModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

@@ -43,6 +43,7 @@ export const config = {
     "/today/:path*",
     "/nutrition/:path*",
     "/messages/:path*",
+    "/habits/:path*",
     "/admin/:path*",
   ],
 };

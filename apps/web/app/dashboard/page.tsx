@@ -88,6 +88,13 @@ export default async function DashboardPage() {
             </Link>
           </p>
         ) : null}
+        {session.user.role === "CLIENT" ? (
+          <p className="mt-2 text-sm">
+            <Link href="/habits" className="text-accent hover:underline">
+              Hábitos e tarefas
+            </Link>
+          </p>
+        ) : null}
         {session.user.role === "PROFESSIONAL" ? (
           <p className="mt-4 text-sm">
             <Link href="/clients" className="text-accent hover:underline">

@@ -14,3 +14,4 @@ export * from "./body-assessments/schemas";
 export * from "./client-training-execution/schemas";
 export * from "./nutrition/schemas";
 export * from "./messaging/schemas";
+export * from "./habits/schemas";
