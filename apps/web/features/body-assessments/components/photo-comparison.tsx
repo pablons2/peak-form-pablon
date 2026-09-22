@@ -46,7 +46,7 @@ function DateSelect({
       >
         {photos.map((p, i) => (
           <option key={p.recordedAt} value={i}>
-            {new Date(p.recordedAt).toLocaleDateString("pt-BR")}
+            {new Date(p.recordedAt).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}
           </option>
         ))}
       </select>

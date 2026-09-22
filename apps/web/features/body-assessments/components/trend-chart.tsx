@@ -107,7 +107,7 @@ export function TrendChart({
             }
           >
             <title>
-              {new Date(p.recordedAt).toLocaleDateString("pt-BR")}: {p.value}
+              {new Date(p.recordedAt).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}: {p.value}
               {unit} ({p.source === "PROFESSIONAL_VALIDATED" ? "validado" : "auto-relatado"})
             </title>
           </circle>

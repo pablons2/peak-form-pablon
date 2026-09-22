@@ -20,7 +20,7 @@ export function BodyAssessmentList({ entries }: { entries: PublicBodyAssessment[
         <li key={entry.id} className="flex items-center justify-between py-2 text-sm">
           <div>
             <span className="font-medium text-foreground">
-              {new Date(entry.recordedAt).toLocaleDateString("pt-BR")}
+              {new Date(entry.recordedAt).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}
             </span>{" "}
             <span className="text-muted-foreground">— {entry.weight} kg</span>
             {entry.bodyFatPercent != null ? (

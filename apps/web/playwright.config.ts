@@ -18,6 +18,11 @@ export default defineConfig({
   // BDD suite runs maxWorkers: 1.
   fullyParallel: false,
   workers: 1,
+  // 60s per scenario: the longest scenarios (e.g. PRD 02's invite→accept
+  // round-trip) do 3 logins + 4 dev-mode page loads, which sits right at
+  // Playwright's 30s default under the serialized suite's accumulated
+  // dev-server load — a budget problem, not a product bug.
+  timeout: 60_000,
   reporter: "list",
   use: {
     baseURL: process.env.WEB_BASE_URL ?? "http://localhost:3000",

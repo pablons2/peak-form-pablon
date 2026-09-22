@@ -169,6 +169,11 @@ When(
     await page.getByLabel("Frequência").selectOption("WEEKLY");
     await page.getByLabel("Dia da semana").selectOption("5");
     await page.getByRole("button", { name: "Criar lembrete" }).click();
+    // The next step navigates this same tab away (client's login) — without
+    // waiting for the created schedule to render, the in-flight server action
+    // can be aborted by that navigation before it commits, and the check-in
+    // never exists (the reproducible "flake" this scenario used to have).
+    await expect(page.getByText("Semanal — Sexta-feira")).toBeVisible();
   },
 );
 
