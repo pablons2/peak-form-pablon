@@ -12,13 +12,20 @@ const dangerClass =
   "rounded-md border border-destructive/40 px-3 py-1.5 text-sm font-medium text-destructive hover:bg-destructive/10 focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-60";
 
 // PRD 13 §5.2 — surfaces PRD 01's approve/reject queue in the console.
-export function ApprovalActions({ userId }: { userId: string }) {
+export function ApprovalActions({
+  userId,
+  emailVerified,
+}: {
+  userId: string;
+  emailVerified: boolean;
+}) {
   const router = useRouter();
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string>();
   const [pending, setPending] = useState<"approve" | "reject" | null>(null);
 
   async function onApprove() {
+    if (!emailVerified) return;
     setPending("approve");
     setError(undefined);
     const result = await approveProfessionalAction(userId);
@@ -63,7 +70,10 @@ export function ApprovalActions({ userId }: { userId: string }) {
         <button
           type="button"
           onClick={onApprove}
-          disabled={pending !== null}
+          disabled={pending !== null || !emailVerified}
+          title={
+            emailVerified ? undefined : ADMIN_LABELS.approveDisabledUntilVerified
+          }
           className={buttonClass}
         >
           {pending === "approve" ? "…" : ADMIN_LABELS.approve}

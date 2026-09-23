@@ -160,6 +160,52 @@ defineFeature(feature, (test) => {
     );
   });
 
+  test("Admin cannot approve an unverified professional", async ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    given(
+      'an admin "admin@example.com" with password "S3cure!Pass" who is logged in',
+      async () => {
+        await world.seedAdmin("admin@example.com");
+        adminToken = await loginAndGetToken("admin@example.com", "S3cure!Pass");
+      },
+    );
+
+    and(
+      'an unverified professional "unver@example.com" with password "S3cure!Pass" and approval status "PENDING_APPROVAL"',
+      async () => {
+        professional = await world.seedProfessional("unver@example.com", {
+          password: "S3cure!Pass",
+          approvalStatus: "PENDING_APPROVAL",
+          verified: false,
+        });
+      },
+    );
+
+    when('the admin approves "unver@example.com"', async () => {
+      response = await request(world.http)
+        .post(`/admin/professionals/${professional.id}/approve`)
+        .set("Authorization", `Bearer ${adminToken}`);
+    });
+
+    then("the request is rejected with status 409", () => {
+      expect(response.status).toBe(409);
+    });
+
+    and(
+      "the professional cannot log in because their email is not verified",
+      async () => {
+        const res = await request(world.http)
+          .post("/auth/login")
+          .send({ email: "unver@example.com", password: "S3cure!Pass" });
+        expect(res.status).toBe(403);
+      },
+    );
+  });
+
   test("Admin rejects a professional; the account can still log in but stays blocked", async ({
     given,
     when,

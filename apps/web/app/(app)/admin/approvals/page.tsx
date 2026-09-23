@@ -45,8 +45,16 @@ export default async function AdminApprovalsPage() {
                     .join(", ")}
                 </p>
                 <p className="mt-2 text-sm text-foreground">{profile.verificationNote}</p>
+                <p className="mt-1 text-xs font-medium text-muted-foreground">
+                  {profile.user.emailVerified
+                    ? ADMIN_LABELS.emailVerified
+                    : ADMIN_LABELS.emailPending}
+                </p>
               </div>
-              <ApprovalActions userId={profile.userId} />
+              <ApprovalActions
+                userId={profile.userId}
+                emailVerified={profile.user.emailVerified}
+              />
             </li>
           ))}
         </ul>

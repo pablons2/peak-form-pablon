@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Badge } from "@peakform/ui";
-import type { PublicLink } from "../api-client";
+import type { LinkStatus, PublicLink } from "../api-client";
 import { unlinkAction } from "../actions";
 import { SPECIALIZATION_LABELS, formatDate } from "../labels";
 
@@ -34,13 +34,15 @@ export function ClientRosterRow({
     });
   }
 
-  const statusColors: Record<string, { bg: string; text: string }> = {
+  const statusColors: Record<LinkStatus, { bg: string; text: string }> = {
     ACTIVE: { bg: "bg-success/10", text: "text-success" },
     PENDING: { bg: "bg-warning/10", text: "text-warning" },
     DECLINED: { bg: "bg-destructive/10", text: "text-destructive" },
+    EXPIRED: { bg: "bg-muted", text: "text-muted-foreground" },
+    UNLINKED: { bg: "bg-muted", text: "text-muted-foreground" },
   };
 
-  const statusColor = statusColors[link.status] || statusColors.PENDING;
+  const statusColor = statusColors[link.status];
 
   return (
     <li>

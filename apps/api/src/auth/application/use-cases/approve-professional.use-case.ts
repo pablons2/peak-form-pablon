@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { ApprovalStatus } from "@prisma/client";
 import { AuditLogService } from "../../../shared/audit-log/audit-log.service";
 import {
@@ -27,6 +32,15 @@ export class ApproveProfessionalUseCase {
     const target = await this.users.findById(input.professionalUserId);
     if (!target?.professionalProfile) {
       throw new NotFoundException("Professional account not found");
+    }
+
+    // PRD 01 §5.2 — credentials signups must verify email before first login.
+    // Admin approval is not a shortcut around that requirement; it only gates
+    // Professional-only features once the account is already verified.
+    if (!target.emailVerifiedAt) {
+      throw new ConflictException(
+        "Professional must verify their email before approval",
+      );
     }
 
     const profile = await this.users.updateProfessionalProfile(target.id, {

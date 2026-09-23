@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Badge } from "@peakform/ui";
-import type { PublicLink } from "@/features/relationships/api-client";
-import type { CheckInSchedule } from "@/features/relationships/api-client";
+import type { CheckInSchedule, LinkStatus, PublicLink } from "@/features/relationships/api-client";
 
 export function OverviewTab({
   link,
@@ -12,7 +11,7 @@ export function OverviewTab({
   schedules: CheckInSchedule[];
   viewerId: string;
 }) {
-  const statusColors: Record<string, { bg: string; text: string }> = {
+  const statusColors: Record<LinkStatus, { bg: string; text: string }> = {
     ACTIVE: { bg: "bg-success/10", text: "text-success" },
     PENDING: { bg: "bg-warning/10", text: "text-warning" },
     DECLINED: { bg: "bg-destructive/10", text: "text-destructive" },
@@ -20,7 +19,7 @@ export function OverviewTab({
     UNLINKED: { bg: "bg-muted", text: "text-muted-foreground" },
   };
 
-  const statusColor = statusColors[link.status] || statusColors.PENDING;
+  const statusColor = statusColors[link.status];
   const initials = link.client.fullName
     .split(" ")
     .map((n) => n[0])

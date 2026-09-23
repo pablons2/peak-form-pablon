@@ -21,6 +21,13 @@ Feature: Professional approval queue
     Then the professional can access a professional-only route
     And an audit log entry records the approval of "paula@example.com" by "admin@example.com"
 
+  Scenario: Admin cannot approve an unverified professional
+    Given an admin "admin@example.com" with password "S3cure!Pass" who is logged in
+    And an unverified professional "unver@example.com" with password "S3cure!Pass" and approval status "PENDING_APPROVAL"
+    When the admin approves "unver@example.com"
+    Then the request is rejected with status 409
+    And the professional cannot log in because their email is not verified
+
   Scenario: Admin rejects a professional; the account can still log in but stays blocked
     Given an admin "admin@example.com" with password "S3cure!Pass" who is logged in
     And a professional "reje@example.com" with password "S3cure!Pass" and approval status "PENDING_APPROVAL"
