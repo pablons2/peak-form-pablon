@@ -56,7 +56,7 @@ export const authOptions: NextAuthOptions = {
         if (!result.ok) {
           // Surface the API's reason (unverified email, deactivated account)
           // back through NextAuth's ?error= redirect.
-          throw new Error(result.message);
+          throw new Error(result.message || "CredentialsSignin");
         }
         const { accessToken, refreshToken, user } = result.data;
         return {
