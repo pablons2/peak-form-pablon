@@ -57,9 +57,13 @@ function failure<T>(res: Response, data: { message?: string | string[] }): ApiRe
 // The API issues the refresh token as an httpOnly Set-Cookie (Path=/auth),
 // not in the JSON body — capture its value for server-side replay.
 function refreshTokenFromResponse(res: Response): string | null {
-  const setCookie = res.headers.get("set-cookie");
-  const match = setCookie?.match(/refresh_token=([^;]+)/);
-  return match?.[1] ?? null;
+  // Use getSetCookie() to properly handle all Set-Cookie headers
+  const setCookies = (res.headers as any).getSetCookie?.() ?? [];
+  for (const setCookie of setCookies) {
+    const match = setCookie.match(/refresh_token=([^;]+)/);
+    if (match?.[1]) return match[1];
+  }
+  return null;
 }
 
 // Raw POST that keeps access to response headers (Set-Cookie). Endpoints that
