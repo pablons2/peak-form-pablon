@@ -1,5 +1,9 @@
+import "reflect-metadata";
+import { NestFactory } from "@nestjs/core";
 import { PrismaClient } from "@prisma/client";
 import * as bcrypt from "bcrypt";
+import { AppModule } from "./app.module";
+import { ImportExerciseCatalogUseCase } from "./exercises/application/use-cases/import-exercise-catalog.use-case";
 
 // PRD 14 §5.6 — seed data entry point. Creates one usable demo account per
 // persona (Admin, Personal Trainer, Nutritionist, Client) so a fresh
@@ -271,6 +275,26 @@ async function main() {
   console.log("  • Training Plan for Client 1 (Trainer)");
   console.log("  • Nutrition Plan for Client 2 (Nutritionist)");
   console.log("");
+
+  // Import exercise catalog (PRD 05 §5.1) — required for weekly template
+  // exercise picker to work (without exercises, the select is empty).
+  console.log("📚 Importing exercise catalog...");
+  try {
+    const app = await NestFactory.createApplicationContext(AppModule, {
+      logger: ["error", "warn"],
+    });
+    const importResult = await app.get(ImportExerciseCatalogUseCase).execute();
+    await app.close();
+    console.log(
+      `✅ Exercises imported: ${importResult.created} created, ` +
+        `${importResult.updated} updated, ${importResult.skipped} skipped (${importResult.total} total)`,
+    );
+  } catch (error) {
+    console.warn(
+      "⚠️  Exercise import failed (catalog may not be available — templates can still be created):",
+      error instanceof Error ? error.message : String(error),
+    );
+  }
 }
 
 main()
