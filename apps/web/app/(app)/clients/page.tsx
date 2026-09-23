@@ -9,9 +9,14 @@ import {
   getClientIntake,
   type PublicLink,
 } from "@/features/relationships/api-client";
+import { listClientTrainingPlans } from "@/features/training-plans/api-client";
 import { ClientRosterRow } from "@/features/relationships/components/client-roster-row";
 import { InviteClientForm } from "@/features/relationships/components/invite-client-form";
+import { ClientDetailTabs } from "@/features/client-detail-hub/components/client-detail-tabs";
 import { OverviewTab } from "@/features/client-detail-hub/components/overview-tab";
+import { TrainingPlansTab } from "@/features/client-detail-hub/components/training-plans-tab";
+import { LinkedSectionTab } from "@/features/client-detail-hub/components/linked-section-tab";
+import { CheckInsPanel } from "@/features/relationships/components/check-ins-panel";
 
 export const metadata = { title: "Meus Clientes — PeakForm" };
 
@@ -50,6 +55,13 @@ export default async function ClientsPage({
         r.ok ? r.data.intake : null,
       )
     : null;
+
+  // Fetch training plans for the selected client if applicable
+  const selectedPlans = selectedLink && selectedLink.specialization === "PERSONAL_TRAINER"
+    ? await listClientTrainingPlans(accessToken, selectedLink.client.id).then((r) =>
+        r.ok ? r.data : [],
+      )
+    : [];
 
   return (
     <main className="mx-auto p-4 lg:grid lg:max-w-full lg:grid-cols-[320px_1fr] lg:gap-4">
@@ -107,8 +119,8 @@ export default async function ClientsPage({
       </div>
 
       {selectedLink && (
-        <div className="mt-6 lg:mt-0 border-t border-border pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-4">
-          <div className="flex items-center justify-between lg:mb-4">
+        <div className="mt-6 space-y-6 lg:mt-0 lg:border-l lg:border-border lg:pl-4">
+          <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground">
               {selectedLink.client.fullName}
             </h2>
@@ -116,12 +128,61 @@ export default async function ClientsPage({
               ✕
             </Link>
           </div>
-          <OverviewTab
-            link={selectedLink}
-            schedules={selectedSchedules}
-            intake={selectedIntake}
-            viewerId={session.user.id!}
+
+          <ClientDetailTabs
+            overview={<OverviewTab link={selectedLink} schedules={selectedSchedules} intake={selectedIntake} viewerId={session.user.id!} />}
+            treino={
+              selectedLink.specialization === "PERSONAL_TRAINER" ? (
+                <TrainingPlansTab linkId={selectedLink.id} plans={selectedPlans} />
+              ) : (
+                <LinkedSectionTab
+                  linkId={selectedLink.id}
+                  sectionName="Nutrição"
+                  href={`/clients/${selectedLink.id}/nutrition`}
+                />
+              )
+            }
+            nutricao={
+              selectedLink.specialization === "NUTRITIONIST" ? (
+                <LinkedSectionTab
+                  linkId={selectedLink.id}
+                  sectionName="Nutrição"
+                  href={`/clients/${selectedLink.id}/nutrition`}
+                />
+              ) : (
+                <LinkedSectionTab
+                  linkId={selectedLink.id}
+                  sectionName="Nutrição"
+                  href={`/clients/${selectedLink.id}/nutrition`}
+                />
+              )
+            }
+            avaliacoes={
+              <LinkedSectionTab
+                linkId={selectedLink.id}
+                sectionName="Avaliação Corporal"
+                href={`/clients/${selectedLink.id}/body-assessments`}
+              />
+            }
+            mensagens={
+              <LinkedSectionTab
+                linkId={selectedLink.id}
+                sectionName="Mensagens"
+                href={`/messages/with/${selectedLink.client.id}`}
+              />
+            }
           />
+
+          <section className="rounded-lg border border-border bg-card p-4">
+            <h2 className="text-sm font-medium text-foreground">Check-ins</h2>
+            <div className="mt-3">
+              <CheckInsPanel
+                linkId={selectedLink.id}
+                schedules={selectedSchedules}
+                canManage={selectedLink.status === "ACTIVE"}
+              />
+            </div>
+          </section>
         </div>
       )}
     </main>

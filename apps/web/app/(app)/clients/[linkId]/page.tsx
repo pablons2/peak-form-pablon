@@ -44,8 +44,8 @@ export default async function ClientDetailPage({
   const intake = intakeResult.ok ? intakeResult.data.intake : null;
 
   return (
-    <main className="mx-auto max-w-2xl space-y-6 p-4">
-      <div className="flex items-center justify-between">
+    <main className="mx-auto w-full p-4 lg:max-w-4xl">
+      <div className="flex items-center justify-between mb-6">
         <h1 className="text-lg font-semibold text-foreground">
           {link.client.fullName}
         </h1>
@@ -54,60 +54,62 @@ export default async function ClientDetailPage({
         </Link>
       </div>
 
-      <ClientDetailTabs
-        overview={<OverviewTab link={link} schedules={schedules} intake={intake} viewerId={session.user.id!} />}
-        treino={
-          link.specialization === "PERSONAL_TRAINER" ? (
-            <TrainingPlansTab linkId={link.id} plans={plans} />
-          ) : (
+      <div className="space-y-6">
+        <ClientDetailTabs
+          overview={<OverviewTab link={link} schedules={schedules} intake={intake} viewerId={session.user.id!} />}
+          treino={
+            link.specialization === "PERSONAL_TRAINER" ? (
+              <TrainingPlansTab linkId={link.id} plans={plans} />
+            ) : (
+              <LinkedSectionTab
+                linkId={link.id}
+                sectionName="Nutrição"
+                href={`/clients/${link.id}/nutrition`}
+              />
+            )
+          }
+          nutricao={
+            link.specialization === "NUTRITIONIST" ? (
+              <LinkedSectionTab
+                linkId={link.id}
+                sectionName="Nutrição"
+                href={`/clients/${link.id}/nutrition`}
+              />
+            ) : (
+              <LinkedSectionTab
+                linkId={link.id}
+                sectionName="Nutrição"
+                href={`/clients/${link.id}/nutrition`}
+              />
+            )
+          }
+          avaliacoes={
             <LinkedSectionTab
               linkId={link.id}
-              sectionName="Nutrição"
-              href={`/clients/${link.id}/nutrition`}
+              sectionName="Avaliação Corporal"
+              href={`/clients/${link.id}/body-assessments`}
             />
-          )
-        }
-        nutricao={
-          link.specialization === "NUTRITIONIST" ? (
+          }
+          mensagens={
             <LinkedSectionTab
               linkId={link.id}
-              sectionName="Nutrição"
-              href={`/clients/${link.id}/nutrition`}
+              sectionName="Mensagens"
+              href={`/messages/with/${link.client.id}`}
             />
-          ) : (
-            <LinkedSectionTab
-              linkId={link.id}
-              sectionName="Nutrição"
-              href={`/clients/${link.id}/nutrition`}
-            />
-          )
-        }
-        avaliacoes={
-          <LinkedSectionTab
-            linkId={link.id}
-            sectionName="Avaliação Corporal"
-            href={`/clients/${link.id}/body-assessments`}
-          />
-        }
-        mensagens={
-          <LinkedSectionTab
-            linkId={link.id}
-            sectionName="Mensagens"
-            href={`/messages/with/${link.client.id}`}
-          />
-        }
-      />
+          }
+        />
 
-      <section className="rounded-lg border border-border bg-card p-4">
-        <h2 className="text-sm font-medium text-foreground">Check-ins</h2>
-        <div className="mt-3">
-          <CheckInsPanel
-            linkId={link.id}
-            schedules={schedules}
-            canManage={link.status === "ACTIVE"}
-          />
-        </div>
-      </section>
+        <section className="rounded-lg border border-border bg-card p-4">
+          <h2 className="text-sm font-medium text-foreground">Check-ins</h2>
+          <div className="mt-3">
+            <CheckInsPanel
+              linkId={link.id}
+              schedules={schedules}
+              canManage={link.status === "ACTIVE"}
+            />
+          </div>
+        </section>
+      </div>
     </main>
   );
 }
