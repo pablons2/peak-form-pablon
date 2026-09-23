@@ -3,6 +3,7 @@ import { Badge, Alert } from "@peakform/ui";
 import type { CheckInSchedule, LinkStatus, PublicLink } from "@/features/relationships/api-client";
 import type { ClientIntake } from "@/features/relationships/api-client";
 import { AlertTriangle } from "lucide-react";
+import { OnboardingProgressCard } from "./onboarding-progress-card";
 
 export function OverviewTab({
   link,
@@ -39,6 +40,8 @@ export function OverviewTab({
     (intake.contraindicationTagCodes && intake.contraindicationTagCodes.length > 0)
   );
 
+  const intakePending = !intake || intake.status === "PENDING";
+
   return (
     <div className="space-y-6">
       <div className="flex gap-4 rounded-lg border border-border bg-card p-4">
@@ -46,13 +49,18 @@ export function OverviewTab({
           {initials}
         </div>
         <div className="flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <h2 className="text-lg font-semibold text-foreground">{link.client.fullName}</h2>
             <Badge
               className={`${statusColor.bg} ${statusColor.text}`}
             >
               {link.status === "ACTIVE" ? "Ativo" : "Pendente"}
             </Badge>
+            {intakePending && (
+              <Badge className="bg-warning/10 text-warning">
+                ⚠️ Triagem Pendente
+              </Badge>
+            )}
           </div>
           <p className="mt-1 text-sm text-muted-foreground">{link.client.email}</p>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -60,6 +68,8 @@ export function OverviewTab({
           </p>
         </div>
       </div>
+
+      <OnboardingProgressCard link={link} intake={intake} />
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-lg border border-border bg-card p-4">

@@ -2,9 +2,10 @@ import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/features/auth/nextauth-options";
-import { listMyLinks } from "@/features/relationships/api-client";
+import { listMyLinks, getClientIntake } from "@/features/relationships/api-client";
 import { listClientTrainingPlans } from "@/features/training-plans/api-client";
 import { TRAINING_PLAN_STATUS_LABELS } from "@/features/training-plans/labels";
+import { Lock, AlertTriangle } from "lucide-react";
 
 export const metadata = { title: "Planos de Treino — PeakForm" };
 
@@ -28,8 +29,13 @@ export default async function ClientPlansPage({
     : undefined;
   if (!link) notFound();
 
-  const plansResult = await listClientTrainingPlans(accessToken, link.client.id);
+  const [plansResult, intakeResult] = await Promise.all([
+    listClientTrainingPlans(accessToken, link.client.id),
+    getClientIntake(accessToken, link.client.id),
+  ]);
   const plans = plansResult.ok ? plansResult.data : [];
+  const intake = intakeResult.ok ? intakeResult.data.intake : null;
+  const intakePending = !intake || intake.status === "PENDING";
 
   return (
     <main className="mx-auto max-w-2xl space-y-6 p-4">
@@ -42,12 +48,43 @@ export default async function ClientPlansPage({
         </Link>
       </div>
 
-      <Link
-        href={`/clients/${link.id}/plans/new`}
-        className="inline-block rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
-      >
-        Criar plano
-      </Link>
+      {intakePending ? (
+        <div className="rounded-lg border border-warning/30 bg-warning/10 p-4">
+          <div className="flex gap-3">
+            <Lock className="h-5 w-5 text-warning mt-0.5 flex-shrink-0" />
+            <div>
+              <h2 className="font-semibold text-foreground">🔒 Triagem de saúde necessária</h2>
+              <p className="mt-1 text-sm text-foreground">
+                Antes de criar um plano de treino, é necessário que o cliente complete a triagem de saúde.
+              </p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Status: <span className="font-medium">⏳ Aguardando resposta do cliente</span>
+              </p>
+              <p className="mt-3 text-sm text-foreground">
+                <span className="font-medium">Próximos passos:</span>
+              </p>
+              <ol className="mt-2 text-sm text-foreground list-decimal list-inside space-y-1">
+                <li>Certifique-se de que o cliente recebeu o link de triagem</li>
+                <li>Peça ao cliente para completar a triagem de saúde</li>
+                <li>Após conclusão, você poderá criar planos personalizados</li>
+              </ol>
+              <Link
+                href={`/clients/${link.id}/intake`}
+                className="inline-block mt-4 text-accent hover:underline text-sm font-medium"
+              >
+                Ver status da triagem →
+              </Link>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <Link
+          href={`/clients/${link.id}/plans/new`}
+          className="inline-block rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground hover:opacity-90"
+        >
+          Criar plano
+        </Link>
+      )}
 
       {plans.length === 0 ? (
         <p className="text-sm text-muted-foreground">

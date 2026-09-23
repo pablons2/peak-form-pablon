@@ -59,7 +59,7 @@ export default async function ClientDetailPage({
           overview={<OverviewTab link={link} schedules={schedules} intake={intake} viewerId={session.user.id!} />}
           treino={
             link.specialization === "PERSONAL_TRAINER" ? (
-              <TrainingPlansTab linkId={link.id} plans={plans} />
+              <TrainingPlansTab linkId={link.id} plans={plans} intake={intake} />
             ) : (
               <LinkedSectionTab
                 linkId={link.id}

@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/features/auth/nextauth-options";
-import { listMyLinks } from "@/features/relationships/api-client";
+import { listMyLinks, getClientIntake } from "@/features/relationships/api-client";
 import { CreatePlanForm } from "@/features/training-plans/components/create-plan-form";
 
 export const metadata = { title: "Novo Plano de Treino — PeakForm" };
@@ -26,6 +26,14 @@ export default async function NewClientPlanPage({
     ? linksResult.data.find((l) => l.id === params.linkId)
     : undefined;
   if (!link) notFound();
+
+  const intakeResult = await getClientIntake(accessToken, link.client.id);
+  const intake = intakeResult.ok ? intakeResult.data.intake : null;
+  const intakePending = !intake || intake.status === "PENDING";
+
+  if (intakePending) {
+    redirect(`/clients/${link.id}/plans?intake_pending=true`);
+  }
 
   return (
     <main className="mx-auto max-w-xl space-y-6 p-4">
