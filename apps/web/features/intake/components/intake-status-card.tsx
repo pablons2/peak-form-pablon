@@ -37,27 +37,30 @@ export function IntakeStatusCard({ intake }: { intake: PublicIntake | null }) {
         ) : (
           <AlertCircle className="h-5 w-5 text-warning mt-0.5 flex-shrink-0" />
         )}
-        <div>
+        <div className="flex-1">
           <h2 className="font-semibold text-foreground">
             {intake?.status === "IN_PROGRESS"
-              ? "⏳ Complete sua triagem"
-              : "🏥 Inicie sua triagem de saúde"}
+              ? "⏳ Complete sua triagem agora"
+              : "🏥 Triagem de saúde necessária"}
           </h2>
           <p className="mt-1 text-sm text-foreground">
             {intake?.status === "IN_PROGRESS"
-              ? "Você começou a triagem. Continue de onde parou para desbloquear seu plano personalizado."
-              : "Antes de começar seu programa de treino e nutrição, complete uma rápida triagem de saúde."}
+              ? "Você começou a triagem. Clique no botão abaixo para continuar respondendo as perguntas."
+              : "Esta é uma etapa importante. Responda alguns questionários sobre sua saúde para que seus profissionais possam criar um plano personalizado e seguro."}
           </p>
-          <p className="mt-2 text-xs text-muted-foreground">
-            {intake
-              ? `Status: ${INTAKE_STATUS_LABELS[intake.status] ?? intake.status}`
-              : "Nunca iniciado"}
-          </p>
+          <details className="mt-2">
+            <summary className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground">
+              Por que é importante?
+            </summary>
+            <p className="mt-2 text-xs text-muted-foreground">
+              A triagem ajuda seus profissionais a entender melhor sua saúde, histórico de lesões e preferências para criar um programa seguro e eficaz.
+            </p>
+          </details>
           <Link
             href="/intake"
-            className="inline-block mt-3 rounded-md bg-warning px-3 py-1.5 text-sm font-semibold text-warning-foreground hover:opacity-90"
+            className="inline-block mt-3 rounded-md bg-warning px-4 py-2 text-sm font-semibold text-warning-foreground hover:opacity-90 transition-opacity"
           >
-            {intake?.status === "IN_PROGRESS" ? "Continuar Triagem" : "Iniciar Triagem"}
+            {intake?.status === "IN_PROGRESS" ? "→ Continuar Triagem" : "→ Iniciar Triagem"}
           </Link>
         </div>
       </div>
