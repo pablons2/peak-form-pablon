@@ -18,8 +18,8 @@
 
 | Priority | Item | Estimate | Blocking |
 |----------|------|----------|----------|
-| **P0** | Email verification page (`/verify-email`) | 1–2 hours | User signup flow |
-| **P1** | Client detail hub redesign (redesign §5.4) | 4–6 hours | Professional workflow |
+| **P0** | Email verification page (`/verify-email`) | ✅ Done | User signup flow |
+| **P1** | Client detail hub redesign (redesign §5.4) | ✅ Done | Professional workflow |
 | **P1** | Loading states (redesign §5.6) | 2–3 hours | User experience |
 | **P2** | Responsive layout pass (redesign §5.5) | 3–4 hours | Desktop UX |
 | **P2** | List row polish + icons (redesign §5.7) | 2–3 hours | Visual hierarchy |
@@ -336,8 +336,8 @@ make test-frontend        # Run web tests
 |------|------|--------|-------|
 | 2026-09-22 | Email verification page | ✅ Done | Fully implemented + BDD tested |
 | 2026-09-22 | Case-insensitive email | ✅ Done | Fixed login issue, committed |
-| 2026-09-23 | Client detail hub redesign | 🟡 P1, in progress | Start now |
-| — | Loading states | 🟡 P1, planned | Easy once started |
+| 2026-09-23 | Client detail hub redesign | ✅ Done | Tabbed interface, committed |
+| 2026-09-23 | Loading states | 🟡 P1, in progress | Creating skeleton screens for high-traffic routes |
 | — | Responsive layout | 🟡 P2, planned | Focuses on `/clients` first |
 | — | List row polish | 🟡 P2, planned | Icons already deployed in R1 |
 | — | Demo seed script | 🟡 P3, planned | Demo/presentation polish |
