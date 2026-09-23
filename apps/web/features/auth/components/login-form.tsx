@@ -5,13 +5,8 @@ import { loginSchema, type LoginInput } from "@peakform/validation";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { mapNextAuthError } from "../next-auth-error-messages";
 import { FormError, SubmitButton, TextField } from "./fields";
-
-const ERROR_MESSAGES: Record<string, string> = {
-  CredentialsSignin: "Email ou senha inválidos.",
-  GoogleTokenMissing: "Não foi possível autenticar com o Google.",
-  GoogleSigninFailed: "Não foi possível autenticar com o Google.",
-};
 
 export function LoginForm({
   googleEnabled,
@@ -21,7 +16,7 @@ export function LoginForm({
   initialError?: string;
 }) {
   const [serverError, setServerError] = useState<string | undefined>(
-    initialError ? (ERROR_MESSAGES[initialError] ?? initialError) : undefined,
+    initialError ? mapNextAuthError(initialError) : undefined,
   );
   const {
     register,
@@ -31,15 +26,20 @@ export function LoginForm({
 
   async function onSubmit(values: LoginInput) {
     setServerError(undefined);
-    // NextAuth's own redirect (not redirect:false + router.push): the 302 from
-    // the credentials callback commits the session cookie before the browser
-    // requests /dashboard — pushing client-side races the cookie write and can
-    // bounce a just-signed-in user back through middleware to /login.
-    // Failures land back here as ?error=.
-    await signIn("credentials", {
+    const result = await signIn("credentials", {
       ...values,
-      callbackUrl: "/dashboard",
+      redirect: false,
     });
+
+    if (result?.error) {
+      setServerError(mapNextAuthError(result.error));
+      return;
+    }
+
+    if (result?.ok) {
+      // Hard navigation ensures the session cookie is present when the page loads
+      window.location.assign("/dashboard");
+    }
   }
 
   return (

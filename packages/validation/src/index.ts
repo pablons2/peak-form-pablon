@@ -5,6 +5,11 @@
 // One file per module PRD, named after its slug, added as each module is
 // implemented.
 
+import { setupZodErrorMap } from "./zod-error-map";
+
+// Configure Zod to return error messages in Portuguese
+setupZodErrorMap();
+
 export * from "./auth/schemas";
 export * from "./relationships/schemas";
 export * from "./exercises/schemas";

@@ -4,17 +4,17 @@
 import { z } from "zod";
 import { specializationSchema } from "../auth/schemas";
 
-const emailSchema = z.string().trim().toLowerCase().email();
+const emailSchema = z.string().trim().toLowerCase().email("Email inválido");
 
 // Free-text note shown to the Client on a check-in (PRD 02 §5.6).
-const noteSchema = z.string().trim().max(500);
+const noteSchema = z.string().trim().max(500, "Nota não pode exceder 500 caracteres");
 
 // PRD 02 §5.1 — an APPROVED Professional invites a Client by email, per
 // specialization (a Professional holding both specializations may send one
 // invite covering both, or two separate invites).
 export const inviteClientSchema = z.object({
   clientEmail: emailSchema,
-  specializations: z.array(specializationSchema).min(1).max(2),
+  specializations: z.array(specializationSchema).min(1, "Selecione ao menos uma especialização").max(2),
 });
 export type InviteClientInput = z.infer<typeof inviteClientSchema>;
 

@@ -6,13 +6,13 @@ import { z } from "zod";
 // A password strong enough to matter, without being a UX obstacle course.
 const passwordSchema = z
   .string()
-  .min(10, "Password must be at least 10 characters")
+  .min(10, "Senha deve ter no mínimo 10 caracteres")
   .max(128)
   .refine((v) => /[a-z]/.test(v) && /[A-Z]/.test(v) && /[0-9]/.test(v), {
-    message: "Password must contain upper case, lower case, and a digit",
+    message: "Senha deve conter letras maiúsculas, minúsculas e números",
   });
 
-const emailSchema = z.string().trim().toLowerCase().email();
+const emailSchema = z.string().trim().toLowerCase().email("Email inválido");
 
 export const biologicalSexSchema = z.enum(["MALE", "FEMALE"]);
 
@@ -26,8 +26,8 @@ export const specializationSchema = z.enum([
 export const signupClientSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
-  fullName: z.string().trim().min(1).max(200),
-  dateOfBirth: z.coerce.date().max(new Date(), "dateOfBirth cannot be in the future"),
+  fullName: z.string().trim().min(1, "Nome completo é obrigatório").max(200),
+  dateOfBirth: z.coerce.date().max(new Date(), "Data de nascimento não pode ser no futuro"),
   biologicalSex: biologicalSexSchema,
 });
 export type SignupClientInput = z.infer<typeof signupClientSchema>;
@@ -37,9 +37,9 @@ export type SignupClientInput = z.infer<typeof signupClientSchema>;
 export const signupProfessionalSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
-  fullName: z.string().trim().min(1).max(200),
-  specializations: z.array(specializationSchema).min(1).max(2),
-  verificationNote: z.string().trim().min(1).max(2000),
+  fullName: z.string().trim().min(1, "Nome completo é obrigatório").max(200),
+  specializations: z.array(specializationSchema).min(1, "Selecione ao menos uma especialização").max(2),
+  verificationNote: z.string().trim().min(1, "Descrição profissional é obrigatória").max(2000),
 });
 export type SignupProfessionalInput = z.infer<typeof signupProfessionalSchema>;
 
@@ -94,6 +94,6 @@ export type CompleteGoogleProfessionalSignupInput = z.infer<
 >;
 
 export const rejectProfessionalSchema = z.object({
-  reason: z.string().trim().max(2000).optional(),
+  reason: z.string().trim().max(2000, "Motivo não pode exceder 2000 caracteres").optional(),
 });
 export type RejectProfessionalInput = z.infer<typeof rejectProfessionalSchema>;

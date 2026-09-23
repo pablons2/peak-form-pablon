@@ -40,7 +40,7 @@ const googleConfigured = Boolean(
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
-  pages: { signIn: "/login" },
+  pages: { signIn: "/login", error: "/login" },
   providers: [
     CredentialsProvider({
       name: "Email e senha",
