@@ -6,7 +6,7 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { Role } from "@prisma/client";
-import type { Mailer } from "../../src/auth/domain/ports/mailer.port";
+import type { Mailer } from "../../src/notifications/domain/ports/mailer.port";
 import type {
   GoogleTokenVerifier,
   VerifiedGoogleIdentity,

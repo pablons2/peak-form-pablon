@@ -15,3 +15,4 @@ export * from "./client-training-execution/schemas";
 export * from "./nutrition/schemas";
 export * from "./messaging/schemas";
 export * from "./habits/schemas";
+export * from "./notifications/schemas";

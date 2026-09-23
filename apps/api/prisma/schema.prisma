@@ -130,6 +130,12 @@ model User {
   habitDefinitions             HabitDefinition[] @relation("HabitClient")
   personalTasks                PersonalTask[]    @relation("PersonalTaskClient")
 
+  /// PRD 12 — this user's in-app notification list, per-type channel
+  /// preferences, and browser push subscriptions.
+  notifications            Notification[]
+  notificationPreferences  NotificationPreference[]
+  pushSubscriptions        PushSubscription[]
+
   auditLogEntries            AuditLog[]
 
   @@map("users")
@@ -1123,4 +1129,94 @@ model PersonalTask {
 
   @@index([clientId])
   @@map("personal_tasks")
+}
+
+// --- PRD 12: Notifications --------------------------------------------------
+
+/// One row per §5.1 trigger event, including the two account-security types
+/// (EMAIL_VERIFICATION/PASSWORD_RESET) which §5.1 keeps in the in-app list
+/// even though they bypass the preference/dispatcher path entirely.
+enum NotificationType {
+  SESSION_REMINDER
+  MISSED_SESSION
+  MISSED_FOOD_LOG
+  NEW_MESSAGE
+  PLAN_UPDATED
+  WEEKLY_SUMMARY_READY
+  CHECK_IN_DUE
+  APPROVAL_DECISION
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+/// §5.4/§6 — every trigger writes exactly one Notification per intended
+/// recipient regardless of channel opt-outs: this table is the in-app
+/// notification list (§7) AND the read model behind PRD 09's unread
+/// indicators, so channel preferences can never suppress the row itself.
+/// `payload` carries the event-specific context plus the rendered
+/// title/body the dispatcher computed at dispatch time.
+///
+/// `dedupeKey` is the exactly-once marker for scheduler-fired triggers
+/// (§10 AC "exactly one Notification per intended recipient"): jobs tick
+/// every minute and re-see the same firing condition until their
+/// state advances, so the dispatcher computes a deterministic key per
+/// occurrence (e.g. `session:{id}`, `foodlog:{clientId}:{date}`,
+/// `week:{clientId}:{weekStart}`, `plan:{planId}:{yyyy-mm-dd}` — the
+/// last one deliberately per-day so a Professional's multi-edit session
+/// can't spam the Client, §2's "non-spammy" goal). NULL for
+/// action-triggered notifications, where each user action is already
+/// naturally one event; Postgres treats NULLs as distinct, so those rows
+/// never collide under the unique constraint. P2002 on insert means
+/// "already notified" — the dispatcher swallows it and skips delivery.
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  payload   Json
+  dedupeKey String?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@unique([userId, type, dedupeKey])
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+/// §5.3/§6 — per-user, per-trigger-type channel toggles for the
+/// preference-eligible types only (§5.1.1): a row exists only once the
+/// user has changed a toggle away from the defaults (absence = defaults,
+/// both channels on). ACCOUNT_SECURITY types never have a row — they
+/// bypass the preference system entirely (§5.1), not merely locked-on.
+/// APPROVAL_DECISION is account-critical: emailEnabled is enforced
+/// server-side as always-true for it (§5.3/§10), not just hidden in UI.
+model NotificationPreference {
+  id           String           @id @default(cuid())
+  userId       String
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type         NotificationType
+  emailEnabled Boolean          @default(true)
+  pushEnabled  Boolean          @default(true)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@unique([userId, type])
+  @@map("notification_preferences")
+}
+
+/// §5.2 — one row per browser PushManager subscription the user has
+/// granted. Optional channel: when VAPID keys aren't configured or the
+/// user never subscribes, delivery silently falls back to email-only and
+/// this table simply stays empty. `endpoint` is the browser's unique
+/// subscription URL; `keys` holds { p256dh, auth } for payload encryption.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  keys      Json
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("push_subscriptions")
 }

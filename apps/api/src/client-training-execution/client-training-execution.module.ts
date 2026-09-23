@@ -11,8 +11,10 @@ import { ListClientSessionsUseCase } from "./application/use-cases/list-client-s
 import { ListMySessionsUseCase } from "./application/use-cases/list-my-sessions.use-case";
 import { LogSetUseCase } from "./application/use-cases/log-set.use-case";
 import { RunMissedSessionJobUseCase } from "./application/use-cases/run-missed-session-job.use-case";
+import { RunSessionReminderJobUseCase } from "./application/use-cases/run-session-reminder-job.use-case";
 import { EXERCISE_LOG_REPOSITORY } from "./domain/ports/exercise-log.repository.port";
 import { MissedSessionJobService } from "./infrastructure/missed-session-job.service";
+import { SessionReminderJobService } from "./infrastructure/session-reminder-job.service";
 import { PrismaExerciseLogRepository } from "./infrastructure/prisma-exercise-log.repository";
 import { TrainingExecutionController } from "./presentation/training-execution.controller";
 
@@ -38,6 +40,10 @@ import { TrainingExecutionController } from "./presentation/training-execution.c
     ListClientSessionsUseCase,
     RunMissedSessionJobUseCase,
     MissedSessionJobService,
+    // PRD 12 §5.1 — the session-reminder producer (delivery lives in
+    // NotificationsModule via the SESSION_REMINDER event).
+    RunSessionReminderJobUseCase,
+    SessionReminderJobService,
   ],
   // Exported so PRD 09's DashboardModule can reuse the Client's own
   // "today's session" and "full session history" queries verbatim instead

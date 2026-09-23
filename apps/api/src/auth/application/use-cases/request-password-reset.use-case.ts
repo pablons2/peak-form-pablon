@@ -1,11 +1,12 @@
 import { Inject, Injectable } from "@nestjs/common";
+import { NotificationType } from "@prisma/client";
 import type { RequestPasswordResetInput } from "@peakform/validation";
+import { SendAccountSecurityNotificationUseCase } from "../../../notifications/application/use-cases/send-account-security-notification.use-case";
 import {
   PASSWORD_RESET_TTL_MS,
   generateRawToken,
   hashToken,
 } from "../../domain/verification-token";
-import { MAILER, type Mailer } from "../../domain/ports/mailer.port";
 import {
   USER_REPOSITORY,
   type UserRepository,
@@ -15,7 +16,7 @@ import {
 export class RequestPasswordResetUseCase {
   constructor(
     @Inject(USER_REPOSITORY) private readonly users: UserRepository,
-    @Inject(MAILER) private readonly mailer: Mailer,
+    private readonly securityNotifications: SendAccountSecurityNotificationUseCase,
   ) {}
 
   async execute(input: RequestPasswordResetInput): Promise<void> {
@@ -30,10 +31,11 @@ export class RequestPasswordResetUseCase {
       passwordResetExpiresAt: new Date(Date.now() + PASSWORD_RESET_TTL_MS),
     });
 
-    await this.mailer.send({
-      to: user.email,
-      subject: "Reset your PeakForm password",
-      text: `Use this token to reset your password: ${rawToken}\n\nThis link expires in 1 hour. If you didn't request this, ignore this email.`,
+    await this.securityNotifications.execute({
+      userId: user.id,
+      email: user.email,
+      type: NotificationType.PASSWORD_RESET,
+      token: rawToken,
     });
   }
 }

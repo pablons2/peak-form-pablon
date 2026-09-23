@@ -1,11 +1,14 @@
 import { ConflictException, Inject, Injectable } from "@nestjs/common";
+import { NotificationType } from "@prisma/client";
 import type { SignupClientInput } from "@peakform/validation";
+import {
+  SendAccountSecurityNotificationUseCase,
+} from "../../../notifications/application/use-cases/send-account-security-notification.use-case";
 import {
   EMAIL_VERIFICATION_TTL_MS,
   generateRawToken,
   hashToken,
 } from "../../domain/verification-token";
-import { MAILER, type Mailer } from "../../domain/ports/mailer.port";
 import {
   PASSWORD_HASHER,
   type PasswordHasher,
@@ -22,7 +25,7 @@ export class SignupClientUseCase {
   constructor(
     @Inject(USER_REPOSITORY) private readonly users: UserRepository,
     @Inject(PASSWORD_HASHER) private readonly hasher: PasswordHasher,
-    @Inject(MAILER) private readonly mailer: Mailer,
+    private readonly securityNotifications: SendAccountSecurityNotificationUseCase,
   ) {}
 
   async execute(input: SignupClientInput): Promise<{ userId: string }> {
@@ -46,10 +49,14 @@ export class SignupClientUseCase {
       emailVerificationExpiresAt: new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS),
     });
 
-    await this.mailer.send({
-      to: user.email,
-      subject: "Verify your PeakForm email",
-      text: `Welcome to PeakForm! Verify your email using this token: ${rawToken}`,
+    // PRD 12 §5.1 — the synchronous account-security path: sends the
+    // verification email immediately and records the Notification row,
+    // bypassing the preference/dispatcher flow entirely.
+    await this.securityNotifications.execute({
+      userId: user.id,
+      email: user.email,
+      type: NotificationType.EMAIL_VERIFICATION,
+      token: rawToken,
     });
 
     return { userId: user.id };

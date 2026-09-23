@@ -18,3 +18,8 @@ process.env.CHECK_IN_SCHEDULER_DISABLED ??= "1";
 // Same reasoning, PRD 07 §5.4 — scenarios invoke RunMissedSessionJobUseCase
 // directly.
 process.env.MISSED_SESSION_SCHEDULER_DISABLED ??= "1";
+// PRD 12 — the three notification-producing jobs this phase adds follow
+// the same convention: scenarios invoke the use-cases directly.
+process.env.SESSION_REMINDER_SCHEDULER_DISABLED ??= "1";
+process.env.MISSED_FOOD_LOG_SCHEDULER_DISABLED ??= "1";
+process.env.WEEKLY_SUMMARY_SCHEDULER_DISABLED ??= "1";

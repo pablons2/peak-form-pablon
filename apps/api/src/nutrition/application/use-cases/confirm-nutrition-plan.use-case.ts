@@ -2,6 +2,12 @@ import { BadRequestException, Inject, Injectable, NotFoundException } from "@nes
 import { Role, type NutritionPlan } from "@prisma/client";
 import type { ConfirmNutritionPlanInput } from "@peakform/validation";
 import {
+  DOMAIN_EVENT_BUS,
+  PLAN_UPDATED,
+  type DomainEventBus,
+  type PlanUpdatedPayload,
+} from "../../../shared/domain-events/domain-event-bus.port";
+import {
   NUTRITION_REPOSITORY,
   type NutritionRepository,
 } from "../../domain/ports/nutrition.repository.port";
@@ -21,6 +27,7 @@ export class ConfirmNutritionPlanUseCase {
   constructor(
     @Inject(NUTRITION_REPOSITORY) private readonly nutrition: NutritionRepository,
     private readonly access: NutritionAccess,
+    @Inject(DOMAIN_EVENT_BUS) private readonly events: DomainEventBus,
   ) {}
 
   async execute(input: {
@@ -37,10 +44,24 @@ export class ConfirmNutritionPlanUseCase {
       throw new BadRequestException("Cannot confirm an archived nutrition plan");
     }
 
-    return this.nutrition.confirm(input.planId, {
+    const confirmed = await this.nutrition.confirm(input.planId, {
       calorieTarget: input.data.calorieTarget,
       macroTargets: input.data.macroTargets,
       mealPlan: input.data.mealPlan ?? null,
     });
+
+    // PRD 12 §5.1 — "plan updated" for the Client. Confirm is the only
+    // write path that touches what the Client sees (drafts are invisible
+    // to them, §5.2), so it's the only nutrition use-case that emits.
+    const payload: PlanUpdatedPayload = {
+      planKind: "NUTRITION",
+      planId: confirmed.id,
+      clientId: confirmed.clientId,
+      professionalId: input.actor.id,
+      date: new Date().toISOString().slice(0, 10),
+    };
+    await this.events.emit({ name: PLAN_UPDATED, payload });
+
+    return confirmed;
   }
 }

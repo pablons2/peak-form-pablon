@@ -2,11 +2,16 @@ import { BadRequestException, Inject, Injectable } from "@nestjs/common";
 import type { ReplaceSessionExercisesInput } from "@peakform/validation";
 import type { UserWithProfiles } from "../../../auth/domain/ports/user.repository.port";
 import {
+  DOMAIN_EVENT_BUS,
+  type DomainEventBus,
+} from "../../../shared/domain-events/domain-event-bus.port";
+import {
   SESSION_REPOSITORY,
   type SessionRepository,
 } from "../../domain/ports/session.repository.port";
 import { ContraindicationWarningService } from "../contraindication-warning.service";
 import { TrainingPlanAccess } from "../training-plan-access.service";
+import { emitPlanUpdated } from "../plan-updated";
 import { ValidateExerciseIds } from "../validate-exercise-ids.service";
 
 // PRD 06 §5.4 — a one-off substitution for a single dated Session: the
@@ -22,6 +27,7 @@ export class ReplaceSessionExercisesUseCase {
     private readonly access: TrainingPlanAccess,
     private readonly validateExerciseIds: ValidateExerciseIds,
     private readonly contraindicationWarnings: ContraindicationWarningService,
+    @Inject(DOMAIN_EVENT_BUS) private readonly events: DomainEventBus,
   ) {}
 
   async execute(input: {
@@ -52,6 +58,7 @@ export class ReplaceSessionExercisesUseCase {
       exerciseIds,
     });
 
+    await emitPlanUpdated(this.events, plan, input.actor.id);
     return { session: updated, warnings };
   }
 }

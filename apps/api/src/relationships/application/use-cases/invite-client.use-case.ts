@@ -13,8 +13,8 @@ import {
   Role,
   Specialization,
 } from "@prisma/client";
-import { MAILER } from "../../../auth/domain/ports/mailer.port";
-import type { Mailer } from "../../../auth/domain/ports/mailer.port";
+import { MAILER } from "../../../notifications/domain/ports/mailer.port";
+import type { Mailer } from "../../../notifications/domain/ports/mailer.port";
 import {
   USER_REPOSITORY,
   type UserRepository,

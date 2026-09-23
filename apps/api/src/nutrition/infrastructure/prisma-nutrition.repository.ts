@@ -90,6 +90,23 @@ export class PrismaNutritionRepository implements NutritionRepository {
     });
   }
 
+  async listActivePlanClientIds(): Promise<string[]> {
+    const rows = await this.prisma.nutritionPlan.findMany({
+      where: { status: NutritionPlanStatus.ACTIVE },
+      select: { clientId: true },
+      distinct: ["clientId"],
+    });
+    return rows.map((r) => r.clientId);
+  }
+
+  countFoodDiaryEntriesOn(clientId: string, date: string): Promise<number> {
+    const start = new Date(`${date}T00:00:00.000Z`);
+    const end = new Date(`${date}T23:59:59.999Z`);
+    return this.prisma.foodDiaryEntry.count({
+      where: { clientId, loggedAt: { gte: start, lte: end } },
+    });
+  }
+
   listFoodDiaryEntriesForClientSince(
     clientId: string,
     since: Date,

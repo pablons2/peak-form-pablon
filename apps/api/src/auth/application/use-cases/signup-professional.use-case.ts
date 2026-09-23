@@ -1,12 +1,12 @@
 import { ConflictException, Inject, Injectable } from "@nestjs/common";
 import type { SignupProfessionalInput } from "@peakform/validation";
-import { Specialization } from "@prisma/client";
+import { NotificationType, Specialization } from "@prisma/client";
+import { SendAccountSecurityNotificationUseCase } from "../../../notifications/application/use-cases/send-account-security-notification.use-case";
 import {
   EMAIL_VERIFICATION_TTL_MS,
   generateRawToken,
   hashToken,
 } from "../../domain/verification-token";
-import { MAILER, type Mailer } from "../../domain/ports/mailer.port";
 import {
   PASSWORD_HASHER,
   type PasswordHasher,
@@ -24,7 +24,7 @@ export class SignupProfessionalUseCase {
   constructor(
     @Inject(USER_REPOSITORY) private readonly users: UserRepository,
     @Inject(PASSWORD_HASHER) private readonly hasher: PasswordHasher,
-    @Inject(MAILER) private readonly mailer: Mailer,
+    private readonly securityNotifications: SendAccountSecurityNotificationUseCase,
   ) {}
 
   async execute(input: SignupProfessionalInput): Promise<{ userId: string }> {
@@ -48,11 +48,12 @@ export class SignupProfessionalUseCase {
       emailVerificationExpiresAt: new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS),
     });
 
-    await this.mailer.send({
-      to: user.email,
-      subject: "Verify your PeakForm email",
-      text:
-        `Welcome to PeakForm! Verify your email using this token: ${rawToken}\n\n` +
+    await this.securityNotifications.execute({
+      userId: user.id,
+      email: user.email,
+      type: NotificationType.EMAIL_VERIFICATION,
+      token: rawToken,
+      extraText:
         "Once verified, an administrator will review your account before you can create plans for clients.",
     });
 

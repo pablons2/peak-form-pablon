@@ -9,6 +9,8 @@ import { MessagingModule } from "../messaging/messaging.module";
 import { BodyAssessmentsModule } from "../body-assessments/body-assessments.module";
 import { GetTodayDashboardUseCase } from "./application/use-cases/get-today-dashboard.use-case";
 import { GetWeekDashboardUseCase } from "./application/use-cases/get-week-dashboard.use-case";
+import { RunWeeklySummaryReadyJobUseCase } from "./application/use-cases/run-weekly-summary-ready-job.use-case";
+import { WeeklySummaryReadyJobService } from "./infrastructure/weekly-summary-ready-job.service";
 import { DashboardController } from "./presentation/dashboard.controller";
 
 // PRD 09 — Today/This Week Dashboard. A pure read-side composition module
@@ -35,6 +37,13 @@ import { DashboardController } from "./presentation/dashboard.controller";
     BodyAssessmentsModule,
   ],
   controllers: [DashboardController],
-  providers: [GetTodayDashboardUseCase, GetWeekDashboardUseCase],
+  providers: [
+    GetTodayDashboardUseCase,
+    GetWeekDashboardUseCase,
+    // PRD 12 §5.1 — the "weekly summary ready" producer (delivery lives in
+    // NotificationsModule via the WEEKLY_SUMMARY_READY event).
+    RunWeeklySummaryReadyJobUseCase,
+    WeeklySummaryReadyJobService,
+  ],
 })
 export class DashboardModule {}

@@ -2,6 +2,12 @@ import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { ApprovalStatus } from "@prisma/client";
 import { AuditLogService } from "../../../shared/audit-log/audit-log.service";
 import {
+  APPROVAL_DECISION,
+  DOMAIN_EVENT_BUS,
+  type ApprovalDecisionPayload,
+  type DomainEventBus,
+} from "../../../shared/domain-events/domain-event-bus.port";
+import {
   USER_REPOSITORY,
   type UserRepository,
 } from "../../domain/ports/user.repository.port";
@@ -14,6 +20,7 @@ export class ApproveProfessionalUseCase {
   constructor(
     @Inject(USER_REPOSITORY) private readonly users: UserRepository,
     private readonly auditLog: AuditLogService,
+    @Inject(DOMAIN_EVENT_BUS) private readonly events: DomainEventBus,
   ) {}
 
   async execute(input: { adminId: string; professionalUserId: string }) {
@@ -35,6 +42,17 @@ export class ApproveProfessionalUseCase {
       entityId: profile.id,
       metadata: { professionalUserId: target.id },
     });
+
+    // PRD 12 §5.1 — the approval-decision trigger (account-critical: its
+    // email channel is server-side non-disableable). Delivered via the
+    // event bus -> NotificationsModule dispatcher, awaited so the
+    // Notification row exists before the HTTP response.
+    const payload: ApprovalDecisionPayload = {
+      professionalUserId: target.id,
+      decision: "APPROVED",
+      reason: null,
+    };
+    await this.events.emit({ name: APPROVAL_DECISION, payload });
 
     return profile;
   }

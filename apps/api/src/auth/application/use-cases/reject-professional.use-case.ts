@@ -3,9 +3,11 @@ import { ApprovalStatus } from "@prisma/client";
 import type { RejectProfessionalInput } from "@peakform/validation";
 import { AuditLogService } from "../../../shared/audit-log/audit-log.service";
 import {
-  MAILER,
-  type Mailer,
-} from "../../domain/ports/mailer.port";
+  APPROVAL_DECISION,
+  DOMAIN_EVENT_BUS,
+  type ApprovalDecisionPayload,
+  type DomainEventBus,
+} from "../../../shared/domain-events/domain-event-bus.port";
 import {
   USER_REPOSITORY,
   type UserRepository,
@@ -14,12 +16,17 @@ import {
 // PRD 01 §5.6 — rejection is not a deactivation: User.status stays ACTIVE,
 // the record is kept for audit purposes, and the person can still log in
 // and see their rejection status (frontend concern — Phase 3 frontend).
+//
+// The notification itself moved to the APPROVAL_DECISION domain event in
+// PRD 12 (delivered by NotificationsModule's dispatcher — email
+// non-disableable, §5.3), replacing the direct mailer.send this use-case
+// used to make.
 @Injectable()
 export class RejectProfessionalUseCase {
   constructor(
     @Inject(USER_REPOSITORY) private readonly users: UserRepository,
-    @Inject(MAILER) private readonly mailer: Mailer,
     private readonly auditLog: AuditLogService,
+    @Inject(DOMAIN_EVENT_BUS) private readonly events: DomainEventBus,
   ) {}
 
   async execute(input: {
@@ -46,13 +53,12 @@ export class RejectProfessionalUseCase {
       metadata: { professionalUserId: target.id, reason: input.reason },
     });
 
-    await this.mailer.send({
-      to: target.email,
-      subject: "Your PeakForm professional account application",
-      text:
-        "An administrator has reviewed your professional account and it was not approved." +
-        (input.reason ? ` Reason: ${input.reason}` : ""),
-    });
+    const payload: ApprovalDecisionPayload = {
+      professionalUserId: target.id,
+      decision: "REJECTED",
+      reason: input.reason ?? null,
+    };
+    await this.events.emit({ name: APPROVAL_DECISION, payload });
 
     return profile;
   }

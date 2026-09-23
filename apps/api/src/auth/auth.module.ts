@@ -1,16 +1,15 @@
 import { Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtModule } from "@nestjs/jwt";
+import { NotificationsModule } from "../notifications/notifications.module";
 import { SharedModule } from "../shared/shared.module";
 import { GOOGLE_TOKEN_VERIFIER } from "./domain/ports/google-token-verifier.port";
-import { MAILER } from "./domain/ports/mailer.port";
 import { PASSWORD_HASHER } from "./domain/ports/password-hasher.port";
 import { TOKEN_SERVICE } from "./domain/ports/token.port";
 import { USER_REPOSITORY } from "./domain/ports/user.repository.port";
 import { BcryptPasswordHasher } from "./infrastructure/bcrypt-password-hasher";
 import { GoogleIdTokenVerifierService } from "./infrastructure/google-id-token-verifier.service";
 import { JwtTokenService } from "./infrastructure/jwt-token.service";
-import { NodemailerMailerService } from "./infrastructure/nodemailer-mailer.service";
 import { PrismaUserRepository } from "./infrastructure/prisma-user.repository";
 import { ApproveProfessionalUseCase } from "./application/use-cases/approve-professional.use-case";
 import { CompleteGoogleClientSignupUseCase } from "./application/use-cases/complete-google-client-signup.use-case";
@@ -34,14 +33,17 @@ import { JwtAuthGuard } from "./presentation/guards/jwt-auth.guard";
 import { RolesGuard } from "./presentation/guards/roles.guard";
 
 @Module({
-  imports: [JwtModule.register({}), SharedModule],
+  // NotificationsModule is imported (not just AppModule-wired) because the
+  // account-security flows call SendAccountSecurityNotificationUseCase
+  // synchronously (PRD 12 §5.1) — a one-directional edge: notifications
+  // deliberately does not import this module back.
+  imports: [JwtModule.register({}), SharedModule, NotificationsModule],
   controllers: [AuthController, AdminUsersController],
   providers: [
     // Infrastructure adapters bound to their Domain ports (base doc §7.2 DIP).
     { provide: USER_REPOSITORY, useClass: PrismaUserRepository },
     { provide: PASSWORD_HASHER, useClass: BcryptPasswordHasher },
     { provide: TOKEN_SERVICE, useClass: JwtTokenService },
-    { provide: MAILER, useClass: NodemailerMailerService },
     { provide: GOOGLE_TOKEN_VERIFIER, useClass: GoogleIdTokenVerifierService },
 
     // Application use-cases.
@@ -70,11 +72,12 @@ import { RolesGuard } from "./presentation/guards/roles.guard";
     ApprovalStatusGuard,
   ],
   exports: [
-    // MAILER and USER_REPOSITORY are generic infrastructure (PRD 02's
-    // relationship module reuses both); ApprovalStatusGuard is exported for
-    // later modules to apply per-route (@UseGuards) once they have
-    // Professional-only endpoints.
-    MAILER,
+    // USER_REPOSITORY is generic infrastructure (PRD 02's relationship
+    // module reuses it); ApprovalStatusGuard is exported for later modules
+    // to apply per-route (@UseGuards) once they have Professional-only
+    // endpoints. MAILER moved to NotificationsModule in PRD 12 —
+    // transactional email has one home now (§5.1), and modules needing it
+    // (PRD 02's invite/unlink emails) import that module directly.
     USER_REPOSITORY,
     ApprovalStatusGuard,
   ],

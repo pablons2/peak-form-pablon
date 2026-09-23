@@ -2,10 +2,15 @@ import { Inject, Injectable } from "@nestjs/common";
 import type { SaveWeeklyTemplateInput } from "@peakform/validation";
 import type { UserWithProfiles } from "../../../auth/domain/ports/user.repository.port";
 import {
+  DOMAIN_EVENT_BUS,
+  type DomainEventBus,
+} from "../../../shared/domain-events/domain-event-bus.port";
+import {
   TRAINING_PLAN_REPOSITORY,
   type TrainingPlanRepository,
 } from "../../domain/ports/training-plan.repository.port";
 import { TrainingPlanAccess } from "../training-plan-access.service";
+import { emitPlanUpdated } from "../plan-updated";
 import {
   ContraindicationWarningService,
   type ContraindicationWarning,
@@ -26,6 +31,7 @@ export class SaveWeeklyTemplateUseCase {
     private readonly validateExerciseIds: ValidateExerciseIds,
     private readonly contraindicationWarnings: ContraindicationWarningService,
     private readonly generation: SessionGenerationService,
+    @Inject(DOMAIN_EVENT_BUS) private readonly events: DomainEventBus,
   ) {}
 
   async execute(input: {
@@ -60,6 +66,7 @@ export class SaveWeeklyTemplateUseCase {
         })
       : [];
 
+    await emitPlanUpdated(this.events, plan, input.actor.id);
     return { mesocycle: updated, warnings };
   }
 }

@@ -3,6 +3,10 @@ import { ConfigService } from "@nestjs/config";
 import * as nodemailer from "nodemailer";
 import type { Mailer } from "../domain/ports/mailer.port";
 
+// Moved verbatim from auth/infrastructure in PRD 12 — transactional email
+// now has one home (this module, §5.1's "shared email templates/sending
+// infrastructure"), which both the dispatcher and the synchronous
+// account-security path go through.
 @Injectable()
 export class NodemailerMailerService implements Mailer {
   private readonly transporter: nodemailer.Transporter;

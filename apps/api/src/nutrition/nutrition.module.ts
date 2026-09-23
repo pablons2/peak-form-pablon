@@ -15,6 +15,7 @@ import { GetWeeklyAdherenceSummaryUseCase } from "./application/use-cases/get-we
 import { LogFoodDiaryEntryUseCase } from "./application/use-cases/log-food-diary-entry.use-case";
 import { LogHydrationUseCase } from "./application/use-cases/log-hydration.use-case";
 import { LookupBarcodeUseCase } from "./application/use-cases/lookup-barcode.use-case";
+import { RunMissedFoodLogJobUseCase } from "./application/use-cases/run-missed-food-log-job.use-case";
 import { SearchFoodUseCase } from "./application/use-cases/search-food.use-case";
 import {
   OPEN_FOOD_FACTS_CLIENT,
@@ -22,6 +23,7 @@ import {
 } from "./domain/ports/food-lookup.port";
 import { NUTRITION_REPOSITORY } from "./domain/ports/nutrition.repository.port";
 import { HttpOpenFoodFactsClient } from "./infrastructure/open-food-facts-client";
+import { MissedFoodLogJobService } from "./infrastructure/missed-food-log-job.service";
 import { PrismaNutritionRepository } from "./infrastructure/prisma-nutrition.repository";
 import { HttpUsdaFoodDataClient } from "./infrastructure/usda-food-data-client";
 import { NutritionController } from "./presentation/nutrition.controller";
@@ -54,6 +56,11 @@ import { NutritionController } from "./presentation/nutrition.controller";
     LogHydrationUseCase,
     GetHydrationUseCase,
     GetWeeklyAdherenceSummaryUseCase,
+
+    // PRD 12 §5.1 — the missed-food-log producer (delivery lives in
+    // NotificationsModule via the MISSED_FOOD_LOG event).
+    RunMissedFoodLogJobUseCase,
+    MissedFoodLogJobService,
   ],
   // Exported so PRD 09's DashboardModule can show the Client's own
   // meals-vs-target Today card via the exact same use-case the

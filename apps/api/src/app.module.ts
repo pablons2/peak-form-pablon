@@ -15,6 +15,7 @@ import { NutritionModule } from "./nutrition/nutrition.module";
 import { MessagingModule } from "./messaging/messaging.module";
 import { ProductivityModule } from "./productivity/productivity.module";
 import { DashboardModule } from "./dashboard/dashboard.module";
+import { NotificationsModule } from "./notifications/notifications.module";
 
 // Feature modules land here as each PRD (docs/prds/01-*.md onward) is
 // implemented — see docs/IMPLEMENTATION_CHECKLIST.md for order.
@@ -40,6 +41,7 @@ import { DashboardModule } from "./dashboard/dashboard.module";
     MessagingModule,
     ProductivityModule,
     DashboardModule,
+    NotificationsModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

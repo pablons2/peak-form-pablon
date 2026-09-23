@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { NotificationsModule } from "../notifications/notifications.module";
 import { SharedModule } from "../shared/shared.module";
 import { AuthModule } from "../auth/auth.module";
 import { AcceptLinkUseCase } from "./application/use-cases/accept-link.use-case";
@@ -23,14 +24,16 @@ import { PrismaLinkRepository } from "./infrastructure/prisma-link.repository";
 import { AdminLinksController } from "./presentation/admin-links.controller";
 import { LinksController } from "./presentation/links.controller";
 
-// PRD 02 — Professional ↔ Client Relationship. Depends on AuthModule for the
-// shared MAILER (invite/unlink notifications) and ApprovalStatusGuard; the
-// global JwtAuthGuard/RolesGuard registered by AuthModule already cover these
-// routes. Repository adapters are bound to their Domain ports (base doc
-// §7.2 DIP); the firing job is an Infrastructure-layer scheduled service
-// whose tick simply invokes RunCheckInDueJobUseCase.
+// PRD 02 — Professional ↔ Client Relationship. Depends on AuthModule for
+// USER_REPOSITORY/ApprovalStatusGuard and — since PRD 12 moved it —
+// NotificationsModule for the shared MAILER (invite/unlink emails, which
+// are PRD 02's own direct sends, not §5.1 trigger notifications); the
+// global JwtAuthGuard/RolesGuard registered by AuthModule already cover
+// these routes. Repository adapters are bound to their Domain ports
+// (base doc §7.2 DIP); the firing job is an Infrastructure-layer
+// scheduled service whose tick simply invokes RunCheckInDueJobUseCase.
 @Module({
-  imports: [SharedModule, AuthModule],
+  imports: [SharedModule, AuthModule, NotificationsModule],
   controllers: [LinksController, AdminLinksController],
   providers: [
     // Infrastructure adapters bound to their Domain ports.

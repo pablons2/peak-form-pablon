@@ -11,6 +11,14 @@ export type SessionWithExercises = Session & {
   sessionExercises: SessionExerciseWithExercise[];
 };
 
+/// SessionWithExercises plus the owning Client's id, resolved through
+/// Mesocycle -> TrainingPlan (PRD 12 — notification recipients need it).
+/// Nullable because TrainingPlan.clientId itself is (a Starter Template's
+/// mesocycles have no Client) — the jobs skip nulls.
+export type SessionWithExercisesAndClient = SessionWithExercises & {
+  mesocycle: { trainingPlan: { clientId: string | null } };
+};
+
 export interface GenerateSessionData {
   date: Date;
   exercises: WeeklyTemplateExerciseWriteData[];
@@ -50,8 +58,13 @@ export interface SessionRepository {
   listForClient(clientId: string): Promise<SessionWithExercises[]>;
   /// Still-SCHEDULED sessions whose date is strictly before `before` — PRD 07
   /// §5.4's missed-session job candidates (CANCELLED sessions are excluded by
-  /// the status filter itself, not by the caller).
-  findScheduledPastDue(before: Date): Promise<SessionWithExercises[]>;
+  /// the status filter itself, not by the caller). Carries the owning
+  /// Client's id (Session -> Mesocycle -> TrainingPlan.clientId) because the
+  /// same job now also emits PRD 12's MISSED_SESSION to that recipient.
+  findScheduledPastDue(before: Date): Promise<SessionWithExercisesAndClient[]>;
+  /// Still-SCHEDULED sessions on exactly `date` — PRD 12's session-reminder
+  /// job candidates. Same ownership-walk include for the same reason.
+  findScheduledOnDate(date: Date): Promise<SessionWithExercisesAndClient[]>;
   markMissed(id: string): Promise<SessionWithExercises>;
   markCompleted(id: string): Promise<SessionWithExercises>;
 }

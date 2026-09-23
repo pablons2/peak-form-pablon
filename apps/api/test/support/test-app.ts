@@ -12,7 +12,7 @@ import {
   type Specialization,
 } from "@prisma/client";
 import { AppModule } from "../../src/app.module";
-import { MAILER } from "../../src/auth/domain/ports/mailer.port";
+import { MAILER } from "../../src/notifications/domain/ports/mailer.port";
 import { GOOGLE_TOKEN_VERIFIER } from "../../src/auth/domain/ports/google-token-verifier.port";
 import { MEDIA_STORE } from "../../src/exercises/domain/ports/media-store.port";
 import { SIGNED_MEDIA_STORE } from "../../src/body-assessments/domain/ports/signed-media-store.port";
@@ -404,6 +404,23 @@ export class AuthTestWorld {
         source: "SELF_REPORTED",
         weight: opts.weight,
         recordedAt: new Date(`${opts.recordedAt}T00:00:00.000Z`),
+      },
+    });
+  }
+
+  // PRD 12 — an ACTIVE NutritionPlan is a precondition for the
+  // missed-food-log job (and a confirmed plan's PLAN_UPDATED trigger is
+  // exercised via the real HTTP confirm flow elsewhere); PRD 08's own
+  // suite already covers draft→confirm end to end.
+  async seedActiveNutritionPlan(clientId: string, nutritionistId: string) {
+    return this.prisma.nutritionPlan.create({
+      data: {
+        clientId,
+        nutritionistId,
+        calorieTarget: 2200,
+        macroTargets: { protein: 160, carbs: 220, fat: 70 },
+        status: "ACTIVE",
+        confirmedByProfessionalAt: new Date(),
       },
     });
   }

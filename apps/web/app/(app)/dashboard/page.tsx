@@ -1,7 +1,6 @@
 import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import { authOptions } from "@/features/auth/nextauth-options";
 import { getTodayDashboard, getWeekDashboard } from "@/features/dashboard/api-client";
 import { TodayTrainingCard } from "@/features/dashboard/components/today-training-card";
@@ -55,10 +54,7 @@ export default async function DashboardPage() {
 
   return (
     <main className="mx-auto max-w-2xl space-y-4 p-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-foreground">Olá, {session.user.name}!</h1>
-        <SignOutButton />
-      </div>
+      <h1 className="text-lg font-semibold text-foreground">Olá, {session.user.name}!</h1>
 
       <DashboardTabs
         today={
@@ -146,9 +142,6 @@ function NavigationLanding({
             </Link>
           </p>
         ) : null}
-        <div className="mt-5">
-          <SignOutButton />
-        </div>
       </div>
     </main>
   );

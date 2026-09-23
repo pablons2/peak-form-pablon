@@ -6,6 +6,7 @@ import type {
   GenerateSessionData,
   SessionRepository,
   SessionWithExercises,
+  SessionWithExercisesAndClient,
 } from "../domain/ports/session.repository.port";
 
 const WITH_EXERCISES = {
@@ -16,6 +17,16 @@ const WITH_EXERCISES = {
       },
     },
     orderBy: { order: "asc" },
+  },
+} satisfies Prisma.SessionInclude;
+
+// WITH_EXERCISES + the owning Client's id — only the PRD 12 notification
+// jobs (missed-session, session-reminder) walk this far; regular reads stay
+// on the lighter include.
+const WITH_EXERCISES_AND_CLIENT = {
+  ...WITH_EXERCISES,
+  mesocycle: {
+    select: { trainingPlan: { select: { clientId: true } } },
   },
 } satisfies Prisma.SessionInclude;
 
@@ -131,10 +142,17 @@ export class PrismaSessionRepository implements SessionRepository {
     });
   }
 
-  findScheduledPastDue(before: Date): Promise<SessionWithExercises[]> {
+  findScheduledPastDue(before: Date): Promise<SessionWithExercisesAndClient[]> {
     return this.prisma.session.findMany({
       where: { status: SessionStatus.SCHEDULED, date: { lt: before } },
-      include: WITH_EXERCISES,
+      include: WITH_EXERCISES_AND_CLIENT,
+    });
+  }
+
+  findScheduledOnDate(date: Date): Promise<SessionWithExercisesAndClient[]> {
+    return this.prisma.session.findMany({
+      where: { status: SessionStatus.SCHEDULED, date },
+      include: WITH_EXERCISES_AND_CLIENT,
     });
   }
 

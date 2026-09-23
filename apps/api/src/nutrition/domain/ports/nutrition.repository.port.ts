@@ -66,6 +66,13 @@ export interface NutritionRepository {
     clientId: string,
     date: string,
   ): Promise<FoodDiaryEntry[]>;
+  /// Distinct clientIds holding an ACTIVE plan — PRD 12's missed-food-log
+  /// job candidates (only someone with a target can "miss" logging it).
+  listActivePlanClientIds(): Promise<string[]>;
+  /// How many entries a Client logged on `date` ("YYYY-MM-DD", same
+  /// UTC-day convention as listFoodDiaryEntriesForClientOnDate) — the job
+  /// only needs the zero/non-zero answer, not the rows.
+  countFoodDiaryEntriesOn(clientId: string, date: string): Promise<number>;
   listFoodDiaryEntriesForClientSince(
     clientId: string,
     since: Date,
