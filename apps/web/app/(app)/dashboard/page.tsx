@@ -10,6 +10,8 @@ import { WeekStrip } from "@/features/dashboard/components/week-strip";
 import { WeeklySummaryCard } from "@/features/dashboard/components/weekly-summary-card";
 import { DashboardTabs } from "@/features/dashboard/components/dashboard-tabs";
 import { TodayChecklist } from "@/features/habits/components/today-checklist";
+import { IntakeStatusCard } from "@/features/intake/components/intake-status-card";
+import { getMyIntake } from "@/features/intake/api-client";
 import {
   ProfessionalDashboard,
   type UnscheduledClient,
@@ -50,9 +52,10 @@ export default async function DashboardPage() {
   }
 
   const accessToken = session.accessToken!;
-  const [todayResult, weekResult] = await Promise.all([
+  const [todayResult, weekResult, intakeResult] = await Promise.all([
     getTodayDashboard(accessToken),
     getWeekDashboard(accessToken),
+    getMyIntake(accessToken),
   ]);
 
   if (!todayResult.ok || !weekResult.ok) {
@@ -67,10 +70,13 @@ export default async function DashboardPage() {
 
   const today = todayResult.data;
   const week = weekResult.data;
+  const intake = intakeResult.ok ? intakeResult.data.intake : null;
 
   return (
     <main className="mx-auto max-w-2xl space-y-4 p-4">
       <h1 className="text-lg font-semibold text-foreground">Olá, {session.user.name}!</h1>
+
+      <IntakeStatusCard intake={intake} />
 
       <DashboardTabs
         today={

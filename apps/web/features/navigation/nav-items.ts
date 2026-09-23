@@ -7,6 +7,7 @@ import {
   ListChecks,
   MessageSquare,
   ShieldCheck,
+  Stethoscope,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -23,6 +24,7 @@ export type NavItemKey =
   | "nutrition"
   | "habits"
   | "messages"
+  | "intake"
   | "clients"
   | "plans"
   | "exercises"
@@ -39,6 +41,7 @@ export interface NavItem {
 const ITEMS_BY_ROLE: Record<Role, NavItem[]> = {
   CLIENT: [
     { key: "home", href: "/dashboard", label: NAV_ITEM_LABELS.home, icon: Home },
+    { key: "intake", href: "/intake", label: NAV_ITEM_LABELS.intake, icon: Stethoscope },
     { key: "today", href: "/today", label: NAV_ITEM_LABELS.today, icon: CalendarCheck },
     { key: "nutrition", href: "/nutrition", label: NAV_ITEM_LABELS.nutrition, icon: Apple },
     { key: "habits", href: "/habits", label: NAV_ITEM_LABELS.habits, icon: ListChecks },

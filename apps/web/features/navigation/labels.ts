@@ -8,6 +8,7 @@
 // convention isn't needed.
 export const NAV_ITEM_LABELS = {
   home: "Início",
+  intake: "Triagem",
   today: "Hoje",
   nutrition: "Nutrição",
   habits: "Hábitos",
