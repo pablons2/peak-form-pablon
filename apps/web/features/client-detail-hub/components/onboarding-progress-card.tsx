@@ -10,8 +10,8 @@ export function OnboardingProgressCard({
   link: PublicLink;
   intake: ClientIntake | null;
 }) {
-  const intakePending = !intake || intake.status === "PENDING";
-  const intakeCompleted = intake && (intake.status === "APPROVED" || intake.status === "COMPLETED");
+  const intakePending = !intake;
+  const intakeCompleted = !!intake;
 
   const steps = [
     {

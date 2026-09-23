@@ -35,7 +35,7 @@ export default async function ClientPlansPage({
   ]);
   const plans = plansResult.ok ? plansResult.data : [];
   const intake = intakeResult.ok ? intakeResult.data.intake : null;
-  const intakePending = !intake || intake.status === "PENDING";
+  const intakePending = !intake;
 
   return (
     <main className="mx-auto max-w-2xl space-y-6 p-4">

@@ -29,9 +29,8 @@ export default async function NewClientPlanPage({
 
   const intakeResult = await getClientIntake(accessToken, link.client.id);
   const intake = intakeResult.ok ? intakeResult.data.intake : null;
-  const intakePending = !intake || intake.status === "PENDING";
 
-  if (intakePending) {
+  if (!intake) {
     redirect(`/clients/${link.id}/plans?intake_pending=true`);
   }
 

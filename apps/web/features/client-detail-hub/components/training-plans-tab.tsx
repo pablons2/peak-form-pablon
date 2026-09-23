@@ -13,8 +13,8 @@ export function TrainingPlansTab({
   plans: PublicTrainingPlan[];
   intake?: ClientIntake | null;
 }) {
-  const intakePending = !intake || intake.status === "PENDING";
-  const canCreatePlans = intake && (intake.status === "APPROVED" || intake.status === "COMPLETED");
+  const intakePending = !intake;
+  const canCreatePlans = !!intake;
   return (
     <div className="space-y-4">
       {intakePending && (

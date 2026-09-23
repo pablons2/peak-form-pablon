@@ -40,7 +40,7 @@ export function OverviewTab({
     (intake.contraindicationTagCodes && intake.contraindicationTagCodes.length > 0)
   );
 
-  const intakePending = !intake || intake.status === "PENDING";
+  const intakePending = !intake;
 
   return (
     <div className="space-y-6">

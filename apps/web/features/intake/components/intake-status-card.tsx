@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { AlertCircle, CheckCircle2, Clock } from "lucide-react";
-import type { ClientIntake } from "@/features/relationships/api-client";
+import type { PublicIntake } from "@/features/intake/api-client";
 import { INTAKE_STATUS_LABELS } from "@/features/intake/labels";
 
-export function IntakeStatusCard({ intake }: { intake: ClientIntake | null }) {
-  const isCompleted = intake && (intake.status === "APPROVED" || intake.status === "COMPLETED");
-  const isPending = !intake || intake.status === "PENDING" || intake.status === "IN_PROGRESS";
+export function IntakeStatusCard({ intake }: { intake: PublicIntake | null }) {
+  const isCompleted = intake && (intake.status === "COMPLETED" || intake.status === "SKIPPED_WITH_ACKNOWLEDGEMENT");
+  const isPending = !intake || intake.status === "IN_PROGRESS";
 
   if (isCompleted) {
     return (
