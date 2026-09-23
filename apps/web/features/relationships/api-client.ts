@@ -166,3 +166,34 @@ export function cancelCheckInSchedule(
     { method: "POST" },
   );
 }
+
+export interface ClientIntake {
+  id: string;
+  clientId: string;
+  version: number;
+  status: string;
+  parqAnswers: Record<string, unknown>;
+  painFlags: Array<{ id: string; tag: string }>;
+  medicalConditions: string[];
+  medicalConditionsOtherNote: string | null;
+  medications: string[];
+  availability: Record<string, unknown>;
+  equipmentAccess: Record<string, unknown>;
+  contraindicationTagCodes: string[];
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  annotations: Array<{
+    id: string;
+    note: string;
+    createdAt: string;
+    professional: PublicParty;
+  }>;
+}
+
+export function getClientIntake(accessToken: string, clientId: string) {
+  return request<{ intake: ClientIntake | null; planAssignmentAllowed: boolean }>(
+    accessToken,
+    `/intake/clients/${clientId}`,
+  );
+}

@@ -1,14 +1,18 @@
 import Link from "next/link";
-import { Badge } from "@peakform/ui";
+import { Badge, Alert } from "@peakform/ui";
 import type { CheckInSchedule, LinkStatus, PublicLink } from "@/features/relationships/api-client";
+import type { ClientIntake } from "@/features/relationships/api-client";
+import { AlertTriangle } from "lucide-react";
 
 export function OverviewTab({
   link,
   schedules,
+  intake,
   viewerId,
 }: {
   link: PublicLink;
   schedules: CheckInSchedule[];
+  intake: ClientIntake | null;
   viewerId: string;
 }) {
   const statusColors: Record<LinkStatus, { bg: string; text: string }> = {
@@ -28,6 +32,12 @@ export function OverviewTab({
     .slice(0, 2);
 
   const activeCheckIns = schedules.filter((s) => s.status === "ACTIVE").length;
+
+  const hasContraindications = intake && (
+    (intake.painFlags && intake.painFlags.length > 0) ||
+    (intake.medicalConditions && intake.medicalConditions.length > 0) ||
+    (intake.contraindicationTagCodes && intake.contraindicationTagCodes.length > 0)
+  );
 
   return (
     <div className="space-y-6">
@@ -71,6 +81,35 @@ export function OverviewTab({
           </p>
         </div>
       </div>
+
+      {hasContraindications && (
+        <Alert className="border-warning/40 bg-warning/10">
+          <AlertTriangle className="h-4 w-4 text-warning" />
+          <div>
+            <p className="font-semibold text-warning">Alertas de Contraindicação</p>
+            <div className="mt-2 space-y-2 text-sm text-foreground">
+              {intake.painFlags && intake.painFlags.length > 0 && (
+                <div>
+                  <p className="font-medium">Dores/Lesões:</p>
+                  <p>{intake.painFlags.map((pf) => pf.tag).join(", ")}</p>
+                </div>
+              )}
+              {intake.medicalConditions && intake.medicalConditions.length > 0 && (
+                <div>
+                  <p className="font-medium">Condições Médicas:</p>
+                  <p>{intake.medicalConditions.join(", ")}</p>
+                </div>
+              )}
+              {intake.contraindicationTagCodes && intake.contraindicationTagCodes.length > 0 && (
+                <div>
+                  <p className="font-medium">Tags de Contraindicação:</p>
+                  <p>{intake.contraindicationTagCodes.join(", ")}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </Alert>
+      )}
 
       {link.status === "ACTIVE" && (
         <section className="rounded-lg border border-border bg-card p-4">

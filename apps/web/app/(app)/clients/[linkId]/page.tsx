@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/features/auth/nextauth-options";
-import { listCheckInSchedules, listMyLinks } from "@/features/relationships/api-client";
+import { listCheckInSchedules, listMyLinks, getClientIntake } from "@/features/relationships/api-client";
 import { listClientTrainingPlans } from "@/features/training-plans/api-client";
 import { ClientDetailTabs } from "@/features/client-detail-hub/components/client-detail-tabs";
 import { OverviewTab } from "@/features/client-detail-hub/components/overview-tab";
@@ -23,9 +23,10 @@ export default async function ClientDetailPage({
   if (session.user.approvalStatus !== "APPROVED") redirect("/pending-approval");
 
   const accessToken = session.accessToken!;
-  const [linksResult, schedulesResult] = await Promise.all([
+  const [linksResult, schedulesResult, intakeResult] = await Promise.all([
     listMyLinks(accessToken),
     listCheckInSchedules(accessToken, params.linkId),
+    getClientIntake(accessToken, params.linkId),
   ]);
 
   const link = linksResult.ok
@@ -40,6 +41,7 @@ export default async function ClientDetailPage({
 
   const plans = plansResult.ok ? plansResult.data : [];
   const schedules = schedulesResult.ok ? schedulesResult.data : [];
+  const intake = intakeResult.ok ? intakeResult.data.intake : null;
 
   return (
     <main className="mx-auto max-w-2xl space-y-6 p-4">
@@ -53,7 +55,7 @@ export default async function ClientDetailPage({
       </div>
 
       <ClientDetailTabs
-        overview={<OverviewTab link={link} schedules={schedules} viewerId={session.user.id!} />}
+        overview={<OverviewTab link={link} schedules={schedules} intake={intake} viewerId={session.user.id!} />}
         treino={
           link.specialization === "PERSONAL_TRAINER" ? (
             <TrainingPlansTab linkId={link.id} plans={plans} />

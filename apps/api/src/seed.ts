@@ -164,7 +164,7 @@ async function main() {
     clientId: string;
     specialization: "PERSONAL_TRAINER" | "NUTRITIONIST";
     invitedBy: "PROFESSIONAL" | "CLIENT";
-    status: "PENDING" | "ACTIVE" | "CANCELLED" | "UNLINKED";
+    status: "PENDING" | "ACTIVE" | "UNLINKED";
   }> = [
     {
       professionalId: trainer.id,

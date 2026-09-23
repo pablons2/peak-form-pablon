@@ -6,6 +6,7 @@ import { authOptions } from "@/features/auth/nextauth-options";
 import {
   listMyLinks,
   listCheckInSchedules,
+  getClientIntake,
   type PublicLink,
 } from "@/features/relationships/api-client";
 import { ClientRosterRow } from "@/features/relationships/components/client-roster-row";
@@ -43,6 +44,12 @@ export default async function ClientsPage({
         r.ok ? r.data : [],
       )
     : [];
+
+  const selectedIntake = selectedLink
+    ? await getClientIntake(accessToken, selectedLink.id).then((r) =>
+        r.ok ? r.data.intake : null,
+      )
+    : null;
 
   return (
     <main className="mx-auto p-4 lg:grid lg:max-w-full lg:grid-cols-[320px_1fr] lg:gap-4">
@@ -112,6 +119,7 @@ export default async function ClientsPage({
           <OverviewTab
             link={selectedLink}
             schedules={selectedSchedules}
+            intake={selectedIntake}
             viewerId={session.user.id!}
           />
         </div>

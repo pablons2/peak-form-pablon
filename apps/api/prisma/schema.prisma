@@ -239,6 +239,7 @@ model ProfessionalClientLink {
 
   checkInSchedules CheckInSchedule[]
 
+  @@unique([professionalId, clientId])
   @@index([clientId, specialization, status])
   @@index([professionalId, status])
   @@map("professional_client_links")
