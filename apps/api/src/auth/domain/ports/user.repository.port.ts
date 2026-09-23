@@ -59,6 +59,15 @@ export interface ProfessionalProfileUpdateData {
   approvedAt?: Date | null;
 }
 
+/// PRD 13 §5.1 — Admin user list/search. `q` matches email or fullName
+/// (case-insensitive substring); role/status narrow the result set. All
+/// optional so an empty query returns every User.
+export interface UserListFilters {
+  role?: Role;
+  status?: UserStatus;
+  q?: string;
+}
+
 /// Infrastructure implements this (base doc §7.2 Dependency Inversion);
 /// Application use-cases depend only on this interface. Deliberately
 /// CRUD-shaped — business rules (token expiry checks, approval-decision
@@ -83,6 +92,8 @@ export interface UserRepository {
     userId: string,
     data: ProfessionalProfileUpdateData,
   ): Promise<ProfessionalProfile>;
+
+  listAll(filters: UserListFilters): Promise<UserWithProfiles[]>;
 }
 
 export type { Role };

@@ -5,6 +5,7 @@ import type {
   CreateClientInput,
   CreateProfessionalInput,
   ProfessionalProfileUpdateData,
+  UserListFilters,
   UserRepository,
   UserUpdateData,
   UserWithProfiles,
@@ -116,6 +117,25 @@ export class PrismaUserRepository implements UserRepository {
     return this.prisma.professionalProfile.update({
       where: { userId },
       data,
+    });
+  }
+
+  listAll(filters: UserListFilters): Promise<UserWithProfiles[]> {
+    return this.prisma.user.findMany({
+      where: {
+        role: filters.role,
+        status: filters.status,
+        ...(filters.q
+          ? {
+              OR: [
+                { email: { contains: filters.q, mode: "insensitive" } },
+                { fullName: { contains: filters.q, mode: "insensitive" } },
+              ],
+            }
+          : {}),
+      },
+      include: WITH_PROFILES,
+      orderBy: { createdAt: "desc" },
     });
   }
 }

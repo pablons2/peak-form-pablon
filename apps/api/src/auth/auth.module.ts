@@ -17,6 +17,7 @@ import { CompleteGoogleProfessionalSignupUseCase } from "./application/use-cases
 import { DeactivateAccountUseCase } from "./application/use-cases/deactivate-account.use-case";
 import { GoogleOAuthLoginUseCase } from "./application/use-cases/google-oauth-login.use-case";
 import { ListPendingProfessionalsUseCase } from "./application/use-cases/list-pending-professionals.use-case";
+import { ListUsersUseCase } from "./application/use-cases/list-users.use-case";
 import { LoginUseCase } from "./application/use-cases/login.use-case";
 import { ReactivateAccountUseCase } from "./application/use-cases/reactivate-account.use-case";
 import { RefreshAccessTokenUseCase } from "./application/use-cases/refresh-access-token.use-case";
@@ -57,6 +58,7 @@ import { RolesGuard } from "./presentation/guards/roles.guard";
     DeactivateAccountUseCase,
     ReactivateAccountUseCase,
     ListPendingProfessionalsUseCase,
+    ListUsersUseCase,
     ApproveProfessionalUseCase,
     RejectProfessionalUseCase,
     GoogleOAuthLoginUseCase,

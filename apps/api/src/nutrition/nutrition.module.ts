@@ -66,7 +66,11 @@ import { NutritionController } from "./presentation/nutrition.controller";
   // meals-vs-target Today card via the exact same use-case the
   // /nutrition/mine/diary route already calls (its `activeTarget` field
   // already covers what a separate GetMyActiveNutritionPlanUseCase call
-  // would otherwise duplicate).
-  exports: [GetDailyFoodDiaryUseCase],
+  // would otherwise duplicate). GetWeeklyAdherenceSummaryUseCase is
+  // exported too, PRD 13 onward: the Admin Console's aggregate analytics
+  // (§5.6) calls this exact per-client use-case (NutritionAccess already
+  // lets ADMIN through unconditionally) rather than re-deriving the
+  // adherence formula a third time.
+  exports: [GetDailyFoodDiaryUseCase, GetWeeklyAdherenceSummaryUseCase],
 })
 export class NutritionModule {}

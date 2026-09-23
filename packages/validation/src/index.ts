@@ -16,3 +16,4 @@ export * from "./nutrition/schemas";
 export * from "./messaging/schemas";
 export * from "./habits/schemas";
 export * from "./notifications/schemas";
+export * from "./admin/schemas";

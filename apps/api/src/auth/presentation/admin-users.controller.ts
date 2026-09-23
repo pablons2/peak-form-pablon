@@ -1,13 +1,16 @@
-import { Body, Controller, Get, HttpCode, Param, Post } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, Param, Post, Query } from "@nestjs/common";
 import { Role } from "@prisma/client";
 import {
+  adminListUsersQuerySchema,
   rejectProfessionalSchema,
+  type AdminListUsersQuery,
   type RejectProfessionalInput,
 } from "@peakform/validation";
 import { ZodValidationPipe } from "../../shared/pipes/zod-validation.pipe";
 import { ApproveProfessionalUseCase } from "../application/use-cases/approve-professional.use-case";
 import { DeactivateAccountUseCase } from "../application/use-cases/deactivate-account.use-case";
 import { ListPendingProfessionalsUseCase } from "../application/use-cases/list-pending-professionals.use-case";
+import { ListUsersUseCase } from "../application/use-cases/list-users.use-case";
 import { ReactivateAccountUseCase } from "../application/use-cases/reactivate-account.use-case";
 import { RejectProfessionalUseCase } from "../application/use-cases/reject-professional.use-case";
 import { CurrentUser } from "./decorators/current-user.decorator";
@@ -16,17 +19,46 @@ import type { UserWithProfiles } from "../domain/ports/user.repository.port";
 
 // PRD 01 §5.5/§5.6 — Admin-only user lifecycle and Professional approval
 // queue. Reused as-is by PRD 13's Admin Console (checklist Phase 15) rather
-// than duplicated there.
+// than duplicated there. `listUsersHandler` below is PRD 13 §5.1's own
+// addition — the one piece this controller didn't already have.
 @Roles(Role.ADMIN)
 @Controller("admin")
 export class AdminUsersController {
   constructor(
     private readonly listPendingProfessionals: ListPendingProfessionalsUseCase,
+    private readonly listUsers: ListUsersUseCase,
     private readonly approveProfessional: ApproveProfessionalUseCase,
     private readonly rejectProfessional: RejectProfessionalUseCase,
     private readonly deactivateAccount: DeactivateAccountUseCase,
     private readonly reactivateAccount: ReactivateAccountUseCase,
   ) {}
+
+  // PRD 13 §5.1 — list/search every User with role/status/specializations/
+  // approval status. Never leaks passwordHash / token hashes, same rule as
+  // the pending-professionals serializer just below.
+  @Get("users")
+  async listUsersHandler(
+    @Query(new ZodValidationPipe(adminListUsersQuerySchema))
+    query: AdminListUsersQuery,
+  ) {
+    const users = await this.listUsers.execute(query);
+    return users.map((user) => ({
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role,
+      status: user.status,
+      emailVerified: Boolean(user.emailVerifiedAt),
+      createdAt: user.createdAt,
+      professionalProfile: user.professionalProfile
+        ? {
+            specializations: user.professionalProfile.specializations,
+            approvalStatus: user.professionalProfile.approvalStatus,
+            verificationNote: user.professionalProfile.verificationNote,
+          }
+        : null,
+    }));
+  }
 
   @Get("professionals/pending")
   async listPendingHandler() {

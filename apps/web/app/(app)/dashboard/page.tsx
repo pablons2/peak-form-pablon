@@ -136,11 +136,38 @@ function NavigationLanding({
           </Link>
         </p>
         {role === "ADMIN" ? (
-          <p className="mt-2 text-sm">
-            <Link href="/admin/exercises" className="text-accent hover:underline">
-              Revisão de exercícios
-            </Link>
-          </p>
+          <>
+            <p className="mt-2 text-sm">
+              <Link href="/admin/users" className="text-accent hover:underline">
+                Usuários
+              </Link>
+            </p>
+            <p className="mt-2 text-sm">
+              <Link href="/admin/approvals" className="text-accent hover:underline">
+                Aprovações
+              </Link>
+            </p>
+            <p className="mt-2 text-sm">
+              <Link href="/admin/exercises" className="text-accent hover:underline">
+                Revisão de exercícios
+              </Link>
+            </p>
+            <p className="mt-2 text-sm">
+              <Link href="/admin/links" className="text-accent hover:underline">
+                Vínculos
+              </Link>
+            </p>
+            <p className="mt-2 text-sm">
+              <Link href="/admin/audit-log" className="text-accent hover:underline">
+                Log de auditoria
+              </Link>
+            </p>
+            <p className="mt-2 text-sm">
+              <Link href="/admin/analytics" className="text-accent hover:underline">
+                Análises
+              </Link>
+            </p>
+          </>
         ) : null}
       </div>
     </main>
