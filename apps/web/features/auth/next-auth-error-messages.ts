@@ -2,7 +2,9 @@
 // Used in login-form.tsx and other auth components.
 
 export function mapNextAuthError(code: string | null | undefined): string {
-  if (!code) return "Um erro desconhecido ocorreu ao fazer login";
+  if (!code || code === "undefined") {
+    return "Um erro desconhecido ocorreu ao fazer login. Tente novamente.";
+  }
 
   const nextAuthErrorMessages: Record<string, string> = {
     // Credentials provider errors
@@ -25,6 +27,6 @@ export function mapNextAuthError(code: string | null | undefined): string {
 
   return (
     nextAuthErrorMessages[code] ??
-    `Erro: ${code}. Tente novamente ou entre em contato com o suporte`
+    `${code}. Tente novamente ou entre em contato com o suporte`
   );
 }
