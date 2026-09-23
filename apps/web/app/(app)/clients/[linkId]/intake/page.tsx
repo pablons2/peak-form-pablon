@@ -7,6 +7,7 @@ import { getClientIntake, listClientIntakeVersions } from "@/features/intake/api
 import { IntakeSummary } from "@/features/intake/components/intake-summary";
 import { AnnotationForm } from "@/features/intake/components/annotation-form";
 import { INTAKE_STATUS_LABELS } from "@/features/intake/labels";
+import { CheckCircle2, AlertCircle, Clock } from "lucide-react";
 
 export const metadata = { title: "Triagem do Cliente — PeakForm" };
 
@@ -58,21 +59,61 @@ export default async function ClientIntakePage({
       </div>
 
       {!intake ? (
-        <p className="text-sm text-muted-foreground">
-          Este cliente ainda não concluiu nem pulou a triagem de saúde —
-          aguardando.
-        </p>
+        <div className="rounded-lg border border-warning/40 bg-warning/10 p-4">
+          <div className="flex gap-3">
+            <Clock className="h-5 w-5 text-warning mt-0.5 flex-shrink-0" />
+            <div>
+              <h2 className="font-semibold text-foreground">⏳ Aguardando triagem do cliente</h2>
+              <p className="mt-1 text-sm text-foreground">
+                Este cliente ainda não iniciou a triagem de saúde. Você pode enviar um lembrete ou esperar pela resposta.
+              </p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Link de triagem: <span className="font-mono text-foreground">/intake</span>
+              </p>
+            </div>
+          </div>
+        </div>
       ) : (
         <>
-          <p className="text-sm text-muted-foreground">
-            Versão {intake.version} —{" "}
-            {INTAKE_STATUS_LABELS[intake.status] ?? intake.status}
-            {planAssignmentAllowed ? " — liberado para plano de treino." : ""}
-          </p>
+          {planAssignmentAllowed ? (
+            <div className="rounded-lg border border-success/30 bg-success/10 p-4">
+              <div className="flex gap-3">
+                <CheckCircle2 className="h-5 w-5 text-success mt-0.5 flex-shrink-0" />
+                <div>
+                  <h2 className="font-semibold text-foreground">✅ Triagem Completa e Aprovada</h2>
+                  <p className="mt-1 text-sm text-foreground">
+                    O cliente completou a triagem de saúde. Você já pode criar planos de treino personalizados.
+                  </p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Versão {intake.version} — Liberado para atribuição de planos
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-info/40 bg-info/10 p-4">
+              <div className="flex gap-3">
+                <AlertCircle className="h-5 w-5 text-info mt-0.5 flex-shrink-0" />
+                <div>
+                  <h2 className="font-semibold text-foreground">ℹ️ Triagem Submetida - Aguardando Revisão</h2>
+                  <p className="mt-1 text-sm text-foreground">
+                    O cliente enviou a triagem. Revise e aprove para liberar a criação de planos.
+                  </p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Versão {intake.version} — {INTAKE_STATUS_LABELS[intake.status] ?? intake.status}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="rounded-lg border border-border bg-card p-4">
+            <h3 className="font-semibold text-foreground mb-4">Respostas da Triagem</h3>
             <IntakeSummary intake={intake} />
           </div>
+
           <section className="rounded-lg border border-border bg-card p-4">
+            <h3 className="font-semibold text-foreground mb-4">Suas Anotações</h3>
             <AnnotationForm intakeAssessmentId={intake.id} />
           </section>
         </>
