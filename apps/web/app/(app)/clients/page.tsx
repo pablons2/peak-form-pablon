@@ -8,7 +8,7 @@ import {
   listCheckInSchedules,
   type PublicLink,
 } from "@/features/relationships/api-client";
-import { LinkCard } from "@/features/relationships/components/link-card";
+import { ClientRosterRow } from "@/features/relationships/components/client-roster-row";
 import { InviteClientForm } from "@/features/relationships/components/invite-client-form";
 import { OverviewTab } from "@/features/client-detail-hub/components/overview-tab";
 
@@ -72,7 +72,7 @@ export default async function ClientsPage({
           ) : (
             <ul className="mt-2 space-y-2">
               {pending.map((link) => (
-                <LinkCard key={link.id} link={link} viewerId={session.user.id!} />
+                <ClientRosterRow key={link.id} link={link} viewerId={session.user.id!} />
               ))}
             </ul>
           )}
@@ -87,11 +87,11 @@ export default async function ClientsPage({
           ) : (
             <ul className="mt-2 space-y-2">
               {active.map((link) => (
-                <LinkCard
+                <ClientRosterRow
                   key={link.id}
                   link={link}
                   viewerId={session.user.id!}
-                  detailHref={`/clients?selected=${link.id}`}
+                  isSelected={selectedLink?.id === link.id}
                 />
               ))}
             </ul>

@@ -21,7 +21,7 @@
 | **P0** | Email verification page (`/verify-email`) | ✅ Done | User signup flow |
 | **P1** | Client detail hub redesign (redesign §5.4) | ✅ Done | Professional workflow |
 | **P1** | Loading states (redesign §5.6) | ✅ Done | User experience |
-| **P2** | Responsive layout pass (redesign §5.5) | 3–4 hours | Desktop UX |
+| **P2** | Responsive layout pass (redesign §5.5) | ✅ Done | Desktop UX |
 | **P2** | List row polish + icons (redesign §5.7) | 2–3 hours | Visual hierarchy |
 | **P3** | Demo seed script (`/seed`) | 2 hours | Demo/presentation |
 | **P3** | Search/filter on list screens | 4–6 hours | Data scale |
@@ -338,6 +338,6 @@ make test-frontend        # Run web tests
 | 2026-09-22 | Case-insensitive email | ✅ Done | Fixed login issue, committed |
 | 2026-09-23 | Client detail hub redesign | ✅ Done | Tabbed interface, committed |
 | 2026-09-23 | Loading states | ✅ Done | Skeleton screens for all high-traffic routes, committed |
-| 2026-09-23 | Responsive layout | 🟡 P2, in progress | Starting with `/clients` two-pane |
-| — | List row polish | 🟡 P2, planned | Icons already deployed in R1 |
+| 2026-09-23 | Responsive layout | ✅ Done | Two-pane `/clients`, committed |
+| 2026-09-23 | List row polish | 🟡 P2, in progress | Enriching client roster rows |
 | — | Demo seed script | 🟡 P3, planned | Demo/presentation polish |
