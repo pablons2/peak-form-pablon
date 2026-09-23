@@ -5,6 +5,7 @@ import {
   type IntakeRepository,
 } from "../../domain/ports/intake.repository.port";
 import { IntakeAccess } from "../intake-access.service";
+import { IntakeGatingService } from "../intake-gating.service";
 
 // PRD 03 §4/§5.4 — a Professional's review of their own linked Client's
 // intake: the latest *finalized* version (a bare in-progress draft isn't
@@ -17,6 +18,7 @@ export class GetClientIntakeUseCase {
   constructor(
     @Inject(INTAKE_REPOSITORY) private readonly intakes: IntakeRepository,
     private readonly access: IntakeAccess,
+    private readonly gating: IntakeGatingService,
   ) {}
 
   async execute(input: { professionalId: string; clientId: string }) {
@@ -33,7 +35,7 @@ export class GetClientIntakeUseCase {
       ) ?? null;
     return {
       intake: latestFinalized,
-      planAssignmentAllowed: latestFinalized !== null,
+      planAssignmentAllowed: await this.gating.isPlanAssignmentAllowed(input.clientId),
     };
   }
 }
