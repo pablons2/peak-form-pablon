@@ -23,7 +23,7 @@
 | **P1** | Loading states (redesign §5.6) | ✅ Done | User experience |
 | **P2** | Responsive layout pass (redesign §5.5) | ✅ Done | Desktop UX |
 | **P2** | List row polish + icons (redesign §5.7) | ✅ Done | Visual hierarchy |
-| **P3** | Demo seed script (`/seed`) | 2 hours | Demo/presentation |
+| **P3** | Demo seed script (`/seed`) | ✅ Done | Demo/presentation |
 | **P3** | Search/filter on list screens | 4–6 hours | Data scale |
 
 ---
@@ -340,4 +340,4 @@ make test-frontend        # Run web tests
 | 2026-09-23 | Loading states | ✅ Done | Skeleton screens for all high-traffic routes, committed |
 | 2026-09-23 | Responsive layout | ✅ Done | Two-pane `/clients`, committed |
 | 2026-09-23 | List row polish | ✅ Done | Rich roster rows with avatar + status, committed |
-| 2026-09-23 | Demo seed script | 🟡 P3, ready | Ready for implementation |
+| 2026-09-23 | Demo seed script | ✅ Done | 6 accounts, 4 active links, 2 sample plans, committed |
