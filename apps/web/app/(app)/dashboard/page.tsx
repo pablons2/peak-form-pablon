@@ -1,5 +1,4 @@
 import { getServerSession } from "next-auth";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/features/auth/nextauth-options";
 import { getTodayDashboard, getWeekDashboard } from "@/features/dashboard/api-client";
@@ -11,6 +10,19 @@ import { WeekStrip } from "@/features/dashboard/components/week-strip";
 import { WeeklySummaryCard } from "@/features/dashboard/components/weekly-summary-card";
 import { DashboardTabs } from "@/features/dashboard/components/dashboard-tabs";
 import { TodayChecklist } from "@/features/habits/components/today-checklist";
+import {
+  ProfessionalDashboard,
+  type UnscheduledClient,
+} from "@/features/dashboard/components/professional-dashboard";
+import { AdminDashboard } from "@/features/dashboard/components/admin-dashboard";
+import {
+  listCheckInSchedules,
+  listMyLinks,
+  type PublicLink,
+} from "@/features/relationships/api-client";
+import { listMyThreads } from "@/features/messaging/api-client";
+import { getAnalytics, listPendingProfessionals } from "@/features/admin/api-client";
+import { adminListExercises } from "@/features/exercises/api-client";
 
 export const metadata = { title: "Início — PeakForm" };
 
@@ -27,10 +39,14 @@ export default async function DashboardPage() {
     redirect("/pending-approval");
   }
 
-  // PRD 09 §4 — this module is Client-facing only. Professional/Admin keep
-  // the plain navigation landing that predates this phase.
-  if (session.user.role !== "CLIENT") {
-    return <NavigationLanding role={session.user.role} name={session.user.name} />;
+  // PRD 09 §4 — this module is Client-facing only. Professional/Admin get
+  // the command-center home from docs/redesign-plan.md §5.3 instead of the
+  // Today/Week tabs above (which need PRD 09 endpoints only Clients have).
+  if (session.user.role === "PROFESSIONAL") {
+    return <ProfessionalDashboardPage accessToken={session.accessToken!} name={session.user.name} />;
+  }
+  if (session.user.role === "ADMIN") {
+    return <AdminDashboardPage accessToken={session.accessToken!} />;
   }
 
   const accessToken = session.accessToken!;
@@ -91,85 +107,75 @@ export default async function DashboardPage() {
   );
 }
 
-// The pre-PRD-09 generic nav landing, kept for Professional/Admin — this
-// module never had a role-specific version for them (§3 Non-Goals).
-function NavigationLanding({
-  role,
+// docs/redesign-plan.md §5.3 — every count here comes from an endpoint that
+// already existed for its own screen (§7: no new backend work).
+// unscheduledClients is the one derived value: each active link's own
+// schedules, fetched in parallel, filtered to links with no currently-ACTIVE
+// schedule (see professional-dashboard.tsx's comment on why "ACTIVE with a
+// past nextDueAt" — this component's first cut — is a transient state PRD
+// 02 §5.6's due-job clears almost immediately, not a useful signal).
+async function ProfessionalDashboardPage({
+  accessToken,
   name,
 }: {
-  role: "PROFESSIONAL" | "ADMIN" | undefined;
+  accessToken: string;
   name: string | null | undefined;
 }) {
+  const linksResult = await listMyLinks(accessToken);
+  const links: PublicLink[] = linksResult.ok ? linksResult.data : [];
+  const active = links.filter((l) => l.status === "ACTIVE");
+  const pending = links.filter((l) => l.status === "PENDING");
+  const incomingRequests = pending.filter((l) => l.invitedBy === "CLIENT");
+
+  const [threadsResult, scheduleResults] = await Promise.all([
+    listMyThreads(accessToken),
+    Promise.all(active.map((link) => listCheckInSchedules(accessToken, link.id))),
+  ]);
+
+  const threadsWithUnread = threadsResult.ok
+    ? threadsResult.data.threads.filter((t) => t.unreadCount > 0)
+    : [];
+
+  const unscheduledClients: UnscheduledClient[] = active.flatMap((link, index) => {
+    const result = scheduleResults[index];
+    if (!result?.ok) return [];
+    const hasActiveSchedule = result.data.some((s) => s.status === "ACTIVE");
+    return hasActiveSchedule ? [] : [{ linkId: link.id, clientName: link.client.fullName }];
+  });
+
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md rounded-lg border border-border bg-card p-6 shadow-sm">
-        <h1 className="text-lg font-semibold text-foreground">Olá, {name}!</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Você está conectado como{" "}
-          <span className="font-medium text-foreground">
-            {role === "PROFESSIONAL" ? "profissional" : "administrador"}
-          </span>
-          .
-        </p>
-        {role === "PROFESSIONAL" ? (
-          <p className="mt-4 text-sm">
-            <Link href="/messages" className="text-accent hover:underline">
-              Mensagens
-            </Link>
-          </p>
-        ) : null}
-        {role === "PROFESSIONAL" ? (
-          <p className="mt-2 text-sm">
-            <Link href="/clients" className="text-accent hover:underline">
-              Meus Clientes
-            </Link>
-          </p>
-        ) : null}
-        <p className="mt-4 text-sm">
-          <Link href="/exercises" className="text-accent hover:underline">
-            Biblioteca de exercícios
-          </Link>
-        </p>
-        <p className="mt-2 text-sm">
-          <Link href="/plans/starter-templates" className="text-accent hover:underline">
-            Modelos iniciais
-          </Link>
-        </p>
-        {role === "ADMIN" ? (
-          <>
-            <p className="mt-2 text-sm">
-              <Link href="/admin/users" className="text-accent hover:underline">
-                Usuários
-              </Link>
-            </p>
-            <p className="mt-2 text-sm">
-              <Link href="/admin/approvals" className="text-accent hover:underline">
-                Aprovações
-              </Link>
-            </p>
-            <p className="mt-2 text-sm">
-              <Link href="/admin/exercises" className="text-accent hover:underline">
-                Revisão de exercícios
-              </Link>
-            </p>
-            <p className="mt-2 text-sm">
-              <Link href="/admin/links" className="text-accent hover:underline">
-                Vínculos
-              </Link>
-            </p>
-            <p className="mt-2 text-sm">
-              <Link href="/admin/audit-log" className="text-accent hover:underline">
-                Log de auditoria
-              </Link>
-            </p>
-            <p className="mt-2 text-sm">
-              <Link href="/admin/analytics" className="text-accent hover:underline">
-                Análises
-              </Link>
-            </p>
-          </>
-        ) : null}
-      </div>
+    <main className="mx-auto max-w-2xl space-y-4 p-4">
+      <h1 className="text-lg font-semibold text-foreground">Olá, {name}!</h1>
+      <ProfessionalDashboard
+        active={active}
+        pending={pending}
+        incomingRequests={incomingRequests}
+        unscheduledClients={unscheduledClients}
+        threadsWithUnread={threadsWithUnread}
+      />
+    </main>
+  );
+}
+
+// docs/redesign-plan.md §5.3 "Admin variant" — pendingApprovals/pendingExercises
+// reuse the same endpoints /admin/approvals and /admin/exercises already call;
+// analytics reuses /admin/analytics. A failed analytics fetch degrades to
+// hiding that section rather than failing the whole dashboard.
+async function AdminDashboardPage({ accessToken }: { accessToken: string }) {
+  const [approvalsResult, exercisesResult, analyticsResult] = await Promise.all([
+    listPendingProfessionals(accessToken),
+    adminListExercises(accessToken, "PRIVATE"),
+    getAnalytics(accessToken),
+  ]);
+
+  return (
+    <main className="mx-auto max-w-2xl space-y-4 p-4">
+      <h1 className="text-lg font-semibold text-foreground">Painel do administrador</h1>
+      <AdminDashboard
+        pendingApprovals={approvalsResult.ok ? approvalsResult.data.length : 0}
+        pendingExercises={exercisesResult.ok ? exercisesResult.data.length : 0}
+        analytics={analyticsResult.ok ? analyticsResult.data : null}
+      />
     </main>
   );
 }

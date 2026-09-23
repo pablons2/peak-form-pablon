@@ -89,7 +89,8 @@
           <strong>Profissional</strong> (Personal Trainer e/ou Nutricionista) e
           <strong>Administrador</strong> — usa o PeakForm hoje. Cada módulo mostra um
           selo de status real (Disponível, Parcial ou Planejado) para que você saiba
-          exatamente o que já pode fazer no sistema e o que ainda está em construção.
+          exatamente o que já pode fazer no sistema. Nesta publicação, todos os 13
+          módulos estão <strong>Disponíveis</strong>.
         </p>
 
         <div class="hero__notice" role="note">
@@ -283,20 +284,27 @@
               <li>Acesse a página <strong>"Clientes"</strong> no menu.</li>
               <li>Clique em <strong>"Convidar cliente"</strong> e informe o e-mail do Cliente.</li>
               <li>Escolha a especialização do vínculo (Personal Trainer ou Nutricionista).</li>
-              <li>Envie o convite — o Cliente verá o convite pendente na área "Equipe" dele.</li>
+              <li>Envie o convite — o Cliente verá o convite pendente na página "Meu Time" dele.</li>
             </ol>
 
             <h4>Passo a passo — Cliente aceita o convite</h4>
             <ol class="steps">
-              <li>Abra a página <strong>"Equipe"</strong>.</li>
+              <li>Abra a página <strong>"Meu Time"</strong>.</li>
               <li>Localize o convite pendente e escolha <strong>"Aceitar"</strong> (ou "Rejeitar").</li>
               <li>Após aceitar, o vínculo fica <strong>Ativo</strong> e o Profissional passa a ver seus dados relevantes (treino, nutrição, avaliações), conforme a especialização do vínculo.</li>
+            </ol>
+
+            <h4>Check-ins agendados</h4>
+            <ol class="steps">
+              <li>O Profissional abre a página do Cliente vinculado (a partir de "Clientes") e, no painel <strong>"Check-ins"</strong>, cria um lembrete recorrente (semanal, quinzenal ou mensal, no dia da semana escolhido).</li>
+              <li>O Cliente vê os próximos check-ins em <strong>"Meu Time"</strong>, em modo somente leitura — quem agenda e cancela é o Profissional.</li>
+              <li>Quando um check-in está próximo ou vencido, ele aparece no painel "Início" do Cliente e pode gerar uma notificação (módulo 12).</li>
             </ol>
 
             <h4>Desvincular</h4>
             <p>
               Qualquer uma das partes pode encerrar o vínculo pela página "Clientes"
-              (Profissional) ou "Equipe" (Cliente). O histórico de planos e mensagens é
+              (Profissional) ou "Meu Time" (Cliente). O histórico de planos e mensagens é
               preservado, mas passa a ficar somente leitura — nenhuma edição nova é
               permitida após o desvínculo.
             </p>
@@ -328,7 +336,7 @@
 
             <h4>Passo a passo — Cliente responde ao questionário</h4>
             <ol class="steps">
-              <li>Acesse <strong>"Intake"</strong> no menu (também pode aparecer como etapa obrigatória logo após o primeiro login).</li>
+              <li>Acesse a página <strong>"Triagem de saúde"</strong> (intake).</li>
               <li>Responda a etapa de <strong>prontidão</strong> (perguntas de triagem de saúde).</li>
               <li>Marque no <strong>mapa corporal</strong> qualquer região com dor, lesão ou limitação.</li>
               <li>Informe condições de saúde relevantes e sua disponibilidade/equipamentos de treino.</li>
@@ -549,89 +557,117 @@
         </article>
 
         <!-- ============ PRD 09 ============ -->
-        <article class="chapter" id="prd-09" data-roles="cliente" data-status="parcial">
+        <article class="chapter" id="prd-09" data-roles="cliente" data-status="disponivel">
           <h3 class="chapter__header">
             <button type="button" class="chapter__toggle" aria-expanded="false" aria-controls="prd-09-body">
               <span class="chapter__title">09 · Painel "Hoje / Esta Semana"</span>
-              <span class="badge badge--parcial"><span aria-hidden="true">◐</span> Parcial</span>
+              <span class="badge badge--disponivel"><span aria-hidden="true">✓</span> Disponível</span>
               <span class="chapter__chevron" aria-hidden="true">▾</span>
             </button>
           </h3>
           <div class="chapter__body" id="prd-09-body" hidden>
-            <p class="chapter__roles"><strong>Papéis:</strong> Cliente</p>
+            <p class="chapter__roles"><strong>Papéis:</strong> Cliente (Profissional e Administrador têm painéis próprios, diferentes deste)</p>
             <p>
-              Painel inicial do Cliente que deveria reunir, em uma única tela: sessão
-              de treino do dia, refeições vs. meta, hábitos pendentes, mensagens não
-              lidas e o próximo check-in agendado, além de uma visão semanal com
+              Painel inicial do Cliente que reúne, em uma única tela: sessão de treino
+              do dia, refeições vs. meta, hábitos pendentes, mensagens não lidas e o
+              próximo check-in agendado, além de uma visão dos últimos 7 dias com
               tendências.
             </p>
 
-            <h4>O que já funciona</h4>
+            <h4>Passo a passo — Cliente usa a aba "Hoje"</h4>
             <ol class="steps">
-              <li>Ao fazer login como Cliente, você é levado a um <strong>painel inicial mínimo</strong> em <strong>"Dashboard"</strong>.</li>
-              <li>A partir dele, ainda é possível navegar manualmente para treino, nutrição e mensagens pelos respectivos menus.</li>
+              <li>Abra <strong>"Início"</strong> no menu — é a tela padrão após o login.</li>
+              <li>Na aba <strong>"Hoje"</strong>, veja os cartões: <strong>treino do dia</strong> (a sessão programada, ou um estado claro de dia de descanso), <strong>nutrição</strong> (totais do dia vs. meta ativa), <strong>hábitos e tarefas</strong> pendentes, <strong>mensagens não lidas</strong> e o <strong>próximo check-in</strong> agendado.</li>
+              <li>Use os cartões como ponto de partida — cada um aponta para a área correspondente (Treino, Nutrição, Hábitos, Mensagens).</li>
             </ol>
 
-            <h4>O que ainda falta (não confie neste painel como fonte única)</h4>
-            <ul class="feature-gap-list">
-              <li>A faixa "Esta Semana" com status de 7 dias (treino concluído/perdido, nutrição registrada) ainda não existe nesta tela.</li>
-              <li>O cartão de resumo semanal (adesão %, tendência de volume, tendência de peso) ainda não é exibido aqui.</li>
-              <li>Os "nudges" inline (sessão perdida, alimentação não registrada, check-in vencido, nova mensagem, plano atualizado) ainda não aparecem consolidados neste painel.</li>
-            </ul>
+            <h4>Passo a passo — Cliente usa a aba "Esta Semana"</h4>
+            <ol class="steps">
+              <li>Em "Início", troque para a aba <strong>"Esta Semana"</strong>.</li>
+              <li>Veja a <strong>faixa de 7 dias</strong> com o status de cada dia (treino concluído/perdido, registro alimentar feito ou não).</li>
+              <li>Confira o <strong>resumo semanal</strong>: percentual de adesão ao treino, tendência de volume e tendência de peso.</li>
+            </ol>
+
             <div class="tip">
-              Enquanto este módulo evolui, use a navegação pelo menu (Treino, Nutrição,
-              Mensagens, Equipe) para acompanhar cada área separadamente — os dados em
-              si já existem e estão corretos, apenas ainda não foram agregados numa
-              única tela.
+              Os lembretes e avisos (sessão perdida, alimentação não registrada,
+              check-in vencido, nova mensagem, plano atualizado) chegam como
+              notificações — veja o capítulo <a href="#prd-12">12 · Notificações</a>.
+            </div>
+
+            <div class="tip">
+              Profissionais e Administradores também veem uma tela "Início" própria:
+              o Profissional tem um painel com clientes ativos, convites pendentes,
+              mensagens não lidas e clientes sem check-in agendado; o Administrador
+              tem um painel com aprovações e revisões pendentes e atalhos para o
+              console (módulo 13).
             </div>
           </div>
         </article>
 
         <!-- ============ PRD 10 ============ -->
-        <article class="chapter" id="prd-10" data-roles="cliente" data-status="planejado">
+        <article class="chapter" id="prd-10" data-roles="cliente" data-status="disponivel">
           <h3 class="chapter__header">
             <button type="button" class="chapter__toggle" aria-expanded="false" aria-controls="prd-10-body">
               <span class="chapter__title">10 · Produtividade / Hábitos</span>
-              <span class="badge badge--planejado"><span aria-hidden="true">○</span> Planejado</span>
+              <span class="badge badge--disponivel"><span aria-hidden="true">✓</span> Disponível</span>
               <span class="chapter__chevron" aria-hidden="true">▾</span>
             </button>
           </h3>
           <div class="chapter__body" id="prd-10-body" hidden>
-            <p class="chapter__roles"><strong>Papéis previstos:</strong> Cliente (uso exclusivamente pessoal)</p>
+            <p class="chapter__roles"><strong>Papéis:</strong> Cliente (uso exclusivamente pessoal)</p>
             <p>
-              Módulo ainda não implementado. Quando disponível, permitirá ao Cliente
-              criar hábitos próprios (ex.: "beber água", "dormir 8h", "mobilidade"),
-              marcar check-ins diários com contagem de sequência (streak) e manter uma
-              lista simples de tarefas pessoais — sem qualquer visibilidade para
-              Profissionais ou Administrador, por ser dado não clínico e pessoal por
-              definição.
+              Permite ao Cliente criar hábitos próprios (ex.: "beber água", "dormir
+              8h", "mobilidade"), marcar o cumprimento diário com contagem de
+              sequência (streak) e manter uma lista simples de tarefas pessoais —
+              sem qualquer visibilidade para Profissionais ou Administrador, por ser
+              dado não clínico e pessoal por definição.
             </p>
-            <p>
-              Não confundir com o contador de hidratação da Nutrição (módulo 08), que
-              já existe e é a fonte oficial de hidratação — o futuro módulo de hábitos
-              poderá ter um hábito complementar de "beber água" apenas como lembrete
-              pessoal, não como contador oficial.
-            </p>
+
+            <h4>Passo a passo — Cliente cria um hábito</h4>
+            <ol class="steps">
+              <li>Abra <strong>"Hábitos"</strong> no menu.</li>
+              <li>Na seção <strong>"Hábitos"</strong>, informe o nome (ex.: "alongar 10 min"), um horário de lembrete opcional e a cadência: <strong>todos os dias</strong> ou <strong>dias específicos da semana</strong>.</li>
+              <li>Salve — o hábito passa a aparecer na lista com sua <strong>sequência</strong> (streak) de dias consecutivos cumpridos.</li>
+              <li>Para parar de acompanhar um hábito, use <strong>arquivar</strong> — o histórico é preservado.</li>
+            </ol>
+
+            <h4>Passo a passo — Cliente usa o checklist do dia</h4>
+            <ol class="steps">
+              <li>Na seção <strong>"Hoje"</strong> da página "Hábitos" (ou no cartão "Hábitos e tarefas" do painel "Início"), marque cada hábito e tarefa concluída.</li>
+              <li>A sequência do hábito aumenta a cada dia cumprido — deixar um hábito de hoje pendente não zera a sequência enquanto o dia não termina.</li>
+            </ol>
+
+            <h4>Passo a passo — Cliente gerencia tarefas pessoais</h4>
+            <ol class="steps">
+              <li>Na seção <strong>"Tarefas"</strong>, crie uma tarefa com título e, opcionalmente, data de vencimento.</li>
+              <li>Marque como concluída quando terminar; tarefas vencidas continuam aparecendo até serem concluídas ou removidas — elas não somem sozinhas.</li>
+            </ol>
+
+            <div class="tip">
+              Não confundir com o contador de hidratação da Nutrição (módulo 08),
+              que é a fonte oficial de hidratação — um hábito de "beber água" aqui
+              funciona apenas como lembrete pessoal, não como contador.
+            </div>
           </div>
         </article>
 
         <!-- ============ PRD 11 ============ -->
-        <article class="chapter" id="prd-11" data-roles="cliente profissional admin" data-status="parcial">
+        <article class="chapter" id="prd-11" data-roles="cliente profissional admin" data-status="disponivel">
           <h3 class="chapter__header">
             <button type="button" class="chapter__toggle" aria-expanded="false" aria-controls="prd-11-body">
               <span class="chapter__title">11 · Mensagens</span>
-              <span class="badge badge--parcial"><span aria-hidden="true">◐</span> Parcial</span>
+              <span class="badge badge--disponivel"><span aria-hidden="true">✓</span> Disponível</span>
               <span class="chapter__chevron" aria-hidden="true">▾</span>
             </button>
           </h3>
           <div class="chapter__body" id="prd-11-body" hidden>
-            <p class="chapter__roles"><strong>Papéis:</strong> Cliente, Profissional — Disponível · Administrador (suporte) — Parcial</p>
+            <p class="chapter__roles"><strong>Papéis:</strong> Cliente, Profissional · Administrador (leitura de suporte)</p>
             <p>
               Conversa em texto entre um Cliente e cada Profissional vinculado a ele.
               Não é um chat geral: só existe conversa entre pares com vínculo ativo.
             </p>
 
-            <h4>Passo a passo — Cliente e Profissional conversam <span class="badge badge--disponivel badge--inline"><span aria-hidden="true">✓</span> Disponível</span></h4>
+            <h4>Passo a passo — Cliente e Profissional conversam</h4>
             <ol class="steps">
               <li>Abra <strong>"Mensagens"</strong> no menu — a lista de conversas mostra uma por Profissional/Cliente vinculado.</li>
               <li>Selecione a conversa desejada para abrir a thread.</li>
@@ -644,55 +680,79 @@
               parecido com código ou marcação.
             </div>
 
-            <h4>Administrador — suporte via mensagens <span class="badge badge--parcial badge--inline"><span aria-hidden="true">◐</span> Parcial</span></h4>
+            <h4>Administrador — leitura de suporte</h4>
             <p>
-              A API e o modelo de dados já sustentam o acesso de suporte do
-              Administrador a qualquer thread (somente leitura, para resolução de
-              disputas), mas a <strong>tela de caixa de entrada administrativa</strong>
-              ainda não foi construída na interface — por isso este uso específico é
-              tratado como parcial, mesmo com a mensageria entre Cliente e Profissional
-              já totalmente disponível.
+              O Administrador pode ler qualquer conversa individual pelo seu
+              identificador, para resolução de disputas — sempre em modo somente
+              leitura, sem possibilidade de escrever. Uma caixa de entrada
+              administrativa dedicada ou um chat de suporte entre Administrador e
+              usuários <strong>não fazem parte do produto por decisão de escopo</strong>,
+              não são funcionalidades pendentes.
             </p>
           </div>
         </article>
 
         <!-- ============ PRD 12 ============ -->
-        <article class="chapter" id="prd-12" data-roles="cliente profissional admin" data-status="planejado">
+        <article class="chapter" id="prd-12" data-roles="cliente profissional admin" data-status="disponivel">
           <h3 class="chapter__header">
             <button type="button" class="chapter__toggle" aria-expanded="false" aria-controls="prd-12-body">
               <span class="chapter__title">12 · Notificações</span>
-              <span class="badge badge--planejado"><span aria-hidden="true">○</span> Planejado</span>
+              <span class="badge badge--disponivel"><span aria-hidden="true">✓</span> Disponível</span>
               <span class="chapter__chevron" aria-hidden="true">▾</span>
             </button>
           </h3>
           <div class="chapter__body" id="prd-12-body" hidden>
-            <p class="chapter__roles"><strong>Papéis previstos:</strong> Cliente, Profissional, Administrador</p>
+            <p class="chapter__roles"><strong>Papéis:</strong> Cliente, Profissional, Administrador</p>
             <p>
-              Módulo transversal de entrega de notificações ainda não implementado
-              como capacidade dedicada — os únicos e-mails automáticos hoje em
-              funcionamento (verificação de e-mail e redefinição de senha, do módulo
-              01) são enviados diretamente pelo módulo de Autenticação, não por este
-              módulo de notificações preferenciais.
+              Central de notificações do sistema: cada evento gera uma notificação
+              no aplicativo e, conforme suas preferências, também por e-mail e/ou
+              push no navegador.
             </p>
-            <p>Quando implementado, este módulo cobrirá, por e-mail e opcionalmente push web (PWA):</p>
+
+            <p>Os eventos notificados são:</p>
             <ul class="feature-gap-list">
-              <li>Lembrete de sessão agendada e sessão/registro alimentar perdidos.</li>
+              <li>Lembrete de sessão agendada e avisos de sessão/registro alimentar perdidos.</li>
               <li>Nova mensagem recebida.</li>
               <li>Plano de treino ou meta nutricional atualizado pelo Profissional.</li>
               <li>Resumo semanal disponível.</li>
               <li>Check-in vencido, conforme a agenda definida no vínculo (módulo 02).</li>
               <li>Decisão de aprovação/rejeição de cadastro profissional.</li>
-              <li>Preferências configuráveis por evento e por canal, por usuário.</li>
             </ul>
+
+            <h4>Passo a passo — Ver e gerenciar notificações</h4>
+            <ol class="steps">
+              <li>Abra <strong>"Notificações"</strong> no menu.</li>
+              <li>Veja a lista de notificações recebidas — use <strong>"Marcar como lida"</strong> em uma notificação ou <strong>"Marcar todas como lidas"</strong>.</li>
+            </ol>
+
+            <h4>Passo a passo — Configurar preferências por canal</h4>
+            <ol class="steps">
+              <li>Em "Notificações", role até <strong>"Preferências de notificação"</strong>.</li>
+              <li>Para cada tipo de evento, marque ou desmarque os canais <strong>E-mail</strong> e <strong>Push</strong>, e salve.</li>
+              <li>Exceção: a notificação de <strong>decisão de aprovação</strong> (para Profissionais) é obrigatória por e-mail e não pode ser desativada — ela aparece marcada como "obrigatório".</li>
+            </ol>
+
+            <h4>Passo a passo — Ativar notificações push</h4>
+            <ol class="steps">
+              <li>Em "Notificações", na seção <strong>"Notificações push"</strong>, clique em <strong>"Ativar notificações push"</strong> e autorize no navegador.</li>
+              <li>Se o navegador bloquear ou não suportar push, você continua recebendo normalmente no aplicativo e por e-mail.</li>
+            </ol>
+
+            <div class="tip tip--warning">
+              O push depende de configuração do ambiente (chaves VAPID) feita pela
+              operação — se a seção indicar que push "não está configurado neste
+              ambiente", apenas esse canal fica indisponível; notificações no
+              aplicativo e e-mails continuam funcionando.
+            </div>
           </div>
         </article>
 
         <!-- ============ PRD 13 ============ -->
-        <article class="chapter" id="prd-13" data-roles="admin" data-status="parcial">
+        <article class="chapter" id="prd-13" data-roles="admin" data-status="disponivel">
           <h3 class="chapter__header">
             <button type="button" class="chapter__toggle" aria-expanded="false" aria-controls="prd-13-body">
               <span class="chapter__title">13 · Console do Administrador</span>
-              <span class="badge badge--parcial"><span aria-hidden="true">◐</span> Parcial</span>
+              <span class="badge badge--disponivel"><span aria-hidden="true">✓</span> Disponível</span>
               <span class="chapter__chevron" aria-hidden="true">▾</span>
             </button>
           </h3>
@@ -700,29 +760,51 @@
             <p class="chapter__roles"><strong>Papéis:</strong> Administrador</p>
             <p>
               Superfície operacional para gestão de usuários, aprovação de
-              Profissionais, curadoria do catálogo global de exercícios, auditoria e
-              analytics agregado.
+              Profissionais, curadoria do catálogo global de exercícios, supervisão
+              de vínculos, auditoria e analytics agregado. O ponto de entrada é o
+              <strong>"Painel do administrador"</strong> na tela "Início", que mostra
+              pendências (aprovações e exercícios a revisar) e atalhos para cada
+              área do console.
             </p>
 
-            <h4>O que já funciona hoje</h4>
+            <h4>Passo a passo — Aprovar ou rejeitar Profissionais</h4>
             <ol class="steps">
-              <li>Aprovar ou rejeitar cadastros de Profissionais pendentes (a API e a lógica de aprovação já existem e são usadas no fluxo do módulo 01).</li>
-              <li>Curar exercícios: revisar exercícios personalizados propostos por Profissionais e promovê-los ao catálogo global em <strong>"Admin → Exercícios"</strong>.</li>
+              <li>Em "Início", use o atalho de aprovações pendentes (ou acesse a área de aprovações).</li>
+              <li>Revise cada cadastro pendente e escolha <strong>Aprovar</strong> ou <strong>Rejeitar</strong> — o Profissional é notificado da decisão por e-mail e no aplicativo.</li>
             </ol>
 
-            <h4>O que ainda falta</h4>
-            <ul class="feature-gap-list">
-              <li>Tela dedicada de gestão de usuários (listar, buscar, ativar/desativar contas com filtros) ainda não existe como interface completa.</li>
-              <li>Tela de supervisão de vínculos com botão de desvínculo forçado, para resolução de disputas, ainda não está exposta na interface administrativa.</li>
-              <li>Visualização do log de auditoria (quem fez o quê, quando) ainda não está disponível como tela.</li>
-              <li>Painel de analytics agregado (Clientes ativos, Profissionais ativos por especialização, adesão média) ainda não existe.</li>
-            </ul>
-            <div class="tip">
-              Por isso este módulo é classificado como Parcial: as capacidades de
-              back-end de aprovação e curadoria de exercícios já existem e podem ser
-              usadas, mas o console administrativo completo descrito no PRD 13 ainda
-              está em construção.
-            </div>
+            <h4>Passo a passo — Gerenciar usuários</h4>
+            <ol class="steps">
+              <li>No painel do administrador, abra <strong>"Usuários"</strong>.</li>
+              <li>Filtre a lista por papel (Cliente/Profissional/Administrador), status (ativo/desativado) ou busque por nome/e-mail.</li>
+              <li>Use <strong>Desativar</strong> para suspender uma conta ou <strong>Reativar</strong> para restaurá-la.</li>
+            </ol>
+
+            <h4>Passo a passo — Supervisionar vínculos</h4>
+            <ol class="steps">
+              <li>No painel do administrador, abra <strong>"Vínculos"</strong>.</li>
+              <li>Filtre por status (ativo, pendente, histórico) e localize o vínculo em disputa.</li>
+              <li>Use <strong>desvínculo forçado</strong> para encerrá-lo — a ação fica registrada no log de auditoria.</li>
+            </ol>
+
+            <h4>Passo a passo — Consultar o log de auditoria</h4>
+            <ol class="steps">
+              <li>No painel do administrador, abra <strong>"Log de auditoria"</strong>.</li>
+              <li>Filtre por autor da ação, tipo de ação, entidade afetada ou intervalo de datas.</li>
+              <li>O log é somente leitura e append-only: registros nunca podem ser editados ou removidos pela interface.</li>
+            </ol>
+
+            <h4>Passo a passo — Ver analytics agregado</h4>
+            <ol class="steps">
+              <li>No painel do administrador, abra <strong>"Análises"</strong>.</li>
+              <li>Veja os totais de Clientes ativos e Profissionais ativos por especialização, e a adesão média semanal a treino e nutrição.</li>
+            </ol>
+
+            <h4>Passo a passo — Curar exercícios</h4>
+            <ol class="steps">
+              <li>Abra <strong>"Revisão de exercícios"</strong> no menu.</li>
+              <li>Revise os exercícios personalizados propostos por Profissionais e aprove-os para o catálogo global — veja o capítulo <a href="#prd-05">05 · Biblioteca de Exercícios</a>.</li>
+            </ol>
           </div>
         </article>
       </section>
@@ -762,13 +844,13 @@
               <tr><th scope="row">07 · Ver histórico de execução</th><td>❌</td><td>✅ (somente leitura, vinculados)</td><td>✅ (próprio)</td></tr>
               <tr><th scope="row">08 · Criar/confirmar meta nutricional</th><td>❌</td><td>✅ (Nutricionista, vinculados)</td><td>❌</td></tr>
               <tr><th scope="row">08 · Registrar diário alimentar</th><td>—</td><td>—</td><td>✅ (próprio)</td></tr>
-              <tr><th scope="row">09 · Painel Hoje/Semana</th><td>❌</td><td>❌</td><td>✅ (próprio, versão parcial)</td></tr>
-              <tr><th scope="row">10 · Hábitos e tarefas pessoais</th><td>❌ (planejado)</td><td>❌ (planejado)</td><td>✅ (planejado, próprio)</td></tr>
+              <tr><th scope="row">09 · Painel Hoje/Semana</th><td>➕ painel admin próprio</td><td>➕ painel próprio</td><td>✅ (próprio)</td></tr>
+              <tr><th scope="row">10 · Hábitos e tarefas pessoais</th><td>❌</td><td>❌</td><td>✅ (próprio)</td></tr>
               <tr><th scope="row">11 · Enviar/ler mensagens</th><td>—</td><td>✅ (clientes vinculados)</td><td>✅ (profissionais vinculados)</td></tr>
-              <tr><th scope="row">11 · Suporte administrativo (ler qualquer thread)</th><td>➕ parcial (API existe, UI não)</td><td>❌</td><td>❌</td></tr>
-              <tr><th scope="row">12 · Receber notificações</th><td>✅ (planejado)</td><td>✅ (planejado)</td><td>✅ (planejado)</td></tr>
+              <tr><th scope="row">11 · Suporte administrativo (ler qualquer thread)</th><td>✅ (somente leitura)</td><td>❌</td><td>❌</td></tr>
+              <tr><th scope="row">12 · Receber e configurar notificações</th><td>✅</td><td>✅</td><td>✅</td></tr>
               <tr><th scope="row">13 · Aprovar Profissionais / curar exercícios</th><td>✅</td><td>❌</td><td>—</td></tr>
-              <tr><th scope="row">13 · Gestão de usuários, auditoria, analytics</th><td>➕ parcial (em construção)</td><td>❌</td><td>—</td></tr>
+              <tr><th scope="row">13 · Gestão de usuários, vínculos, auditoria, analytics</th><td>✅</td><td>❌</td><td>—</td></tr>
             </tbody>
           </table>
         </div>
@@ -826,6 +908,14 @@
             <dd>Encerramento de um vínculo realizado pelo Administrador, usado para resolver disputas ou limpar vínculos após a desativação de um Profissional.</dd>
           </div>
           <div class="glossary__item">
+            <dt>Hábito / Sequência (streak)</dt>
+            <dd>Hábito pessoal do Cliente com cadência diária ou por dias da semana; a sequência conta os dias consecutivos cumpridos e aparece junto ao hábito.</dd>
+          </div>
+          <div class="glossary__item">
+            <dt>Notificação / Preferências de canal</dt>
+            <dd>Aviso gerado por eventos do sistema (sessão, mensagem, plano, check-in, resumo semanal etc.), sempre registrado no aplicativo e enviado também por e-mail e/ou push conforme as preferências configuradas pelo usuário para cada tipo de evento.</dd>
+          </div>
+          <div class="glossary__item">
             <dt>Log de auditoria</dt>
             <dd>Registro append-only (nunca editável ou removível pela interface) de ações administrativas e prescritivas sensíveis, como aprovações e desvínculos forçados.</dd>
           </div>
@@ -852,23 +942,23 @@
           </details>
 
           <details class="faq-item">
-            <summary>Por que não vejo o painel "Hoje/Esta Semana" completo, com resumo semanal e avisos?</summary>
-            <p>Esse módulo (PRD 09) está parcialmente implementado: hoje existe apenas um painel inicial mínimo. A faixa semanal, o cartão de resumo e os avisos consolidados ainda estão em construção — use os menus de Treino, Nutrição e Mensagens separadamente enquanto isso.</p>
+            <summary>O que vejo no painel "Início"?</summary>
+            <p>Depende do seu papel. Como Cliente, você tem as abas "Hoje" (treino do dia, nutrição vs. meta, hábitos e tarefas pendentes, mensagens não lidas, próximo check-in) e "Esta Semana" (faixa de 7 dias e resumo com adesão e tendências). Profissionais veem um painel com clientes ativos, convites pendentes e mensagens não lidas; Administradores veem pendências de aprovação/revisão e atalhos do console.</p>
           </details>
 
           <details class="faq-item">
             <summary>Existe um app de hábitos/tarefas pessoais?</summary>
-            <p>Ainda não. O módulo de Produtividade/Hábitos (PRD 10) está planejado, mas não implementado. O contador de hidratação dentro de Nutrição já existe e continua sendo a fonte oficial de hidratação.</p>
+            <p>Sim — a página "Hábitos" (menu do Cliente) permite criar hábitos com cadência diária ou por dias da semana, acompanhar a sequência (streak) e gerenciar tarefas pessoais com vencimento. É exclusivo do Cliente: Profissionais e Administrador não vem esses dados. O contador de hidratação dentro de Nutrição continua sendo a fonte oficial de hidratação.</p>
           </details>
 
           <details class="faq-item">
             <summary>Recebo notificações por e-mail ou push do sistema?</summary>
-            <p>Hoje, apenas os e-mails de verificação de conta e redefinição de senha são enviados automaticamente (parte do módulo de Autenticação). O módulo geral de Notificações (lembretes de sessão, novas mensagens, plano atualizado, resumo semanal, check-in vencido) ainda está planejado.</p>
+            <p>Sim. A página "Notificações" centraliza os avisos no aplicativo e permite configurar, por tipo de evento, se você quer receber também por e-mail e/ou push no navegador (lembrete de treino, sessão perdida, nova mensagem, plano atualizado, resumo semanal, check-in vencido, decisão de aprovação). O push depende de configuração do ambiente e de autorização do navegador.</p>
           </details>
 
           <details class="faq-item">
             <summary>O Administrador pode ler minhas mensagens com meu Profissional?</summary>
-            <p>O modelo de acesso do sistema prevê que o Administrador tenha acesso de leitura de suporte a qualquer conversa para resolução de disputas. Hoje essa capacidade existe na API, mas ainda não há uma tela de caixa de entrada administrativa construída — por isso está listada como Parcial.</p>
+            <p>Sim, em modo somente leitura e apenas para resolução de disputas — o Administrador acessa uma conversa individual pelo seu identificador e não pode escrever nela. Não existe uma caixa de entrada de suporte ou chat entre Administrador e usuários: isso foi decidido como fora de escopo do produto.</p>
           </details>
 
           <details class="faq-item">

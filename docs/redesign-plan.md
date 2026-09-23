@@ -129,19 +129,21 @@ Roster and admin-queue rows get: avatar/media thumbnail, a status `Badge` (Ativo
 
 ## 6. Priority roadmap
 
-| Priority | Item | Why first/last |
+**Status correction (2026-09-23):** this table originally listed 5.1 and 5.2 as not-yet-started. A live re-check of the repo found both already built and wired in — `packages/ui` has real `Button`/`Card`/`Badge`/`Tabs`/`Avatar`/`Alert`/`EmptyState`/`Skeleton` components (`lucide-react` + `next-themes` installed, dark-mode toggle working), and `features/navigation/nav-shell.tsx` is mounted in `app/(app)/layout.tsx` for every role (desktop sidebar + mobile bottom nav, unread/pending badges). Neither this doc's own "current status" framing nor the prior audit session's memory record had been updated when that work landed, so the doc was stale, not the app. 5.3 was implemented and browser-verified (via curl against a live NextAuth session + seeded demo accounts) in the same session that made this correction.
+
+| Priority | Item | Status |
 |---|---|---|
-| **P0** | 5.1 Component layer (`packages/ui`) | Everything else is 2–3x more expensive without it |
-| **P0** | 5.2 Nav shell | Fixes the worst daily-use friction across every role |
-| **P0** | 5.3 Professional/Admin dashboard | Closes the biggest functional gap (§3.2) |
-| **P1** | 5.4 Client detail hub redesign | Professional's core workflow screen |
-| **P1** | 5.6 Loading states | Cheap once 5.1 lands (just `<Skeleton>` composition) |
-| **P1** | 5.5 Responsive layout | Apply opportunistically as each screen is touched for 5.1 migration |
-| **P2** | 5.7 List row polish, dark-mode toggle, icons | Visual polish, do alongside whichever screen is being migrated |
+| **P0** | 5.1 Component layer (`packages/ui`) | ✅ Done |
+| **P0** | 5.2 Nav shell | ✅ Done |
+| **P0** | 5.3 Professional/Admin dashboard | ✅ Done (2026-09-23) — `features/dashboard/components/{professional,admin}-dashboard.tsx`, wired into `app/(app)/dashboard/page.tsx`. Professional: attention feed (incoming link requests, clients with no check-in scheduled, unread threads) + roster stat grid, all from existing endpoints (`listMyLinks`, `listCheckInSchedules`, `listMyThreads`) — see the code comment on why "overdue check-in" (this item's original framing) doesn't hold up against PRD 02 §5.6's due-job and was reframed as "no check-in currently scheduled." Admin: pending-approvals/pending-exercise-review attention cards + `getAnalytics` platform snapshot + quick links to the admin pages not in the nav (`/admin/users`, `/admin/links`, `/admin/audit-log`, `/admin/analytics`). |
+| **P1** | 5.4 Client detail hub redesign | Not started — next up. Professional's core workflow screen. |
+| **P1** | 5.6 Loading states | Not started. Cheap now that 5.1's `<Skeleton>` exists — just needs a first consumer (route-level `loading.tsx`). |
+| **P1** | 5.5 Responsive layout | Partially organic — the nav shell reserves `lg:pl-64` for its sidebar, but page content still sits in a single `max-w-2xl` column inside that space (no two-pane/grid layouts yet). Apply opportunistically as each screen is touched. |
+| **P2** | 5.7 List row polish, icons | Icons landed with 5.1/5.2 (`lucide-react`, used throughout nav + the new dashboards). List-row polish (roster/admin-queue thumbnails, richer signal) not started. |
 | **P2** | §4.7 `/dashboard` vs `/today` IA decision | Needs a product call before touching either screen |
 | **P3** | Search/filter/pagination on list screens (§3.8) | Not urgent at current data scale; revisit when a roster/library realistically exceeds one screen |
 
-Suggested sequencing respects this project's existing incremental discipline (per `docs/IMPLEMENTATION_CHECKLIST.md`): land 5.1 as its own phase, then migrate one dashboard at a time (Professional home → Client detail hub → Client dashboard polish → remaining screens), verifying each with the existing BDD/Playwright suite before checking it off, rather than one large rewrite PR.
+Suggested sequencing respects this project's existing incremental discipline (per `docs/IMPLEMENTATION_CHECKLIST.md`): migrate one screen at a time (Client detail hub next → loading states → remaining screens), verifying each in-browser (or via a live authenticated request, where no browser tool is available) before checking it off, rather than one large rewrite PR.
 
 ---
 
@@ -150,3 +152,18 @@ Suggested sequencing respects this project's existing incremental discipline (pe
 - **No token changes.** `docs/design-system.md` §1–5 tokens are sound; this plan is about *using* them consistently and *building* the missing component layer, not redefining colors/radius/motion.
 - **No backend/API changes.** All findings are frontend composition and IA; no endpoint listed here needs a new field (the client-detail alerts, for example, can be composed client-side from data already fetched by existing endpoints — e.g. `ContraindicationWarnings` and `CheckInsPanel` already have the data, they're just not rendered together).
 - **No new BDD scenarios required for the visual/IA changes themselves** — but any redesigned screen must keep passing its existing PRD's Gherkin acceptance criteria (per this repo's "done means 1:1 scenario coverage" rule), and role-gating logic (redirect rules in each `page.tsx`) must be preserved exactly as-is during migration.
+
+---
+
+## 8. Visual identity direction (logo-informed)
+
+**Prompt:** design a redesign of all UI/UX using `apps/web/public/imgs/logo.png` as the anchor. This section is the visual companion to §5–§7 above — it does not reopen the IA/roadmap findings, it gives the roadmap's screens (5.2 nav shell, 5.3 Professional dashboard, 5.4 client detail hub) a concrete look, grounded in the mark rather than a generic "modern/clean" direction. Mockups: **[PeakForm Redesign Direction](https://claude.ai/artifact/JBhyx1mCQnuCCQygYXwiyj)** (brand/style guide board + mobile mockups of the Client dashboard, Professional dashboard, and Client detail hub, plus a desktop sidebar+two-pane shell).
+
+**Rationale.** The mark is a bold, high-contrast flexed-arm silhouette with a confident orange wordmark on black — it reads as *strength, momentum, clarity*, not soft/pastel wellness-app default. The tokens already in `globals.css`/`design-system.md` already encode this correctly (`--primary: 11 100% 61%` ≈ `#ff5d38`, a saturated orange-red pulled straight from the wordmark; `--accent: 185 81% 29%` ≈ `#0e7c86`, a deep teal counterweight) — **no token changes proposed**, this section is about applying them consistently and closing gaps the audit above didn't cover:
+
+- **Iconography:** none is installed yet (see §3.6). Direction: 1.75px stroke, rounded caps/joins, no fill — bold enough to sit next to the mark without looking like a generic thin icon set. Status icons always pair with the semantic color (never color alone, per `design-system.md` §1.3).
+- **Typography in practice:** `Plus Jakarta Sans` for all UI text, `IBM Plex Mono` reserved specifically for numeric/counter values (kcal, timers, adherence %) so they read as measured/precise against the humanist sans elsewhere — this distinction exists in the token doc but isn't visibly demonstrated anywhere in the app yet.
+- **Component visual language:** subtle elevation only (`shadow-sm`/`shadow-md`, no heavy drop-shadow-on-flat-gray), `--radius: 10px` throughout, semantic badges (Ativo/Pendente/Atenção/Novo) as pill shapes with a dot + text, never a bare color chip.
+- **New finding — logo asset gap:** `logo.png` has a baked-in white background (not transparent) and no monochrome/reversed variant. It cannot be dropped cleanly into a dark-mode surface, a colored app-bar, or a favicon without a white box around it. **Action item, blocks §3.5 (dark mode) and the nav-shell app-bar mark:** export a transparent PNG/SVG of the arm mark (and ideally a reversed/light version for dark surfaces) before nav-shell or dark-mode-toggle work lands.
+
+**How the mockups map to the roadmap:** the Client dashboard mockup mirrors §4.1's already-good pattern (nothing new asked there); the Professional dashboard mockup is one concrete version of §5.3's command-center (attention feed + roster snapshot stat grid + recent-clients strip); the Client detail mockup is one concrete version of §5.4 (contraindication alert surfaced above the fold, stat row, quick-link grid replacing the six stacked text links); the desktop mockup is one concrete version of §5.5's two-pane roster (`lg:grid-cols-[320px_1fr]`) plus a persistent left-sidebar nav shell for §5.2. Treat these as one valid execution of the roadmap's structure, not a spec to copy pixel-for-pixel — implement with real `packages/ui` components (§5.1) rather than by porting this markup.
