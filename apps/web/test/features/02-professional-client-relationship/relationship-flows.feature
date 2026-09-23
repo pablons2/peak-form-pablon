@@ -31,3 +31,41 @@ Feature: Professional ↔ Client relationship (web)
     And a verified client "bdd.rel-client3@example.com" already linked to them as "PERSONAL_TRAINER"
     When the professional logs in and creates a weekly check-in for that client from the client detail page
     Then the client logs in and sees the upcoming check-in on the team page with no edit or cancel controls
+
+  Scenario: Professional views client detail page and sees rich profile card (redesign-plan §5.4)
+    Given an approved professional "bdd.detail-pro@example.com"
+    And a verified client "bdd.detail-client@example.com" with completed intake (age 28, 180cm, 75kg, primary goal "Ganhar massa muscular")
+    And they are linked as "PERSONAL_TRAINER"
+    When the professional logs in and opens the client detail page
+    Then the professional sees a profile card with:
+      | avatar with client initials |
+      | client name and email |
+      | status badge "Ativo" |
+      | intake status indicator |
+      | quick stats grid showing active check-ins count |
+      | quick stats grid showing training plans count |
+      | quick stats grid showing last activity date |
+    And the page shows tabs for "Geral", "Treino", "Avaliações", "Mensagens"
+
+  Scenario: Contraindication alert displays prominently on client detail page when client has flags
+    Given an approved professional "bdd.contraindication-pro@example.com"
+    And a verified client "bdd.contraindication-client@example.com" with completed intake including:
+      | pain flags: "Dor no joelho esquerdo", "Lesão no ombro" |
+      | medical conditions: "Hipertensão" |
+      | contraindicated exercises: "KNEE_LOAD_CAUTION", "SHOULDER_IMPINGEMENT_CAUTION" |
+    And they are linked as "PERSONAL_TRAINER"
+    When the professional logs in and opens the client detail page
+    Then the professional sees a prominent "Alertas de Contraindicação" card with:
+      | warning icon |
+      | list of pain flags |
+      | list of medical conditions |
+      | list of contraindicated exercise categories |
+      | link to view full health intake |
+
+  Scenario: No contraindication alert displays when client has no flags
+    Given an approved professional "bdd.clean-intake-pro@example.com"
+    And a verified client "bdd.clean-intake-client@example.com" with completed intake (no pain flags or medical conditions)
+    And they are linked as "PERSONAL_TRAINER"
+    When the professional logs in and opens the client detail page
+    Then no "Alertas de Contraindicação" card is visible
+    And the profile card displays normally without alerts
