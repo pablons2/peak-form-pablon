@@ -150,16 +150,22 @@ async function main() {
     });
   }
 
-  const trainer = profUsers["trainer@peakform.demo"];
-  const nutritionist = profUsers["nutritionist@peakform.demo"];
-  const client1 = clients["client@peakform.demo"];
-  const client2 = clients["client2@peakform.demo"];
-  const client3 = clients["client3@peakform.demo"];
+  const trainer = profUsers["trainer@peakform.demo"]!;
+  const nutritionist = profUsers["nutritionist@peakform.demo"]!;
+  const client1 = clients["client@peakform.demo"]!;
+  const client2 = clients["client2@peakform.demo"]!;
+  const client3 = clients["client3@peakform.demo"]!;
 
   // Create links:
   // Trainer ↔ Client 1 & 2
   // Nutritionist ↔ Client 2 & 3
-  const links = [
+  const links: Array<{
+    professionalId: string;
+    clientId: string;
+    specialization: "PERSONAL_TRAINER" | "NUTRITIONIST";
+    invitedBy: "PROFESSIONAL" | "CLIENT";
+    status: "PENDING" | "ACTIVE" | "CANCELLED" | "UNLINKED";
+  }> = [
     {
       professionalId: trainer.id,
       clientId: client1.id,
