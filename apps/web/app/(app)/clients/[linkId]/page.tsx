@@ -3,17 +3,15 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/features/auth/nextauth-options";
 import { listCheckInSchedules, listMyLinks } from "@/features/relationships/api-client";
-import { LinkCard } from "@/features/relationships/components/link-card";
+import { listClientTrainingPlans } from "@/features/training-plans/api-client";
+import { ClientDetailTabs } from "@/features/client-detail-hub/components/client-detail-tabs";
+import { OverviewTab } from "@/features/client-detail-hub/components/overview-tab";
+import { TrainingPlansTab } from "@/features/client-detail-hub/components/training-plans-tab";
+import { LinkedSectionTab } from "@/features/client-detail-hub/components/linked-section-tab";
 import { CheckInsPanel } from "@/features/relationships/components/check-ins-panel";
 
 export const metadata = { title: "Detalhes do Cliente — PeakForm" };
 
-// PRD 02 §7 — Professional's client-detail view: the relationship itself
-// (with unlink) and the "Check-ins" panel (create/edit/cancel schedules for
-// this link). No dedicated GET /links/:id exists yet — the caller's own
-// links list (already scoped server-side to this Professional) is filtered
-// to the requested id, so a client detail page can't be used to probe a link
-// that isn't the Professional's own.
 export default async function ClientDetailPage({
   params,
 }: {
@@ -35,6 +33,14 @@ export default async function ClientDetailPage({
     : undefined;
   if (!link) notFound();
 
+  // Fetch training plans if this link is for a personal trainer
+  const plansResult = link.specialization === "PERSONAL_TRAINER"
+    ? await listClientTrainingPlans(accessToken, link.client.id)
+    : { ok: false as const };
+
+  const plans = plansResult.ok ? plansResult.data : [];
+  const schedules = schedulesResult.ok ? schedulesResult.data : [];
+
   return (
     <main className="mx-auto max-w-2xl space-y-6 p-4">
       <div className="flex items-center justify-between">
@@ -46,64 +52,56 @@ export default async function ClientDetailPage({
         </Link>
       </div>
 
-      <ul>
-        <LinkCard link={link} viewerId={session.user.id!} />
-      </ul>
-
-      <p className="text-sm">
-        <Link href={`/clients/${link.id}/intake`} className="text-accent hover:underline">
-          Ver triagem de saúde →
-        </Link>
-      </p>
-
-      {link.specialization === "PERSONAL_TRAINER" ? (
-        <p className="text-sm">
-          <Link href={`/clients/${link.id}/plans`} className="text-accent hover:underline">
-            Ver planos de treino →
-          </Link>
-        </p>
-      ) : null}
-
-      {link.specialization === "PERSONAL_TRAINER" ? (
-        <p className="text-sm">
-          <Link
-            href={`/clients/${link.id}/training-execution`}
-            className="text-accent hover:underline"
-          >
-            Ver execução dos treinos →
-          </Link>
-        </p>
-      ) : null}
-
-      <p className="text-sm">
-        <Link
-          href={`/clients/${link.id}/body-assessments`}
-          className="text-accent hover:underline"
-        >
-          Ver avaliação corporal →
-        </Link>
-      </p>
-
-      {link.specialization === "NUTRITIONIST" ? (
-        <p className="text-sm">
-          <Link href={`/clients/${link.id}/nutrition`} className="text-accent hover:underline">
-            Ver nutrição →
-          </Link>
-        </p>
-      ) : null}
-
-      <p className="text-sm">
-        <Link href={`/messages/with/${link.client.id}`} className="text-accent hover:underline">
-          Ver mensagens →
-        </Link>
-      </p>
+      <ClientDetailTabs
+        overview={<OverviewTab link={link} schedules={schedules} viewerId={session.user.id!} />}
+        treino={
+          link.specialization === "PERSONAL_TRAINER" ? (
+            <TrainingPlansTab linkId={link.id} plans={plans} />
+          ) : (
+            <LinkedSectionTab
+              linkId={link.id}
+              sectionName="Nutrição"
+              href={`/clients/${link.id}/nutrition`}
+            />
+          )
+        }
+        nutricao={
+          link.specialization === "NUTRITIONIST" ? (
+            <LinkedSectionTab
+              linkId={link.id}
+              sectionName="Nutrição"
+              href={`/clients/${link.id}/nutrition`}
+            />
+          ) : (
+            <LinkedSectionTab
+              linkId={link.id}
+              sectionName="Nutrição"
+              href={`/clients/${link.id}/nutrition`}
+            />
+          )
+        }
+        avaliacoes={
+          <LinkedSectionTab
+            linkId={link.id}
+            sectionName="Avaliação Corporal"
+            href={`/clients/${link.id}/body-assessments`}
+          />
+        }
+        mensagens={
+          <LinkedSectionTab
+            linkId={link.id}
+            sectionName="Mensagens"
+            href={`/messages/with/${link.client.id}`}
+          />
+        }
+      />
 
       <section className="rounded-lg border border-border bg-card p-4">
         <h2 className="text-sm font-medium text-foreground">Check-ins</h2>
         <div className="mt-3">
           <CheckInsPanel
             linkId={link.id}
-            schedules={schedulesResult.ok ? schedulesResult.data : []}
+            schedules={schedules}
             canManage={link.status === "ACTIVE"}
           />
         </div>
