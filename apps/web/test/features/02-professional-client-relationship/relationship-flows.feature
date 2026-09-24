@@ -69,3 +69,14 @@ Feature: Professional ↔ Client relationship (web)
     When the professional logs in and opens the client detail page
     Then no "Alertas de Contraindicação" card is visible
     And the profile card displays normally without alerts
+
+  Scenario: Trainer profile card displays on client detail page (redesign-plan §5.4)
+    Given an approved professional "bdd.trainer-display-pro@example.com"
+    And a verified client "bdd.trainer-display-client@example.com" with completed intake
+    And they are linked as "PERSONAL_TRAINER"
+    When the professional logs in and opens the client detail page
+    Then the professional sees a trainer profile card showing:
+      | trainer name |
+      | trainer email |
+      | trainer specialization badge ("Personal Trainer") |
+    And the trainer and client cards appear side-by-side on desktop

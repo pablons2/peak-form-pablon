@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { CheckInSchedule, PublicLink } from "@/features/relationships/api-client";
 import type { ClientIntake } from "@/features/relationships/api-client";
 import { ClientProfileCard } from "./client-profile-card";
+import { TrainerProfileCard } from "./trainer-profile-card";
 import { OnboardingProgressCard } from "./onboarding-progress-card";
 
 export function OverviewTab({
@@ -17,7 +18,16 @@ export function OverviewTab({
 }) {
   return (
     <div className="space-y-6">
-      <ClientProfileCard link={link} schedules={schedules} intake={intake} />
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div>
+          <p className="mb-2 text-xs font-medium text-muted-foreground">CLIENTE</p>
+          <ClientProfileCard link={link} schedules={schedules} intake={intake} />
+        </div>
+        <div>
+          <p className="mb-2 text-xs font-medium text-muted-foreground">RESPONSÁVEL</p>
+          <TrainerProfileCard link={link} />
+        </div>
+      </div>
 
       <OnboardingProgressCard link={link} intake={intake} />
 
