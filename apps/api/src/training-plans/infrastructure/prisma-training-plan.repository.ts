@@ -14,7 +14,12 @@ import type {
 
 const WITH_TEMPLATE_EXERCISE = {
   exercise: {
-    select: { id: true, name: true, contraindicationTags: { select: { code: true } } },
+    select: {
+      id: true,
+      name: true,
+      mediaUrl: true,
+      contraindicationTags: { select: { code: true } },
+    },
   },
 } satisfies Prisma.WeeklyMicrocycleTemplateExerciseInclude;
 

@@ -4,7 +4,7 @@ import type { WeeklyTemplateExerciseWriteData } from "./training-plan.repository
 export const SESSION_REPOSITORY = Symbol("SESSION_REPOSITORY");
 
 export type SessionExerciseWithExercise = SessionExercise & {
-  exercise: { id: string; name: string; contraindicationTags: { code: string }[] };
+  exercise: { id: string; name: string; mediaUrl: string | null; contraindicationTags: { code: string }[] };
 };
 
 export type SessionWithExercises = Session & {

@@ -11,7 +11,7 @@ import type {
 export const TRAINING_PLAN_REPOSITORY = Symbol("TRAINING_PLAN_REPOSITORY");
 
 export type TemplateExerciseWithExercise = WeeklyMicrocycleTemplateExercise & {
-  exercise: { id: string; name: string; contraindicationTags: { code: string }[] };
+  exercise: { id: string; name: string; mediaUrl: string | null; contraindicationTags: { code: string }[] };
 };
 
 export type WeeklyTemplateWithExercises = WeeklyMicrocycleTemplate & {

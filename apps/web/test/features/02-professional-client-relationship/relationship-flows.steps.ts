@@ -460,7 +460,7 @@ Then("the professional sees a profile card with:", async ({ page }, dataTable) =
     } else if (row === "quick stats grid showing active check-ins count") {
       await expect(page.getByText("CHECK-INS ATIVOS")).toBeVisible();
     } else if (row === "quick stats grid showing training plans count") {
-      await expect(page.getByText("PLANOS")).toBeVisible();
+      await expect(page.getByText("PLANOS", { exact: true })).toBeVisible();
     } else if (row === "quick stats grid showing link type") {
       await expect(page.getByText("TIPO")).toBeVisible();
     } else {
@@ -578,6 +578,8 @@ Then("contraindicated exercises display with a warning indicator:", async ({ pag
 
 Then("the professional can see why each exercise is contraindicated", async ({ page }) => {
   const select = page.locator("select").first();
+  // The preview card opens on focus — selectOption alone doesn't trigger it.
+  await select.click();
   await select.selectOption(hubContraindicatedExerciseId);
   await expect(
     page.getByText("Exercício contraindicado para este cliente").first(),
