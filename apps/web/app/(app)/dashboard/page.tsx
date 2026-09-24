@@ -79,7 +79,7 @@ export default async function DashboardPage() {
   const plans = plansResult.ok ? plansResult.data : [];
 
   return (
-    <main className="mx-auto max-w-2xl space-y-4 p-4">
+    <main className="mx-auto max-w-2xl space-y-4 p-4 lg:max-w-4xl">
       <h1 className="text-lg font-semibold text-foreground">Olá, {session.user.name}!</h1>
 
       <IntakeStatusCard intake={intake} />
@@ -88,7 +88,9 @@ export default async function DashboardPage() {
 
       <DashboardTabs
         today={
-          <div className="space-y-3">
+          // Mobile: cards stacked full-width. Desktop: 2-col grid — the
+          // training card stays first and prominent.
+          <div className="grid gap-3 lg:grid-cols-2">
             <TodayTrainingCard session={today.training.session} isRestDay={today.training.isRestDay} />
             <TodayNutritionCard diary={today.nutrition} />
             <div className="rounded-lg border border-border bg-card p-4">

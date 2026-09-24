@@ -46,7 +46,7 @@ export default async function MyPlansPage() {
           </p>
         </div>
       ) : (
-        <ul className="space-y-2">
+        <ul className="grid gap-2 sm:grid-cols-2">
           {plans.map((plan) => (
             <TrainingPlanCard key={plan.id} plan={plan} />
           ))}

@@ -39,7 +39,7 @@ export default async function TodayPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl space-y-6 p-4">
+    <main className="mx-auto max-w-2xl space-y-6 p-4 lg:max-w-5xl">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold text-foreground">Treino de hoje</h1>
         <Link href="/dashboard" className="text-sm text-accent hover:underline">
@@ -47,23 +47,29 @@ export default async function TodayPage() {
         </Link>
       </div>
 
-      {today.session ? (
-        <TodaySessionView session={today.session} exerciseMedia={exerciseMedia} />
-      ) : (
-        <div className="rounded-lg border border-border bg-card p-6 text-center">
-          <p className="text-sm font-medium text-foreground">Dia de descanso</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Não há treino agendado para hoje.
-          </p>
+      {/* Mobile: session stacks above history. Desktop (lg): session left,
+          history right — the logging column stays the widest. */}
+      <div className="space-y-6 lg:grid lg:grid-cols-5 lg:items-start lg:gap-8 lg:space-y-0">
+        <div className="lg:col-span-3">
+          {today.session ? (
+            <TodaySessionView session={today.session} exerciseMedia={exerciseMedia} />
+          ) : (
+            <div className="rounded-lg border border-border bg-card p-6 text-center">
+              <p className="text-sm font-medium text-foreground">Dia de descanso</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Não há treino agendado para hoje.
+              </p>
+            </div>
+          )}
         </div>
-      )}
 
-      <section>
-        <h2 className="text-sm font-medium text-foreground">Histórico</h2>
-        <div className="mt-2">
-          <SessionHistoryList sessions={history} />
-        </div>
-      </section>
+        <section className="lg:col-span-2">
+          <h2 className="text-sm font-medium text-foreground">Histórico</h2>
+          <div className="mt-2">
+            <SessionHistoryList sessions={history} />
+          </div>
+        </section>
+      </div>
     </main>
   );
 }

@@ -60,7 +60,7 @@ export function TodaySessionView({
           type="button"
           onClick={handleComplete}
           disabled={completing}
-          className="w-full rounded-md border border-border py-2 text-sm font-medium text-foreground hover:bg-card disabled:opacity-60"
+          className="min-h-11 w-full rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-card disabled:opacity-60"
         >
           {completing ? "Concluindo…" : "Concluir treino de hoje"}
         </button>

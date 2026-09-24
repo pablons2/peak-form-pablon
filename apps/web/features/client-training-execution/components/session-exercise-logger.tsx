@@ -122,7 +122,7 @@ export function SessionExerciseLogger({
               min="0"
               max="200"
               required
-              className={`${inputClass} w-20`}
+              className={`${inputClass} min-h-11 w-20`}
               value={reps}
               onChange={(e) => setReps(e.target.value)}
             />
@@ -134,7 +134,7 @@ export function SessionExerciseLogger({
               inputMode="decimal"
               step="0.5"
               placeholder="—"
-              className={`${inputClass} w-20`}
+              className={`${inputClass} min-h-11 w-20`}
               value={load}
               onChange={(e) => setLoad(e.target.value)}
             />
@@ -146,7 +146,7 @@ export function SessionExerciseLogger({
               inputMode="decimal"
               step="0.5"
               placeholder="—"
-              className={`${inputClass} w-16`}
+              className={`${inputClass} min-h-11 w-16`}
               value={rpeOrRir}
               onChange={(e) => setRpeOrRir(e.target.value)}
             />
@@ -154,7 +154,7 @@ export function SessionExerciseLogger({
           <button
             type="submit"
             disabled={saving}
-            className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
+            className="min-h-11 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
           >
             {saving ? "Salvando…" : "Registrar série"}
           </button>
