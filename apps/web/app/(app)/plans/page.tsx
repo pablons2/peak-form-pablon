@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/features/auth/nextauth-options";
 import { listMyTrainingPlans } from "@/features/training-plans/api-client";
-import { TRAINING_PLAN_STATUS_LABELS } from "@/features/training-plans/labels";
+import { TrainingPlanCard } from "@/features/training-plans/components/training-plan-card";
 
 export const metadata = { title: "Meus Planos — PeakForm" };
 
@@ -34,21 +34,21 @@ export default async function MyPlansPage() {
       </p>
 
       {plans.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Nenhum plano de treino atribuído ainda.
-        </p>
+        <div className="rounded-lg border border-border bg-card p-4">
+          <p className="text-sm text-foreground">
+            Nenhum plano de treino atribuído ainda.
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Seu profissional pode criar um plano para você — enquanto isso, você pode{" "}
+            <Link href="/plans/starter-templates" className="text-accent hover:underline">
+              começar com um modelo inicial →
+            </Link>
+          </p>
+        </div>
       ) : (
         <ul className="space-y-2">
           {plans.map((plan) => (
-            <li key={plan.id} className="rounded-lg border border-border bg-card p-4">
-              <Link href={`/plans/${plan.id}`} className="font-medium text-foreground hover:underline">
-                {plan.name}
-              </Link>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {TRAINING_PLAN_STATUS_LABELS[plan.status] ?? plan.status} — início em{" "}
-                {plan.startDate.slice(0, 10)}
-              </p>
-            </li>
+            <TrainingPlanCard key={plan.id} plan={plan} />
           ))}
         </ul>
       )}

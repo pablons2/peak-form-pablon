@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { AlertCircle } from "lucide-react";
 import type { PublicTrainingPlan } from "../../training-plans/api-client";
-import type { PublicSession } from "../../training-plans/api-client";
+import type { PublicSessionExecution } from "../../client-training-execution/api-client";
 import { TRAINING_PLAN_STATUS_LABELS } from "../../training-plans/labels";
 
 /**
  * Discovery card for Client: shows that they have training plans assigned.
- * Displays next scheduled session if available.
+ * Displays today's session if available.
  * Positioned prominently in dashboard so client discovers plans immediately.
  *
  * PRD 06 §4/§7 — Client's own plans, read-only
@@ -17,14 +16,17 @@ export function TrainingAssignmentCard({
   todaySession,
 }: {
   plans: PublicTrainingPlan[];
-  todaySession?: PublicSession | null;
+  todaySession?: PublicSessionExecution | null;
 }) {
   if (plans.length === 0) {
     return null; // Don't show if no plans
   }
 
   // Get the first active plan (or any plan if all are draft)
-  const activePlan = plans.find((p) => p.status === "ACTIVE") || plans[0];
+  const activePlan = plans.find((p) => p.status === "ACTIVE") ?? plans[0];
+  if (!activePlan) {
+    return null;
+  }
 
   const planStatus = TRAINING_PLAN_STATUS_LABELS[activePlan.status] || activePlan.status;
 
@@ -62,7 +64,7 @@ export function TrainingAssignmentCard({
               📅 Próxima sessão: hoje
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              {todaySession.sessionExercises.length} exercício(s)
+              {todaySession.exercises.length} exercício(s)
             </p>
           </div>
         ) : (

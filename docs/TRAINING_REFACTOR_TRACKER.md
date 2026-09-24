@@ -9,16 +9,16 @@
 
 ```
 Fase 0: Diagnóstico & Validação
-████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 0% (⏳ Bloqueado)
+████████████████████████████████████████████ 100% (✅ Concluída)
 
 Fase 1: Discovery Card
-░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 0% (⏳ Aguardando Fase 0)
+████████████████████████████████████████████ 100% (✅ Implementada — ver FASE1_STATUS)
 
 Fase 2: Componentes Unificados
-░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 0% (⏳ Aguardando Fase 0)
+████████████████████████████████████████████ 100% (✅ Implementada — ver FASE2_STATUS)
 
 Fase 3: Responsividade
-░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 0% (⏳ Aguardando Fase 0)
+░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 0% (⏳ Próxima)
 
 Fase 4: Notificação (Backend)
 ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 0% (⏳ Aguardando Fase 0)
@@ -490,10 +490,10 @@ Fase 0 (Diagnóstico)
 | Campo | Valor |
 |-------|-------|
 | **Data** | 2026-09-23 |
-| **Status Geral** | 🟠 Planejamento |
-| **Fase Atual** | 0 (Diagnóstico) |
-| **% Completo** | 0% |
-| **Bloqueadores** | Fase 0 precisa executar |
+| **Status Geral** | � Em execução |
+| **Fase Atual** | 3 (Responsividade) — Fases 0-2 concluídas |
+| **% Completo** | ~50% (0-2 de 0-5) |
+| **Bloqueadores** | `next build` requer `sudo rm -rf apps/web/.next/types` (root-owned) |
 
 ---
 

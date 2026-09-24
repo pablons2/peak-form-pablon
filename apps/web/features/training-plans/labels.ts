@@ -35,6 +35,37 @@ export const TRAINING_PLAN_STATUS_LABELS: Record<string, string> = {
   ARCHIVED: "Arquivado",
 };
 
+// Same badge convention as SESSION_STATUS_BADGE_CLASS in
+// features/client-training-execution/labels.ts — tinted background + text
+// color from the design tokens (apps/web/app/globals.css).
+export const TRAINING_PLAN_STATUS_BADGE_CLASS: Record<string, string> = {
+  DRAFT: "bg-warning/15 text-warning",
+  ACTIVE: "bg-success/15 text-success",
+  COMPLETED: "bg-muted text-muted-foreground",
+  ARCHIVED: "bg-muted text-muted-foreground",
+};
+
+// startDate/session dates are pure calendar dates, so every read stays in
+// UTC — same pinning as formatDayMonth in features/dashboard/labels.ts.
+export function formatPlanStartDate(dateIso: string): string {
+  return new Date(`${dateIso.slice(0, 10)}T00:00:00.000Z`).toLocaleDateString("pt-BR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+export function formatSessionDate(dateIso: string): string {
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+  if (dateIso.slice(0, 10) === today) return "hoje";
+  return new Date(`${dateIso.slice(0, 10)}T00:00:00.000Z`).toLocaleDateString("pt-BR", {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  });
+}
+
 export const SESSION_STATUS_LABELS: Record<string, string> = {
   SCHEDULED: "Agendada",
   COMPLETED: "Concluída",

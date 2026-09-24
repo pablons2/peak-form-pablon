@@ -1,8 +1,8 @@
 import Link from "next/link";
 import type { PublicTrainingPlan } from "@/features/training-plans/api-client";
 import type { ClientIntake } from "@/features/relationships/api-client";
-import { TRAINING_PLAN_STATUS_LABELS } from "@/features/training-plans/labels";
-import { Lock, AlertCircle } from "lucide-react";
+import { TrainingPlanCard } from "@/features/training-plans/components/training-plan-card";
+import { Lock } from "lucide-react";
 
 export function TrainingPlansTab({
   linkId,
@@ -56,18 +56,7 @@ export function TrainingPlansTab({
       ) : (
         <ul className="space-y-2">
           {plans.map((plan) => (
-            <li key={plan.id} className="rounded-lg border border-border bg-card p-4">
-              <Link
-                href={`/plans/${plan.id}`}
-                className="font-medium text-foreground hover:underline"
-              >
-                {plan.name}
-              </Link>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {TRAINING_PLAN_STATUS_LABELS[plan.status] ?? plan.status} — início em{" "}
-                {plan.startDate.slice(0, 10)}
-              </p>
-            </li>
+            <TrainingPlanCard key={plan.id} plan={plan} isEditable />
           ))}
         </ul>
       )}
