@@ -28,6 +28,9 @@ describe("notification-types", () => {
     expect(isPreferenceEligible(NotificationType.NEW_MESSAGE)).toBe(true);
     expect(isAccountSecurity(NotificationType.PASSWORD_RESET)).toBe(true);
     expect(isPreferenceEligible(NotificationType.PASSWORD_RESET)).toBe(false);
+    // Training-refactor Fase 4 — the new-plan trigger is preference-eligible
+    // like every other action-triggered type.
+    expect(isPreferenceEligible(NotificationType.TRAINING_PLAN_CREATED)).toBe(true);
   });
 
   it("derives stable dedupe keys per trigger family", () => {
@@ -74,5 +77,7 @@ describe("notification-types", () => {
     expect(dedupeKeyFor(NotificationType.APPROVAL_DECISION, {})).toBeNull();
     expect(dedupeKeyFor(NotificationType.PASSWORD_RESET, {})).toBeNull();
     expect(dedupeKeyFor(NotificationType.EMAIL_VERIFICATION, {})).toBeNull();
+    // One publish = one "new plan" notification — nothing to collapse.
+    expect(dedupeKeyFor(NotificationType.TRAINING_PLAN_CREATED, {})).toBeNull();
   });
 });

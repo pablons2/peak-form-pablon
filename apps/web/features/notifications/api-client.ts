@@ -14,6 +14,7 @@ export type NotificationType =
   | "MISSED_FOOD_LOG"
   | "NEW_MESSAGE"
   | "PLAN_UPDATED"
+  | "TRAINING_PLAN_CREATED"
   | "WEEKLY_SUMMARY_READY"
   | "CHECK_IN_DUE"
   | "APPROVAL_DECISION"

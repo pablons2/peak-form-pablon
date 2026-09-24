@@ -21,10 +21,10 @@ Fase 3: Responsividade
 ████████████████████████████████████████████ 100% (✅ Implementada — ver FASE3_STATUS)
 
 Fase 4: Notificação (Backend)
-░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 0% (⏳ Próxima)
+████████████████████████████████████████████ 100% (✅ Implementada — ver FASE4_STATUS)
 
 Fase 5: Validação Completa
-░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 0% (⏳ Aguardando Fases 1-4)
+░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 0% (⏳ Próxima)
 
 Fase 6: Monitoria
 ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 0% (⏳ Aguardando Fase 5)
@@ -491,8 +491,8 @@ Fase 0 (Diagnóstico)
 |-------|-------|
 | **Data** | 2026-09-23 |
 | **Status Geral** | � Em execução |
-| **Fase Atual** | 4 (Notificação) — Fases 0-3 concluídas |
-| **% Completo** | ~65% (0-3 de 0-5) |
+| **Fase Atual** | 5 (Validação) — Fases 0-4 concluídas |
+| **% Completo** | ~80% (0-4 de 0-5) |
 | **Bloqueadores** | `next build` requer `sudo rm -rf apps/web/.next/types` (root-owned) |
 
 ---

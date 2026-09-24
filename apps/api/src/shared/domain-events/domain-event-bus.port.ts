@@ -132,6 +132,21 @@ export type PlanUpdatedPayload = {
   date: string;
 };
 
+/// Training-refactor Fase 4 — a Professional published a plan for the
+/// Client for the first time (DRAFT -> ACTIVE flip). Distinct from
+/// PLAN_UPDATED so the first assignment reads as "you got a new plan",
+/// not as another edit nudge. Action-triggered (one publish = one event),
+/// so the dispatcher's dedupeKeyFor returns null for it.
+export const TRAINING_PLAN_CREATED = "TRAINING_PLAN_CREATED";
+
+export type TrainingPlanCreatedPayload = {
+  planId: string;
+  clientId: string;
+  professionalId: string;
+  /// Display name of the plan — the notification text names it directly.
+  planName: string;
+};
+
 /// PRD 09 §5.2/PRD 12 §5.1 — the weekly summary for `weekStart` is ready.
 /// One event per client; `professionalIds` are the client's ACTIVE links'
 /// professionals, who §5.1 says are also recipients.

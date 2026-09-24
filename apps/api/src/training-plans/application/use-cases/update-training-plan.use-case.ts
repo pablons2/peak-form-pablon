@@ -1,9 +1,12 @@
 import { Inject, Injectable } from "@nestjs/common";
+import { TrainingPlanStatus } from "@prisma/client";
 import type { UpdateTrainingPlanInput } from "@peakform/validation";
 import type { UserWithProfiles } from "../../../auth/domain/ports/user.repository.port";
 import {
   DOMAIN_EVENT_BUS,
+  TRAINING_PLAN_CREATED,
   type DomainEventBus,
+  type TrainingPlanCreatedPayload,
 } from "../../../shared/domain-events/domain-event-bus.port";
 import {
   TRAINING_PLAN_REPOSITORY,
@@ -31,9 +34,26 @@ export class UpdateTrainingPlanUseCase {
     const plan = await this.access.requirePlan(input.planId);
     this.access.assertProfessionalOwnsPlan(plan, input.actor);
     const updated = await this.plans.update(plan.id, input.data);
-    // PRD 12 §5.1 — includes the DRAFT -> ACTIVE flip itself ("your plan
-    // is ready"), gated to ACTIVE by the helper.
-    await emitPlanUpdated(this.events, updated, input.actor.id);
+    // Training-refactor Fase 4 — the first publish (DRAFT -> ACTIVE) is the
+    // "you got a new plan" moment, not an edit: it gets its own notification
+    // type so the copy can say so. Edits to an already-visible plan keep
+    // PRD 12 §5.1's PLAN_UPDATED path (same-day dedupe stays in the
+    // dispatcher).
+    if (
+      plan.status === TrainingPlanStatus.DRAFT &&
+      updated.status === TrainingPlanStatus.ACTIVE &&
+      updated.clientId
+    ) {
+      const payload: TrainingPlanCreatedPayload = {
+        planId: updated.id,
+        clientId: updated.clientId,
+        professionalId: updated.professionalId ?? input.actor.id,
+        planName: updated.name,
+      };
+      await this.events.emit({ name: TRAINING_PLAN_CREATED, payload });
+    } else {
+      await emitPlanUpdated(this.events, updated, input.actor.id);
+    }
     return updated;
   }
 }

@@ -50,6 +50,14 @@ export function describeNotification(
             title: "Plano de treino atualizado",
             body: "Seu treinador atualizou seu plano de treino.",
           };
+    case NotificationType.TRAINING_PLAN_CREATED:
+      return {
+        title: "Novo plano de treino",
+        body:
+          payload.planName != null && String(payload.planName).length > 0
+            ? `Seu treinador criou um novo plano para você: ${String(payload.planName)}.`
+            : "Seu treinador criou um novo plano de treino para você.",
+      };
     case NotificationType.WEEKLY_SUMMARY_READY:
       return payload.forProfessional === true
         ? {

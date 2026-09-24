@@ -9,6 +9,7 @@ import {
   NEW_MESSAGE,
   PLAN_UPDATED,
   SESSION_REMINDER,
+  TRAINING_PLAN_CREATED,
   WEEKLY_SUMMARY_READY,
   type ApprovalDecisionPayload,
   type CheckInDuePayload,
@@ -18,6 +19,7 @@ import {
   type NewMessagePayload,
   type PlanUpdatedPayload,
   type SessionReminderPayload,
+  type TrainingPlanCreatedPayload,
   type WeeklySummaryReadyPayload,
 } from "../../shared/domain-events/domain-event-bus.port";
 import { DispatchNotificationUseCase } from "../application/use-cases/dispatch-notification.use-case";
@@ -102,6 +104,17 @@ export class NotificationEventListener implements OnModuleInit {
         {
           recipientUserId: payload.clientId,
           type: NotificationType.PLAN_UPDATED,
+          payload: { ...payload },
+        },
+      ];
+    });
+
+    this.subscribe(TRAINING_PLAN_CREATED, (p) => {
+      const payload = p as TrainingPlanCreatedPayload;
+      return [
+        {
+          recipientUserId: payload.clientId,
+          type: NotificationType.TRAINING_PLAN_CREATED,
           payload: { ...payload },
         },
       ];

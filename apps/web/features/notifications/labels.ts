@@ -9,6 +9,7 @@ export const NOTIFICATION_TYPE_LABELS = {
   MISSED_FOOD_LOG: "Registro alimentar",
   NEW_MESSAGE: "Nova mensagem",
   PLAN_UPDATED: "Plano atualizado",
+  TRAINING_PLAN_CREATED: "Novo plano de treino",
   WEEKLY_SUMMARY_READY: "Resumo semanal",
   CHECK_IN_DUE: "Check-in",
   APPROVAL_DECISION: "Decisão de aprovação",
