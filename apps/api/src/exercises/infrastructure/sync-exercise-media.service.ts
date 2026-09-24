@@ -115,7 +115,7 @@ export class SyncExerciseMediaService {
     peakformExercises: Array<{ id: string; name: string; cues: string[] | null; mediaUrl: string | null }>,
   ) {
     let bestMatch = null;
-    let bestScore = 0.5;
+    let bestScore = 0.3; // Lowered threshold for better matching
 
     for (const pf of peakformExercises) {
       const similarity = this.calculateSimilarity(externalName, pf.name);
@@ -126,7 +126,11 @@ export class SyncExerciseMediaService {
       }
     }
 
-    return bestMatch;
+    if (bestMatch && bestScore > 0.4) {
+      this.logger.debug(`Matched "${externalName}" to "${bestMatch.name}" (score: ${bestScore.toFixed(2)})`);
+    }
+
+    return bestMatch && bestScore > 0.4 ? bestMatch : null;
   }
 
   private calculateSimilarity(str1: string, str2: string): number {
@@ -159,17 +163,18 @@ export class SyncExerciseMediaService {
     }
 
     for (let i = 1; i <= m; i++) {
+      const row = dp[i];
+      if (!row) continue;
       for (let j = 1; j <= n; j++) {
-        const row = dp[i];
         if (str1[i - 1] === str2[j - 1]) {
-          row[j] = dp[i - 1][j - 1];
+          row[j] = dp[i - 1]![j - 1]!;
         } else {
-          row[j] = 1 + Math.min(dp[i - 1][j], row[j - 1], dp[i - 1][j - 1]);
+          row[j] = 1 + Math.min(dp[i - 1]![j]!, row[j - 1]!, dp[i - 1]![j - 1]!);
         }
       }
     }
 
-    return dp[m][n];
+    return dp[m]![n]!;
   }
 
   private async uploadMedia(filePath: string, exerciseId: string, contentType: string): Promise<string> {
