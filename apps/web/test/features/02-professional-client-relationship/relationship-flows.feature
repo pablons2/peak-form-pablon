@@ -80,3 +80,31 @@ Feature: Professional ↔ Client relationship (web)
       | trainer email |
       | trainer specialization badge ("Personal Trainer") |
     And the trainer and client cards appear side-by-side on desktop
+
+  Scenario: Exercise media card displays in plan builder with cues and mistakes (redesign-plan §5.4 + Phase 3)
+    Given an approved professional "bdd.exercise-media-pro@example.com"
+    And a verified client "bdd.exercise-media-client@example.com" with completed intake
+    And they are linked as "PERSONAL_TRAINER"
+    And a training plan exists with a session
+    When the professional opens the session and selects an exercise from the dropdown
+    Then an exercise media preview card appears showing:
+      | exercise image/SVG |
+      | exercise name and difficulty |
+      | muscle groups (badges) |
+      | equipment required (badges) |
+      | form cues (bulleted list) |
+      | common mistakes (bulleted list) |
+
+  Scenario: Contraindicated exercises show warning in plan builder
+    Given an approved professional "bdd.contraindicated-ex-pro@example.com"
+    And a verified client "bdd.contraindicated-ex-client@example.com" with completed intake including contraindications:
+      | KNEE_LOAD_CAUTION |
+      | SHOULDER_IMPINGEMENT_CAUTION |
+    And they are linked as "PERSONAL_TRAINER"
+    And a training plan exists with a session
+    When the professional opens the session's exercise selector
+    Then contraindicated exercises display with a warning indicator:
+      | Back Squat (KNEE_LOAD_CAUTION) |
+      | Bench Press (SHOULDER_IMPINGEMENT_CAUTION) |
+    And the professional can see why each exercise is contraindicated
+    And the professional can override and include a contraindicated exercise if they choose
