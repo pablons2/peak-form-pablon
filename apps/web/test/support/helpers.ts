@@ -295,14 +295,17 @@ export async function seedPlanWithTodaySession(
   professionalEmail: string,
   clientEmail: string,
   exerciseId: string,
-  opts: { targetSets?: number } = {},
+  opts: { targetSets?: number; skipIntakeSeed?: boolean } = {},
 ): Promise<{ sessionId: string }> {
   // PRD 06 §5.1 — plan creation is gated on the Client's intake being
   // finalized. This module's own scenarios aren't testing that gate (PRD
   // 06's suite already does), so it's satisfied here as an implementation
   // detail of "getting to a session that exists" rather than a step every
-  // .feature scenario has to spell out.
-  await seedCompletedIntake(clientEmail);
+  // .feature scenario has to spell out. Scenarios that need a SPECIFIC
+  // intake (contraindication fixtures) seed it themselves and pass
+  // skipIntakeSeed — a second default intake would supersede theirs as the
+  // latest finalized version.
+  if (!opts.skipIntakeSeed) await seedCompletedIntake(clientEmail);
   const proLogin = await apiPost("/auth/login", {
     email: professionalEmail,
     password: TEST_PASSWORD,
@@ -526,11 +529,27 @@ export async function seedEmptyPlan(
 // Removes every training plan authored by/professional-of the given user —
 // for scenarios that must start from "no sessions exist" after a Background
 // already seeded history (cascade removes mesocycles/sessions/logs with it).
+// Deletes every training plan authored by/professional-of the given user —
+// for scenarios that must start from "no sessions exist" after a Background
+// already seeded history (cascade removes mesocycles/sessions with it).
+// exercise_logs is Restrict on session_exercises (PRD 07 — a Professional
+// editing a session must not destroy logged performance), so the logs are
+// swept first, same as deleteUser does.
 export function deletePlansForProfessional(email: string): void {
   const repoRoot = path.resolve(process.cwd(), "../..");
-  execSync("docker compose exec -T postgres psql -U peakform -d peakform", {
+  execSync("docker compose exec -T postgres psql -v ON_ERROR_STOP=1 -U peakform -d peakform", {
     cwd: repoRoot,
-    input: `DELETE FROM training_plans WHERE "professionalId" IN (SELECT id FROM users WHERE email = '${email}');`,
+    input: `
+DELETE FROM exercise_logs WHERE "sessionExerciseId" IN (
+  SELECT se.id FROM session_exercises se
+  JOIN sessions s ON s.id = se."sessionId"
+  JOIN mesocycles m ON m.id = s."mesocycleId"
+  WHERE m."trainingPlanId" IN (
+    SELECT id FROM training_plans
+    WHERE "professionalId" IN (SELECT id FROM users WHERE email = '${email}')
+  )
+);
+DELETE FROM training_plans WHERE "professionalId" IN (SELECT id FROM users WHERE email = '${email}');`,
     stdio: "pipe",
   });
 }

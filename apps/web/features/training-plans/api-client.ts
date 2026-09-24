@@ -22,6 +22,7 @@ export interface PublicPrescriptionExercise {
   id: string;
   exerciseId: string;
   exerciseName: string;
+  mediaUrl: string | null;
   contraindicationTagCodes: string[];
   order: number;
   targetSets: number;

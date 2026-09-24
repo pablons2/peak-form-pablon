@@ -6,6 +6,7 @@ import { searchExercises } from "@/features/exercises/api-client";
 import { getTrainingPlan, listSessions } from "@/features/training-plans/api-client";
 import { WeeklyTemplateEditor } from "@/features/training-plans/components/weekly-template-editor";
 import { SessionActions } from "@/features/training-plans/components/session-actions";
+import { SessionExerciseCard } from "@/features/training-plans/components/session-exercise-card";
 import { SESSION_STATUS_LABELS, WEEKDAY_LABELS } from "@/features/training-plans/labels";
 
 export const metadata = { title: "Mesociclo — PeakForm" };
@@ -81,28 +82,39 @@ export default async function MesocycleDetailPage({
             Nenhuma sessão gerada ainda — salve o template semanal.
           </p>
         ) : (
-          <ul className="mt-2 space-y-2">
+          <ul className="mt-2 space-y-4">
             {sessions.map((s) => (
-              <li key={s.id} className="rounded-md border border-border p-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">
-                    {s.date.slice(0, 10)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
+              <li key={s.id} className="rounded-lg border border-border bg-card p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      {new Date(s.date).toLocaleDateString("pt-BR", {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </p>
+                  </div>
+                  <span className="inline-block text-xs font-medium px-2 py-1 rounded-full bg-muted text-muted-foreground">
                     {SESSION_STATUS_LABELS[s.status] ?? s.status}
                     {s.overriddenFromTemplate ? " · modificada" : ""}
                   </span>
                 </div>
-                <ul className="mt-1 text-sm text-muted-foreground">
+
+                <div className="space-y-2">
                   {s.sessionExercises.map((e) => (
-                    <li key={e.id}>
-                      {e.exerciseName} — {e.targetSets}x{e.targetRepsMin}
-                      {e.targetRepsMax ? `-${e.targetRepsMax}` : ""}
-                    </li>
+                    <SessionExerciseCard
+                      key={e.id}
+                      exercise={e}
+                      canEdit={canEdit}
+                      sessionId={s.id}
+                    />
                   ))}
-                </ul>
+                </div>
+
                 {canEdit ? (
-                  <>
+                  <div className="mt-3 flex gap-2">
                     <SessionActions
                       sessionId={s.id}
                       currentDate={s.date}
@@ -110,11 +122,11 @@ export default async function MesocycleDetailPage({
                     />
                     <Link
                       href={`/sessions/${s.id}/edit`}
-                      className="mt-2 inline-block text-sm font-medium text-accent hover:underline"
+                      className="text-xs font-medium text-accent hover:underline"
                     >
-                      Editar exercícios desta sessão
+                      Editar
                     </Link>
-                  </>
+                  </div>
                 ) : null}
               </li>
             ))}

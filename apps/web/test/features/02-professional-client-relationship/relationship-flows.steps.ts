@@ -283,7 +283,7 @@ Given(
   'a verified client "bdd.contraindication-client@example.com" with completed intake including:',
   async ({}, dataTable: BddDataTable) => {
     await h.seedClient("bdd.contraindication-client@example.com");
-    const rows = dataTable.rows().map(([first]) => first ?? "");
+    const rows = dataTable.raw().map(([first]) => first ?? "");
     const painFlags = rows
       .find((r) => r.startsWith("pain flags:"))
       ?.replace(/^pain flags:\s*/, "");
@@ -337,7 +337,7 @@ Given(
     await h.seedClient("bdd.contraindicated-ex-client@example.com");
     // Contraindication tags are derived by the API from CURRENT pain flags
     // (PRD 03 §5.2), so each tag code is expressed as its source region.
-    const codes = dataTable.rows().map(([first]) => first ?? "");
+    const codes = dataTable.raw().map(([first]) => first ?? "");
     await h.seedCompletedIntake("bdd.contraindicated-ex-client@example.com", {
       painFlags: codes.map((code) => ({
         region: regionForTagCode(code),
@@ -353,7 +353,7 @@ Given(
   'a verified client "bdd.e2e-plan-client@example.com" with completed intake:',
   async ({}, dataTable: BddDataTable) => {
     await h.seedClient("bdd.e2e-plan-client@example.com");
-    const rows = dataTable.rows().map(([first]) => first ?? "");
+    const rows = dataTable.raw().map(([first]) => first ?? "");
     const painFlags = rows
       .find((r) => r.startsWith("pain flags:"))
       ?.replace(/^pain flags:\s*/, "");
@@ -390,6 +390,9 @@ async function seedPlanWithSessionAndMediaExercises() {
     hubProEmail,
     hubClientEmail,
     hubExerciseId,
+    // The client Given already seeded the intake this scenario's
+    // contraindication state depends on — don't supersede it.
+    { skipIntakeSeed: true },
   );
   hubSessionId = sessionId;
 }
@@ -440,16 +443,20 @@ When("the professional opens the session to edit exercises", async ({ page }) =>
 });
 
 Then("the professional sees a profile card with:", async ({ page }, dataTable) => {
-  for (const [row] of dataTable.rows()) {
+  for (const [row] of dataTable.raw()) {
     if (row === "avatar with client initials") {
       await expect(page.getByText("BC", { exact: true })).toBeVisible();
     } else if (row === "client name and email") {
       await expect(page.getByText("BDD Client")).toBeVisible();
       await expect(page.getByText(hubClientEmail)).toBeVisible();
     } else if (row === 'status badge "Ativo"') {
-      await expect(page.getByText("Ativo", { exact: true })).toBeVisible();
+      // Scoped to the detail panel: the roster row behind it carries the
+      // same "Ativo" badge.
+      await expect(
+        page.getByRole("tabpanel").getByText("Ativo", { exact: true }),
+      ).toBeVisible();
     } else if (row === "intake status indicator") {
-      await expect(page.getByText("Triagem completa")).toBeVisible();
+      await expect(page.getByText("Triagem completa", { exact: true })).toBeVisible();
     } else if (row === "quick stats grid showing active check-ins count") {
       await expect(page.getByText("CHECK-INS ATIVOS")).toBeVisible();
     } else if (row === "quick stats grid showing training plans count") {
@@ -478,7 +485,7 @@ Then(
       .getByRole("alert")
       .filter({ hasText: "Alertas de Contraindicação" });
     await expect(alert).toBeVisible();
-    for (const [row] of dataTable.rows()) {
+    for (const [row] of dataTable.raw()) {
       if (row === "warning icon") {
         await expect(alert.locator("svg").first()).toBeVisible();
       } else if (row === "list of pain flags") {
@@ -501,7 +508,7 @@ Then('no "Alertas de Contraindicação" card is visible', async ({ page }) => {
 });
 
 Then("the profile card displays normally without alerts", async ({ page }) => {
-  await expect(page.getByText("Triagem completa")).toBeVisible();
+  await expect(page.getByText("Triagem completa", { exact: true })).toBeVisible();
   await expect(page.getByText("Triagem Pendente")).toHaveCount(0);
 });
 
@@ -514,7 +521,7 @@ Then("the professional sees a trainer profile card showing:", async ({ page }, d
     .filter({ hasText: "BDD Professional" })
     .last();
   await expect(card).toBeVisible();
-  for (const [row] of dataTable.rows()) {
+  for (const [row] of dataTable.raw()) {
     if (row === "trainer name") {
       await expect(card.getByText("BDD Professional")).toBeVisible();
     } else if (row === "trainer email") {
@@ -536,7 +543,7 @@ Then("the trainer and client cards appear side-by-side on desktop", async ({ pag
 });
 
 Then("an exercise media preview card appears showing:", async ({ page }, dataTable) => {
-  for (const [row] of dataTable.rows()) {
+  for (const [row] of dataTable.raw()) {
     if (row === "exercise image/SVG") {
       await expect(page.locator('img[alt="Supino BDD Mídia"]')).toBeVisible();
     } else if (row === "exercise name and difficulty") {
@@ -560,7 +567,7 @@ Then("an exercise media preview card appears showing:", async ({ page }, dataTab
 
 Then("contraindicated exercises display with a warning indicator:", async ({ page }, dataTable) => {
   const options = await page.locator("select").first().locator("option").allTextContents();
-  for (const [row] of dataTable.rows()) {
+  for (const [row] of dataTable.raw()) {
     const name = row.replace(/\s*\(.*\)$/, "");
     expect(
       options.some((text) => text.includes(name) && text.includes("⚠️")),
@@ -599,7 +606,7 @@ Then(
     const select = page.locator("select").first();
     await select.click();
     await select.selectOption(hubExerciseId);
-    for (const [row] of dataTable.rows()) {
+    for (const [row] of dataTable.raw()) {
       if (row === "Exercise image/SVG") {
         await expect(page.locator('img[alt="Supino BDD Mídia"]')).toBeVisible();
       } else if (row === "Form cues") {

@@ -13,7 +13,12 @@ const WITH_EXERCISES = {
   sessionExercises: {
     include: {
       exercise: {
-        select: { id: true, name: true, contraindicationTags: { select: { code: true } } },
+        select: {
+          id: true,
+          name: true,
+          mediaUrl: true,
+          contraindicationTags: { select: { code: true } },
+        },
       },
     },
     orderBy: { order: "asc" },
