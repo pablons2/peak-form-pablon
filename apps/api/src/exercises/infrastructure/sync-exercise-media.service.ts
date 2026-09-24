@@ -70,13 +70,13 @@ export class SyncExerciseMediaService {
           if (externalEx.gif_url) {
             const gifPath = path.join(datasetPath, externalEx.gif_url);
             if (fs.existsSync(gifPath)) {
-              mediaUrl = await this.uploadMedia(gifPath, externalEx.id, "image/gif");
+              mediaUrl = await this.uploadMedia(gifPath, match.id, "image/gif");
               stats.uploaded++;
             }
           } else if (externalEx.image) {
             const imagePath = path.join(datasetPath, externalEx.image);
             if (fs.existsSync(imagePath)) {
-              mediaUrl = await this.uploadMedia(imagePath, externalEx.id, "image/jpeg");
+              mediaUrl = await this.uploadMedia(imagePath, match.id, "image/jpeg");
               stats.uploaded++;
             }
           }
