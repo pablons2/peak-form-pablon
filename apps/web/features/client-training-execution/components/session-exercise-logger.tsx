@@ -121,16 +121,14 @@ export function SessionExerciseLogger({
             {last ? <p className="mt-1 text-xs font-medium text-accent">{last}</p> : null}
           </div>
 
-          {accessToken && (
-            <button
-              type="button"
-              onClick={handleOpenDetail}
-              disabled={loadingDetail}
-              className="w-full rounded-md border border-border px-3 py-2 text-xs font-medium text-foreground hover:bg-muted disabled:opacity-60"
-            >
-              {loadingDetail ? "Carregando…" : "Ver técnica"}
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleOpenDetail}
+            disabled={loadingDetail || !accessToken}
+            className="w-full rounded-md border border-border px-3 py-2 text-xs font-medium text-foreground hover:bg-muted disabled:opacity-60"
+          >
+            {loadingDetail ? "Carregando…" : "Ver técnica"}
+          </button>
 
           {exercise.logs.length > 0 ? (
             <ul className="space-y-0.5 text-xs text-muted-foreground">
