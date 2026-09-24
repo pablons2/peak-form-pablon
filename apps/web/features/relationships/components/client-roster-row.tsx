@@ -4,18 +4,28 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Badge } from "@peakform/ui";
+import { AlertCircle, MessageCircle, Clock } from "lucide-react";
 import type { LinkStatus, PublicLink } from "../api-client";
 import { unlinkAction } from "../actions";
 import { SPECIALIZATION_LABELS, formatDate } from "../labels";
+
+interface ClientActivitySignals {
+  unreadMessageCount?: number;
+  hasNoCheckInScheduled?: boolean;
+  hasContraindications?: boolean;
+  lastActivityAt?: string | null;
+}
 
 export function ClientRosterRow({
   link,
   viewerId,
   isSelected = false,
+  activitySignals,
 }: {
   link: PublicLink;
   viewerId: string;
   isSelected?: boolean;
+  activitySignals?: ClientActivitySignals;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -66,13 +76,44 @@ export function ClientRosterRow({
                 Ativo
               </Badge>
             )}
+            {link.status === "PENDING" && (
+              <Badge className={`flex-shrink-0 ${statusColor.bg} ${statusColor.text}`}>
+                Pendente
+              </Badge>
+            )}
           </div>
-          <p className="text-xs text-muted-foreground truncate">
+
+          {/* Activity Signals Row */}
+          {link.status === "ACTIVE" && (
+            <div className="flex items-center gap-2 mt-1">
+              {activitySignals?.hasContraindications && (
+                <div className="flex items-center gap-1 text-xs text-warning">
+                  <AlertCircle className="h-3 w-3 flex-shrink-0" />
+                  <span>Contraindicação</span>
+                </div>
+              )}
+              {activitySignals?.unreadMessageCount ? (
+                <div className="flex items-center gap-1 text-xs text-accent">
+                  <MessageCircle className="h-3 w-3 flex-shrink-0" />
+                  <span>{activitySignals.unreadMessageCount} mensagem{activitySignals.unreadMessageCount > 1 ? 's' : ''}</span>
+                </div>
+              ) : null}
+              {activitySignals?.hasNoCheckInScheduled && (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Clock className="h-3 w-3 flex-shrink-0" />
+                  <span>Sem check-in</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          <p className="text-xs text-muted-foreground truncate mt-1">
             {SPECIALIZATION_LABELS[link.specialization] ?? link.specialization}
           </p>
-          {link.status === "ACTIVE" && link.linkedAt && (
+
+          {link.status === "ACTIVE" && activitySignals?.lastActivityAt && (
             <p className="text-xs text-muted-foreground">
-              Desde {formatDate(link.linkedAt)}
+              Última atividade: {formatDate(activitySignals.lastActivityAt)}
             </p>
           )}
         </div>
