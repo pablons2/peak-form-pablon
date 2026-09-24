@@ -4,9 +4,12 @@ import Link from "next/link";
 import { authOptions } from "@/features/auth/nextauth-options";
 import { listCheckInSchedules, listMyLinks, getClientIntake } from "@/features/relationships/api-client";
 import { listClientTrainingPlans } from "@/features/training-plans/api-client";
+import { listClientSessions } from "@/features/client-training-execution/api-client";
+import { getExercise } from "@/features/exercises/api-client";
 import { ClientDetailTabs } from "@/features/client-detail-hub/components/client-detail-tabs";
 import { OverviewTab } from "@/features/client-detail-hub/components/overview-tab";
 import { TrainingPlansTab } from "@/features/client-detail-hub/components/training-plans-tab";
+import { SessionReviewTab } from "@/features/client-detail-hub/components/session-review-tab";
 import { LinkedSectionTab } from "@/features/client-detail-hub/components/linked-section-tab";
 import { CheckInsPanel } from "@/features/relationships/components/check-ins-panel";
 
@@ -34,12 +37,37 @@ export default async function ClientDetailPage({
     : undefined;
   if (!link) notFound();
 
-  // Fetch training plans if this link is for a personal trainer
-  const plansResult = link.specialization === "PERSONAL_TRAINER"
-    ? await listClientTrainingPlans(accessToken, link.client.id)
-    : { ok: false as const };
+  // Fetch training plans and sessions if this link is for a personal trainer
+  const [plansResult, sessionsResult] = await Promise.all([
+    link.specialization === "PERSONAL_TRAINER"
+      ? listClientTrainingPlans(accessToken, link.client.id)
+      : Promise.resolve({ ok: false as const }),
+    link.specialization === "PERSONAL_TRAINER"
+      ? listClientSessions(accessToken, link.client.id)
+      : Promise.resolve({ ok: false as const }),
+  ]);
 
   const plans = plansResult.ok ? plansResult.data : [];
+  const sessions = sessionsResult.ok ? sessionsResult.data.sort((a, b) => 
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  ) : [];
+  
+  // Fetch exercise details for all exercises in sessions
+  const exerciseIds = new Set<string>();
+  sessions.forEach(session => {
+    session.exercises.forEach(ex => exerciseIds.add(ex.exerciseId));
+  });
+  
+  const exerciseDetailsMap = new Map<string, any>();
+  await Promise.all(
+    Array.from(exerciseIds).map(async (exerciseId) => {
+      const result = await getExercise(accessToken, exerciseId);
+      if (result.ok) {
+        exerciseDetailsMap.set(exerciseId, result.data);
+      }
+    })
+  );
+
   const schedules = schedulesResult.ok ? schedulesResult.data : [];
   const intake = intakeResult.ok ? intakeResult.data.intake : null;
 
@@ -67,6 +95,11 @@ export default async function ClientDetailPage({
                 href={`/clients/${link.id}/nutrition`}
               />
             )
+          }
+          execucao={
+            link.specialization === "PERSONAL_TRAINER" ? (
+              <SessionReviewTab sessions={sessions} exercises={exerciseDetailsMap} />
+            ) : undefined
           }
           nutricao={
             link.specialization === "NUTRITIONIST" ? (

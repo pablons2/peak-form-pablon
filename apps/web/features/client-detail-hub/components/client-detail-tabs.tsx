@@ -2,17 +2,19 @@
 
 import { useState, type ReactNode } from "react";
 
-export type ClientDetailTab = "overview" | "treino" | "nutricao" | "avaliacoes" | "mensagens";
+export type ClientDetailTab = "overview" | "treino" | "execucao" | "nutricao" | "avaliacoes" | "mensagens";
 
 export function ClientDetailTabs({
   overview,
   treino,
+  execucao,
   nutricao,
   avaliacoes,
   mensagens,
 }: {
   overview: ReactNode;
   treino: ReactNode;
+  execucao?: ReactNode;
   nutricao: ReactNode;
   avaliacoes: ReactNode;
   mensagens: ReactNode;
@@ -22,6 +24,7 @@ export function ClientDetailTabs({
   const tabs: Array<{ id: ClientDetailTab; label: string }> = [
     { id: "overview", label: "Visão Geral" },
     { id: "treino", label: "Treino" },
+    ...(execucao ? [{ id: "execucao" as const, label: "Execução" }] : []),
     { id: "nutricao", label: "Nutrição" },
     { id: "avaliacoes", label: "Avaliações" },
     { id: "mensagens", label: "Mensagens" },
@@ -30,6 +33,7 @@ export function ClientDetailTabs({
   const content: Record<ClientDetailTab, ReactNode> = {
     overview,
     treino,
+    execucao: execucao || null,
     nutricao,
     avaliacoes,
     mensagens,
