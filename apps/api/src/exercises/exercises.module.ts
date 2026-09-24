@@ -25,6 +25,8 @@ import { PrismaExerciseRepository } from "./infrastructure/prisma-exercise.repos
 import { S3MediaStore } from "./infrastructure/s3-media-store";
 import { AdminExercisesController } from "./presentation/admin-exercises.controller";
 import { ExercisesController } from "./presentation/exercises.controller";
+import { SyncController } from "./presentation/sync.controller";
+import { SyncExerciseMediaService } from "./infrastructure/sync-exercise-media.service";
 
 // PRD 05 — Exercise Library. Depends on AuthModule (guards) and
 // RelationshipsModule (LINK_REPOSITORY — a Client's visible PRIVATE exercises
@@ -33,7 +35,7 @@ import { ExercisesController } from "./presentation/exercises.controller";
 // at the port boundary in BDD (PRD 15 §5.2), S3/file-backed in production.
 @Module({
   imports: [SharedModule, AuthModule, RelationshipsModule],
-  controllers: [ExercisesController, AdminExercisesController],
+  controllers: [ExercisesController, AdminExercisesController, SyncController],
   providers: [
     { provide: EXERCISE_REPOSITORY, useClass: PrismaExerciseRepository },
     {
@@ -45,6 +47,7 @@ import { ExercisesController } from "./presentation/exercises.controller";
 
     ExerciseAccess,
     ExerciseInputValidator,
+    SyncExerciseMediaService,
 
     SearchExercisesUseCase,
     GetExerciseUseCase,

@@ -85,9 +85,9 @@ When("the professional logs in", async ({ page }) => {
 });
 
 When("navigates to the client detail page", async ({ page }) => {
-  await page.goto("/clients");
-  await page.waitForLoadState("networkidle");
-  await page.getByRole("link", { name: "Ver detalhes" }).click();
+  // The dedicated detail hub (not the roster's ?selected= embed) — it is the
+  // surface that carries the "Execução" review tab.
+  await page.goto(`/clients/${linkId}`);
   await page.waitForLoadState("networkidle");
 });
 

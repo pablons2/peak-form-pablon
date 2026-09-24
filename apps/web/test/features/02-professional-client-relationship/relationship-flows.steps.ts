@@ -169,7 +169,9 @@ When(
     await login(page, "bdd.rel-pro3@example.com", h.TEST_PASSWORD);
     await page.goto("/clients");
     await page.waitForLoadState("networkidle");
-    await page.getByRole("link", { name: "Ver detalhes" }).click();
+    // Roster redesign: each active client row is a link to /clients?selected=
+    // (the embedded detail view), replacing the old "Ver detalhes" link.
+    await page.getByRole("link", { name: /BDD Client/ }).click();
     await page.waitForLoadState("networkidle");
     await page.getByLabel("Tipo de lembrete").selectOption("RECURRING");
     await page.getByLabel("Frequência").selectOption("WEEKLY");
@@ -406,7 +408,9 @@ When(
     await login(page, hubProEmail, h.TEST_PASSWORD);
     await page.goto("/clients");
     await page.waitForLoadState("networkidle");
-    await page.getByRole("link", { name: "Ver detalhes" }).click();
+    // Roster redesign: the active client row links to /clients?selected=,
+    // which renders the embedded client detail hub.
+    await page.getByRole("link", { name: /BDD Client/ }).click();
     await page.waitForLoadState("networkidle");
   },
 );
@@ -536,7 +540,9 @@ Then("an exercise media preview card appears showing:", async ({ page }, dataTab
     if (row === "exercise image/SVG") {
       await expect(page.locator('img[alt="Supino BDD Mídia"]')).toBeVisible();
     } else if (row === "exercise name and difficulty") {
-      await expect(page.getByText("Supino BDD Mídia")).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "Supino BDD Mídia" }),
+      ).toBeVisible();
       await expect(page.getByText(/Dificuldade:/)).toBeVisible();
     } else if (row === "muscle groups (badges)") {
       await expect(page.getByText("CORE")).toBeVisible();
