@@ -15,6 +15,8 @@ const nextConfig = {
         port: "9000",
       },
     ],
+    // Disable optimization for remote images to avoid server-side fetch issues in containers
+    unoptimized: true,
   },
 };
 
