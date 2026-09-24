@@ -6,6 +6,8 @@ import type { PrescriptionExerciseInput } from "@peakform/validation";
 import { FormError } from "../../auth/components/fields";
 import { replaceSessionExercisesAction } from "../actions";
 import type { ContraindicationWarning, PublicSession } from "../api-client";
+import type { ClientIntake } from "@/features/relationships/api-client";
+import type { PublicExercise } from "@/features/exercises/api-client";
 import {
   PrescriptionListEditor,
   type PickableExercise,
@@ -15,12 +17,18 @@ import { ContraindicationWarnings } from "./contraindication-warnings";
 // PRD 06 §5.4 — a one-off substitution for a single dated Session; the
 // underlying weekly template and every other generated session stay
 // untouched (proven at the API layer, PRD 15 §7).
+// Phase 3.1 enhancement: accept exerciseDetails and clientIntake for
+// contraindication filtering in ExerciseSelectorWithPreview.
 export function SessionExerciseForm({
   session,
   availableExercises,
+  exerciseDetails,
+  clientIntake,
 }: {
   session: PublicSession;
   availableExercises: PickableExercise[];
+  exerciseDetails?: Record<string, PublicExercise>;
+  clientIntake?: ClientIntake | null;
 }) {
   const router = useRouter();
   const [exercises, setExercises] = useState<PrescriptionExerciseInput[]>(
@@ -68,6 +76,8 @@ export function SessionExerciseForm({
         exercises={exercises}
         onChange={setExercises}
         availableExercises={availableExercises}
+        exerciseDetails={exerciseDetails}
+        clientIntake={clientIntake}
       />
       <button
         type="submit"

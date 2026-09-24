@@ -108,3 +108,21 @@ Feature: Professional ↔ Client relationship (web)
       | Bench Press (SHOULDER_IMPINGEMENT_CAUTION) |
     And the professional can see why each exercise is contraindicated
     And the professional can override and include a contraindicated exercise if they choose
+
+  Scenario: End-to-end exercise media + contraindication in plan builder (Phase 3.1)
+    Given an approved professional "bdd.e2e-plan-pro@example.com"
+    And a verified client "bdd.e2e-plan-client@example.com" with completed intake:
+      | pain flags: "Dor no joelho" |
+      | contraindications: KNEE_LOAD_CAUTION |
+    And they are linked as "PERSONAL_TRAINER"
+    And a training plan with a session exists for this client
+    When the professional opens the session to edit exercises
+    Then the professional can select from available exercises
+    And when they select an exercise, ExerciseSelectorWithPreview displays:
+      | Exercise image/SVG |
+      | Form cues |
+      | Common mistakes |
+    And contraindicated exercises show a ⚠️ indicator
+    And the professional can click to view full details of a contraindicated exercise
+    And the professional can save the session with their exercise choices
+    And when they close the form, changes are persisted

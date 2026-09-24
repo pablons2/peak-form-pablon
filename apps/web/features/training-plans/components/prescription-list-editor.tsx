@@ -6,7 +6,13 @@
 // same "array of objects in component state, add/remove via a callback"
 // pattern the intake wizard's body-map picker uses, not react-hook-form
 // (these are nested object arrays, not flat form fields).
+// Phase 3.1 enhancement: use ExerciseSelectorWithPreview for exercise selection
+// with media preview + contraindication filtering.
 import type { PrescriptionExerciseInput } from "@peakform/validation";
+import type { PublicExercise } from "@/features/exercises/api-client";
+import type { ClientIntake } from "@/features/relationships/api-client";
+import { ExerciseSelectorWithPreview } from "./exercise-selector-with-preview";
+import { useContraindicationFilter } from "../hooks/use-contraindication-filter";
 
 export interface PickableExercise {
   id: string;
@@ -29,11 +35,24 @@ export function PrescriptionListEditor({
   exercises,
   onChange,
   availableExercises,
+  exerciseDetails,
+  clientIntake,
 }: {
   exercises: PrescriptionExerciseInput[];
   onChange: (exercises: PrescriptionExerciseInput[]) => void;
   availableExercises: PickableExercise[];
+  exerciseDetails?: Record<string, PublicExercise>;
+  clientIntake?: ClientIntake | null;
 }) {
+  const { isContraindicated } = useContraindicationFilter(clientIntake ?? null);
+
+  // Phase 3.1: Build list of contraindicated exercise IDs for the selector
+  const contraindicatedExerciseIds = exerciseDetails
+    ? Object.entries(exerciseDetails)
+        .filter(([_, ex]) => isContraindicated(ex))
+        .map(([id]) => id)
+    : [];
+
   function updateRow(index: number, patch: Partial<PrescriptionExerciseInput>) {
     onChange(exercises.map((e, i) => (i === index ? { ...e, ...patch } : e)));
   }
@@ -69,21 +88,33 @@ export function PrescriptionListEditor({
         <div key={index} className="rounded-md border border-border p-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1">
-              {field(
-                "Exercício",
-                <select
-                  aria-label={`Exercício ${index + 1}`}
-                  className={smallInputClass}
+              {/* Phase 3.1: Use ExerciseSelectorWithPreview if exerciseDetails available */}
+              {exerciseDetails ? (
+                <ExerciseSelectorWithPreview
                   value={exercise.exerciseId}
-                  onChange={(e) => updateRow(index, { exerciseId: e.target.value })}
-                >
-                  <option value="">Selecione…</option>
-                  {availableExercises.map((ex) => (
-                    <option key={ex.id} value={ex.id}>
-                      {ex.name}
-                    </option>
-                  ))}
-                </select>,
+                  onChange={(id) => updateRow(index, { exerciseId: id })}
+                  availableExercises={availableExercises}
+                  exerciseDetails={exerciseDetails}
+                  contraindicatedExerciseIds={contraindicatedExerciseIds}
+                  className="mt-1"
+                />
+              ) : (
+                field(
+                  "Exercício",
+                  <select
+                    aria-label={`Exercício ${index + 1}`}
+                    className={smallInputClass}
+                    value={exercise.exerciseId}
+                    onChange={(e) => updateRow(index, { exerciseId: e.target.value })}
+                  >
+                    <option value="">Selecione…</option>
+                    {availableExercises.map((ex) => (
+                      <option key={ex.id} value={ex.id}>
+                        {ex.name}
+                      </option>
+                    ))}
+                  </select>,
+                )
               )}
             </div>
             <button
