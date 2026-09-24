@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { authOptions } from "@/features/auth/nextauth-options";
 import { getExercise } from "@/features/exercises/api-client";
-import { ExerciseDetail } from "@/features/exercises/components/exercise-detail";
+import { ExerciseDetailWithModal } from "@/features/exercises/components/exercise-detail-with-modal";
 import { DeleteExerciseButton } from "@/features/exercises/components/exercise-actions";
 
 export const metadata = { title: "Exercício — PeakForm" };
@@ -45,7 +45,7 @@ export default async function ExercisePage({
         </div>
       ) : null}
 
-      <ExerciseDetail exercise={exercise} />
+      <ExerciseDetailWithModal exercise={exercise} />
     </main>
   );
 }

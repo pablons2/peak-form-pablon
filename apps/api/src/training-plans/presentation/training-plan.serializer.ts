@@ -86,14 +86,15 @@ function toPublicSessionExercise(e: SessionExerciseWithExercise) {
 }
 
 export function toPublicSession(
-  session: SessionWithExercises & { clientId?: string },
+  session: SessionWithExercises & { clientId?: string | null },
 ) {
   return {
     id: session.id,
     mesocycleId: session.mesocycleId,
     // Present when the use-case resolved it (GetSessionUseCase) — the session
     // edit page needs it to fetch the intake for contraindication filtering.
-    ...(session.clientId !== undefined ? { clientId: session.clientId } : {}),
+    // Starter-template mesocycles have no client, so null is omitted.
+    ...(session.clientId != null ? { clientId: session.clientId } : {}),
     date: session.date,
     originalDate: session.originalDate,
     status: session.status,
