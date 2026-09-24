@@ -8,11 +8,13 @@
 // big inputs rather than a multi-field modal.
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { getExercise } from "../../exercises/api-client";
 import { inputClass } from "../../auth/components/fields";
 import type { PublicSessionExerciseExecution } from "../api-client";
 import { logSetAction } from "../actions";
 import { FormCheckVideoButton } from "./form-check-video-button";
 import { RestTimer } from "./rest-timer";
+import { SessionExerciseDetail } from "./session-exercise-detail";
 
 function targetLine(e: PublicSessionExerciseExecution): string {
   const reps =
@@ -36,11 +38,13 @@ export function SessionExerciseLogger({
   exercise,
   mediaUrl,
   disabled,
+  accessToken,
 }: {
   sessionId: string;
   exercise: PublicSessionExerciseExecution;
   mediaUrl?: string | null;
   disabled: boolean;
+  accessToken?: string;
 }) {
   const router = useRouter();
   const [reps, setReps] = useState("");
@@ -49,6 +53,9 @@ export function SessionExerciseLogger({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>();
   const [timerSignal, setTimerSignal] = useState(0);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailExercise, setDetailExercise] = useState<any>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   const loggedCount = exercise.logs.length;
   const remaining = Math.max(0, exercise.targetSets - loggedCount);
@@ -80,96 +87,129 @@ export function SessionExerciseLogger({
     router.refresh();
   }
 
+  async function handleOpenDetail() {
+    if (!accessToken) return;
+    setLoadingDetail(true);
+    const result = await getExercise(accessToken, exercise.exerciseId);
+    setLoadingDetail(false);
+    if (result.ok) {
+      setDetailExercise(result.data);
+      setDetailOpen(true);
+    }
+  }
+
   return (
-    <div className="rounded-lg border border-border bg-card p-3">
-      <div className="flex gap-3">
-        {mediaUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={mediaUrl}
-            alt=""
-            loading="lazy"
-            className="h-16 w-16 shrink-0 rounded-md border border-border bg-muted object-cover"
-          />
-        ) : null}
-        <div className="min-w-0 flex-1">
-          <h3 className="truncate text-sm font-semibold text-foreground">{exercise.exerciseName}</h3>
-          <p className="text-xs text-muted-foreground">{targetLine(exercise)}</p>
-          {last ? <p className="mt-0.5 text-xs font-medium text-accent">{last}</p> : null}
+    <>
+      <div className="rounded-lg border border-border bg-card overflow-hidden">
+        {/* Media Preview */}
+        <div className="space-y-3 p-3">
+          {mediaUrl ? (
+            <div className="flex justify-center rounded-md border border-border bg-muted overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={mediaUrl}
+                alt=""
+                loading="lazy"
+                className="h-32 w-full max-w-sm object-contain"
+              />
+            </div>
+          ) : null}
+
+          <div>
+            <h3 className="text-base font-semibold text-foreground">{exercise.exerciseName}</h3>
+            <p className="text-xs text-muted-foreground">{targetLine(exercise)}</p>
+            {last ? <p className="mt-1 text-xs font-medium text-accent">{last}</p> : null}
+          </div>
+
+          {accessToken && (
+            <button
+              type="button"
+              onClick={handleOpenDetail}
+              disabled={loadingDetail}
+              className="w-full rounded-md border border-border px-3 py-2 text-xs font-medium text-foreground hover:bg-muted disabled:opacity-60"
+            >
+              {loadingDetail ? "Carregando…" : "Ver técnica"}
+            </button>
+          )}
+
+          {exercise.logs.length > 0 ? (
+            <ul className="space-y-0.5 text-xs text-muted-foreground">
+              {exercise.logs.map((log) => (
+                <li key={log.id}>
+                  Série {log.setNumber}: {log.actualReps} reps
+                  {log.actualLoad ? ` × ${log.actualLoad}kg` : ""}
+                  {log.actualRpeOrRir ? ` @ ${log.actualRpeOrRir}` : ""}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
+          {!disabled ? (
+            <form onSubmit={handleLog} className="flex flex-wrap items-end gap-2">
+              <label className="text-xs font-medium text-foreground">
+                Série {loggedCount + 1}{remaining > 0 ? ` de ${exercise.targetSets}` : ""}
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  placeholder="Reps"
+                  min="0"
+                  max="200"
+                  required
+                  className={`${inputClass} min-h-11 w-20`}
+                  value={reps}
+                  onChange={(e) => setReps(e.target.value)}
+                />
+              </label>
+              <label className="text-xs font-medium text-foreground">
+                Carga (kg)
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.5"
+                  placeholder="—"
+                  className={`${inputClass} min-h-11 w-20`}
+                  value={load}
+                  onChange={(e) => setLoad(e.target.value)}
+                />
+              </label>
+              <label className="text-xs font-medium text-foreground">
+                RPE/RIR
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.5"
+                  placeholder="—"
+                  className={`${inputClass} min-h-11 w-16`}
+                  value={rpeOrRir}
+                  onChange={(e) => setRpeOrRir(e.target.value)}
+                />
+              </label>
+              <button
+                type="submit"
+                disabled={saving}
+                className="min-h-11 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
+              >
+                {saving ? "Salvando…" : "Registrar série"}
+              </button>
+              <FormCheckVideoButton />
+            </form>
+          ) : null}
+          {error ? (
+            <p role="alert" className="text-xs text-destructive">
+              {error}
+            </p>
+          ) : null}
+
+          <div>
+            <RestTimer defaultSeconds={exercise.restSeconds ?? 90} startSignal={timerSignal} />
+          </div>
         </div>
-      </div>
 
-      {exercise.logs.length > 0 ? (
-        <ul className="mt-2 space-y-0.5 text-xs text-muted-foreground">
-          {exercise.logs.map((log) => (
-            <li key={log.id}>
-              Série {log.setNumber}: {log.actualReps} reps
-              {log.actualLoad ? ` × ${log.actualLoad}kg` : ""}
-              {log.actualRpeOrRir ? ` @ ${log.actualRpeOrRir}` : ""}
-            </li>
-          ))}
-        </ul>
-      ) : null}
-
-      {!disabled ? (
-        <form onSubmit={handleLog} className="mt-3 flex flex-wrap items-end gap-2">
-          <label className="text-xs font-medium text-foreground">
-            Série {loggedCount + 1}{remaining > 0 ? ` de ${exercise.targetSets}` : ""}
-            <input
-              type="number"
-              inputMode="numeric"
-              placeholder="Reps"
-              min="0"
-              max="200"
-              required
-              className={`${inputClass} min-h-11 w-20`}
-              value={reps}
-              onChange={(e) => setReps(e.target.value)}
-            />
-          </label>
-          <label className="text-xs font-medium text-foreground">
-            Carga (kg)
-            <input
-              type="number"
-              inputMode="decimal"
-              step="0.5"
-              placeholder="—"
-              className={`${inputClass} min-h-11 w-20`}
-              value={load}
-              onChange={(e) => setLoad(e.target.value)}
-            />
-          </label>
-          <label className="text-xs font-medium text-foreground">
-            RPE/RIR
-            <input
-              type="number"
-              inputMode="decimal"
-              step="0.5"
-              placeholder="—"
-              className={`${inputClass} min-h-11 w-16`}
-              value={rpeOrRir}
-              onChange={(e) => setRpeOrRir(e.target.value)}
-            />
-          </label>
-          <button
-            type="submit"
-            disabled={saving}
-            className="min-h-11 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-60"
-          >
-            {saving ? "Salvando…" : "Registrar série"}
-          </button>
-          <FormCheckVideoButton />
-        </form>
-      ) : null}
-      {error ? (
-        <p role="alert" className="mt-2 text-xs text-destructive">
-          {error}
-        </p>
-      ) : null}
-
-      <div className="mt-2">
-        <RestTimer defaultSeconds={exercise.restSeconds ?? 90} startSignal={timerSignal} />
-      </div>
-    </div>
+      <SessionExerciseDetail
+        exercise={detailExercise}
+        isOpen={detailOpen}
+        onClose={() => setDetailOpen(false)}
+      />
+    </>
   );
 }

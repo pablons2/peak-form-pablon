@@ -25,10 +25,12 @@ Feature: Trainer-Facing Session Review Tab (Phase 3.2)
     And clicks on the most recent completed session
     Then the session expands to show all exercises
     And each exercise shows:
+      """
       - Exercise name and image
       - Prescribed sets/reps/load
       - Actual completed sets/reps/load
       - Status badge (✓ Completo or ⚠ Incompleto)
+      """
 
   Scenario: Trainer sees comparison of prescribed vs actual performance
     When the professional logs in
@@ -36,9 +38,11 @@ Feature: Trainer-Facing Session Review Tab (Phase 3.2)
     And clicks on the "Execução" tab
     And expands the completed session
     Then each exercise card displays side-by-side comparison:
+      """
       - Left column: "Prescrito" with target sets/reps/load/RPE/RIR
       - Right column: "✓ Completo" with actual completed sets count
       - Average actual reps calculated from all logged sets
+      """
 
   Scenario: Trainer can see individual set logs with timestamps
     When the professional logs in
@@ -46,18 +50,22 @@ Feature: Trainer-Facing Session Review Tab (Phase 3.2)
     And clicks on the "Execução" tab
     And expands a session with logged sets
     Then each logged set is displayed with:
+      """
       - Set number and logged time
       - Actual reps, load, RPE/RIR
       - Client's note if present
+      """
 
   Scenario: Trainer sees missed session clearly marked
     When the professional logs in
     And navigates to the client detail page
     And clicks on the "Execução" tab
     Then missed sessions are clearly marked:
+      """
       - Red/destructive status badge with "Perdido" label
       - Icon indicator (⚠) in the session list
       - "Nenhuma série registrada" message when expanded
+      """
 
   Scenario: Empty state when no sessions exist
     Given the training plan has no sessions
@@ -65,5 +73,7 @@ Feature: Trainer-Facing Session Review Tab (Phase 3.2)
     And navigates to the client detail page
     And clicks on the "Execução" tab
     Then a friendly empty state is displayed:
+      """
       - Alert icon
       - Message: "Nenhuma sessão de treino registrada ainda."
+      """

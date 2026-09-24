@@ -52,7 +52,11 @@ export default async function TodayPage() {
       <div className="space-y-6 lg:grid lg:grid-cols-5 lg:items-start lg:gap-8 lg:space-y-0">
         <div className="lg:col-span-3">
           {today.session ? (
-            <TodaySessionView session={today.session} exerciseMedia={exerciseMedia} />
+            <TodaySessionView
+              session={today.session}
+              exerciseMedia={exerciseMedia}
+              accessToken={accessToken}
+            />
           ) : (
             <div className="rounded-lg border border-border bg-card p-6 text-center">
               <p className="text-sm font-medium text-foreground">Dia de descanso</p>

@@ -16,9 +16,11 @@ import { SessionExerciseLogger } from "./session-exercise-logger";
 export function TodaySessionView({
   session,
   exerciseMedia,
+  accessToken,
 }: {
   session: PublicSessionExecution;
   exerciseMedia: Record<string, string | null>;
+  accessToken?: string;
 }) {
   const router = useRouter();
   const [completing, setCompleting] = useState(false);
@@ -51,6 +53,7 @@ export function TodaySessionView({
             exercise={exercise}
             mediaUrl={exerciseMedia[exercise.exerciseId]}
             disabled={isDone}
+            accessToken={accessToken}
           />
         ))}
       </div>
