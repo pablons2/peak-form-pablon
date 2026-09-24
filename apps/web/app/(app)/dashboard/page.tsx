@@ -15,11 +15,13 @@ import { getMyIntake } from "@/features/intake/api-client";
 import {
   ProfessionalDashboard,
   type UnscheduledClient,
+  type ContraindicatedClient,
 } from "@/features/dashboard/components/professional-dashboard";
 import { AdminDashboard } from "@/features/dashboard/components/admin-dashboard";
 import {
   listCheckInSchedules,
   listMyLinks,
+  getClientIntake,
   type PublicLink,
 } from "@/features/relationships/api-client";
 import { listMyThreads } from "@/features/messaging/api-client";
@@ -133,9 +135,12 @@ async function ProfessionalDashboardPage({
   const pending = links.filter((l) => l.status === "PENDING");
   const incomingRequests = pending.filter((l) => l.invitedBy === "CLIENT");
 
-  const [threadsResult, scheduleResults] = await Promise.all([
+  const [threadsResult, scheduleResults, intakeResults] = await Promise.all([
     listMyThreads(accessToken),
     Promise.all(active.map((link) => listCheckInSchedules(accessToken, link.id))),
+    // Same intake endpoint /clients uses for its roster flag — the client's
+    // User id, not the link id (GET /intake/clients/:clientId).
+    Promise.all(active.map((link) => getClientIntake(accessToken, link.client.id))),
   ]);
 
   const threadsWithUnread = threadsResult.ok
@@ -149,6 +154,15 @@ async function ProfessionalDashboardPage({
     return hasActiveSchedule ? [] : [{ linkId: link.id, clientName: link.client.fullName }];
   });
 
+  const contraindicatedClients: ContraindicatedClient[] = active.flatMap((link, index) => {
+    const result = intakeResults[index];
+    if (!result?.ok) return [];
+    const tags = result.data.intake?.contraindicationTagCodes ?? [];
+    return tags.length > 0
+      ? [{ linkId: link.id, clientName: link.client.fullName, tagCount: tags.length }]
+      : [];
+  });
+
   return (
     <main className="mx-auto max-w-2xl space-y-4 p-4">
       <h1 className="text-lg font-semibold text-foreground">Olá, {name}!</h1>
@@ -158,6 +172,7 @@ async function ProfessionalDashboardPage({
         incomingRequests={incomingRequests}
         unscheduledClients={unscheduledClients}
         threadsWithUnread={threadsWithUnread}
+        contraindicatedClients={contraindicatedClients}
       />
     </main>
   );

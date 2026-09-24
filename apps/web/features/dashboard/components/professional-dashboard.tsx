@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarX, MessageSquare, UserPlus, Users } from "lucide-react";
+import { AlertTriangle, CalendarX, MessageSquare, UserPlus, Users } from "lucide-react";
 import { Card, EmptyState } from "@peakform/ui";
 import type { PublicLink } from "../../relationships/api-client";
 import type { PublicThreadSummary } from "../../messaging/api-client";
@@ -7,6 +7,12 @@ import type { PublicThreadSummary } from "../../messaging/api-client";
 export interface UnscheduledClient {
   linkId: string;
   clientName: string;
+}
+
+export interface ContraindicatedClient {
+  linkId: string;
+  clientName: string;
+  tagCount: number;
 }
 
 // docs/redesign-plan.md §5.3 — the Professional's home, replacing the bare
@@ -29,12 +35,14 @@ export function ProfessionalDashboard({
   incomingRequests,
   unscheduledClients,
   threadsWithUnread,
+  contraindicatedClients,
 }: {
   active: PublicLink[];
   pending: PublicLink[];
   incomingRequests: PublicLink[];
   unscheduledClients: UnscheduledClient[];
   threadsWithUnread: PublicThreadSummary[];
+  contraindicatedClients: ContraindicatedClient[];
 }) {
   if (active.length === 0 && pending.length === 0) {
     return (
@@ -53,7 +61,10 @@ export function ProfessionalDashboard({
 
   const unreadTotal = threadsWithUnread.reduce((sum, t) => sum + t.unreadCount, 0);
   const hasAttention =
-    incomingRequests.length > 0 || unscheduledClients.length > 0 || threadsWithUnread.length > 0;
+    incomingRequests.length > 0 ||
+    unscheduledClients.length > 0 ||
+    threadsWithUnread.length > 0 ||
+    contraindicatedClients.length > 0;
 
   return (
     <div className="space-y-5">
@@ -88,6 +99,22 @@ export function ProfessionalDashboard({
                   <p className="truncate text-xs text-muted-foreground">
                     {thread.client.fullName} · {thread.unreadCount}{" "}
                     {thread.unreadCount > 1 ? "não lidas" : "não lida"}
+                  </p>
+                </div>
+              </Link>
+            ))}
+            {contraindicatedClients.map((item) => (
+              <Link
+                key={`contraindicated-${item.linkId}`}
+                href={`/clients/${item.linkId}/intake`}
+                className="flex items-center gap-3 p-3 transition-colors duration-fast ease-standard hover:bg-muted"
+              >
+                <AlertTriangle className="h-4 w-4 shrink-0 text-warning" aria-hidden />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-foreground">Contraindicação no intake</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {item.clientName} · {item.tagCount}{" "}
+                    {item.tagCount > 1 ? "marcadores" : "marcador"}
                   </p>
                 </div>
               </Link>

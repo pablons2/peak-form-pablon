@@ -9,7 +9,7 @@ import type { LinkStatus, PublicLink } from "../api-client";
 import { unlinkAction } from "../actions";
 import { SPECIALIZATION_LABELS, formatDate } from "../labels";
 
-interface ClientActivitySignals {
+export interface ClientActivitySignals {
   unreadMessageCount?: number;
   hasNoCheckInScheduled?: boolean;
   hasContraindications?: boolean;

@@ -1,0 +1,8 @@
+The issue is that threadsResult is not properly typed. It should be:
+{ ok: true; data: { threads: PublicThreadSummary[] } } | { ok: false; ... }
+
+So when ok is true, data is { threads: [...] }
+
+And PublicThreadSummary has professional and client, not otherId.
+
+I need to fix the getActivitySignals function to properly access the data and match threads to clients.

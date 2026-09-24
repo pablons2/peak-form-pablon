@@ -1,46 +1,65 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Search, X } from "lucide-react";
 
+// Filters the roster server-side via the ?search= param. Debounced so typing
+// doesn't fire a full server round trip per keystroke; ?selected= is preserved
+// so the detail pane stays open while filtering.
 export function ClientRosterSearch() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [searchValue, setSearchValue] = useState(searchParams.get("search") ?? "");
 
-  function handleSearch(value: string) {
-    setSearchValue(value);
-    startTransition(() => {
-      if (value) {
-        router.push(`?search=${encodeURIComponent(value)}`);
-      } else {
-        router.push(`?`);
-      }
-    });
-  }
+  useEffect(() => {
+    const committed = searchParams.get("search") ?? "";
+    if (searchValue === committed) return;
+
+    const timer = setTimeout(() => {
+      startTransition(() => {
+        const params = new URLSearchParams(searchParams);
+        if (searchValue) {
+          params.set("search", searchValue);
+        } else {
+          params.delete("search");
+        }
+        const qs = params.toString();
+        router.push(qs ? `?${qs}` : "?");
+      });
+    }, 300);
+    return () => clearTimeout(timer);
+    // searchParams is intentionally not a dependency: re-running on every
+    // server navigation would reset the debounce mid-typing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchValue]);
 
   return (
     <div className="relative">
-      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       <input
         type="text"
         placeholder="Buscar cliente..."
+        aria-label="Buscar cliente por nome ou especialização"
         value={searchValue}
-        onChange={(e) => handleSearch(e.target.value)}
-        disabled={isPending}
-        className="w-full pl-9 pr-8 py-2 rounded-md border border-border bg-background text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+        onChange={(e) => setSearchValue(e.target.value)}
+        className="w-full rounded-md border border-border bg-background py-2 pl-9 pr-8 text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
       />
       {searchValue && (
         <button
-          onClick={() => handleSearch("")}
-          disabled={isPending}
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground disabled:opacity-60"
+          type="button"
+          onClick={() => setSearchValue("")}
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
           title="Limpar busca"
         >
           <X className="h-4 w-4" />
         </button>
+      )}
+      {isPending && (
+        <p aria-live="polite" className="sr-only">
+          Buscando...
+        </p>
       )}
     </div>
   );
