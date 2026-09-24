@@ -12,6 +12,10 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "declaration": true,
-    "declarationMap": true
+    "declarationMap": true,
+    "baseUrl": "apps/api",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   }
 }

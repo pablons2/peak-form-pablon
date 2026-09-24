@@ -1,18 +1,17 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { PrismaService } from "@/prisma/prisma.service";
-import { S3Service } from "@/storage/s3.service";
+import { Injectable, Logger, Inject } from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+import { MEDIA_STORE } from "../domain/ports/media-store.port";
+import type { MediaStore } from "../domain/ports/media-store.port";
 import * as fs from "fs";
 import * as path from "path";
-import levenshtein from "js-levenshtein";
 
 interface ExternalExercise {
   id: string;
   name: string;
   body_part: string;
   muscle_group: string;
-  image: string;
-  gif_url: string;
-  media_id: string;
+  image?: string;
+  gif_url?: string;
   instruction_steps?: Record<string, string[]>;
 }
 
@@ -22,7 +21,7 @@ export class SyncExerciseMediaService {
 
   constructor(
     private prisma: PrismaService,
-    private s3: S3Service,
+    @Inject(MEDIA_STORE) private mediaStore: MediaStore,
   ) {}
 
   async syncMediaFromDataset(datasetPath: string): Promise<{
@@ -34,7 +33,6 @@ export class SyncExerciseMediaService {
     const stats = { processed: 0, uploaded: 0, updated: 0, errors: 0 };
 
     try {
-      // Ler arquivo de exercícios do dataset
       const exercisesPath = path.join(datasetPath, "data", "exercises.json");
       if (!fs.existsSync(exercisesPath)) {
         throw new Error(`Dataset not found at ${exercisesPath}`);
@@ -45,14 +43,12 @@ export class SyncExerciseMediaService {
 
       this.logger.log(`Loaded ${externalExercises.length} exercises from dataset`);
 
-      // Carregar todos os exercícios do PeakForm
       const peakformExercises = await this.prisma.exercise.findMany({
-        select: { id: true, name: true, cues: true, mistakes: true, mediaUrl: true },
+        select: { id: true, name: true, cues: true, mediaUrl: true },
       });
 
       this.logger.log(`Found ${peakformExercises.length} exercises in PeakForm`);
 
-      // Para cada exercício externo, encontrar match no PeakForm
       for (const externalEx of externalExercises) {
         stats.processed++;
 
@@ -64,38 +60,32 @@ export class SyncExerciseMediaService {
             continue;
           }
 
-          // Se já tem mídia, pular
           if (match.mediaUrl) {
             this.logger.debug(`${match.name} already has media, skipping`);
             continue;
           }
 
-          // Upload da imagem
           let mediaUrl: string | null = null;
 
-          if (externalEx.gif_url && fs.existsSync(path.join(datasetPath, externalEx.gif_url))) {
-            mediaUrl = await this.uploadMedia(
-              path.join(datasetPath, externalEx.gif_url),
-              externalEx.media_id,
-              "gif",
-            );
-            stats.uploaded++;
-          } else if (externalEx.image && fs.existsSync(path.join(datasetPath, externalEx.image))) {
-            mediaUrl = await this.uploadMedia(
-              path.join(datasetPath, externalEx.image),
-              externalEx.media_id,
-              "image",
-            );
-            stats.uploaded++;
+          if (externalEx.gif_url) {
+            const gifPath = path.join(datasetPath, externalEx.gif_url);
+            if (fs.existsSync(gifPath)) {
+              mediaUrl = await this.uploadMedia(gifPath, externalEx.id, "image/gif");
+              stats.uploaded++;
+            }
+          } else if (externalEx.image) {
+            const imagePath = path.join(datasetPath, externalEx.image);
+            if (fs.existsSync(imagePath)) {
+              mediaUrl = await this.uploadMedia(imagePath, externalEx.id, "image/jpeg");
+              stats.uploaded++;
+            }
           }
 
-          // Atualizar exercício com a URL
           if (mediaUrl) {
             await this.prisma.exercise.update({
               where: { id: match.id },
               data: {
                 mediaUrl,
-                // Adicionar cues e mistakes do dataset se não tiver
                 ...((!match.cues || match.cues.length === 0) &&
                   externalEx.instruction_steps?.en && {
                     cues: externalEx.instruction_steps.en,
@@ -122,10 +112,10 @@ export class SyncExerciseMediaService {
 
   private findBestMatch(
     externalName: string,
-    peakformExercises: Array<{ id: string; name: string; cues: string[]; mistakes: string[]; mediaUrl: string | null }>,
+    peakformExercises: Array<{ id: string; name: string; cues: string[] | null; mediaUrl: string | null }>,
   ) {
     let bestMatch = null;
-    let bestScore = 0.5; // Threshold mínimo
+    let bestScore = 0.5;
 
     for (const pf of peakformExercises) {
       const similarity = this.calculateSimilarity(externalName, pf.name);
@@ -143,36 +133,51 @@ export class SyncExerciseMediaService {
     const s1 = str1.toLowerCase().trim();
     const s2 = str2.toLowerCase().trim();
 
-    // Verificação exata
     if (s1 === s2) return 1;
-
-    // Verificação parcial
     if (s1.includes(s2) || s2.includes(s1)) return 0.8;
 
-    // Levenshtein distance
-    const distance = levenshtein(s1, s2);
+    const distance = this.levenshteinDistance(s1, s2);
     const maxLen = Math.max(s1.length, s2.length);
     const similarity = 1 - distance / maxLen;
 
     return Math.max(0, similarity);
   }
 
-  private async uploadMedia(filePath: string, mediaId: string, type: "image" | "gif"): Promise<string> {
-    const ext = type === "gif" ? ".gif" : ".jpg";
-    const key = `exercises/${mediaId}${ext}`;
+  private levenshteinDistance(str1: string, str2: string): number {
+    const m = str1.length;
+    const n = str2.length;
+    const dp: number[][] = [];
+
+    for (let i = 0; i <= m; i++) {
+      const row: number[] = [];
+      for (let j = 0; j <= n; j++) {
+        if (i === 0) row.push(j);
+        else if (j === 0) row.push(i);
+        else row.push(0);
+      }
+      dp.push(row);
+    }
+
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        const row = dp[i];
+        if (str1[i - 1] === str2[j - 1]) {
+          row[j] = dp[i - 1][j - 1];
+        } else {
+          row[j] = 1 + Math.min(dp[i - 1][j], row[j - 1], dp[i - 1][j - 1]);
+        }
+      }
+    }
+
+    return dp[m][n];
+  }
+
+  private async uploadMedia(filePath: string, exerciseId: string, contentType: string): Promise<string> {
+    const ext = contentType === "image/gif" ? ".gif" : ".jpg";
+    const key = `exercises/${exerciseId}${ext}`;
 
     const fileContent = fs.readFileSync(filePath);
-    const contentType = type === "gif" ? "image/gif" : "image/jpeg";
 
-    await this.s3.putObject({
-      Bucket: process.env.S3_BUCKET || "peakform",
-      Key: key,
-      Body: fileContent,
-      ContentType: contentType,
-    });
-
-    // Retornar URL pública (ajustar conforme seu setup MinIO)
-    const s3Url = process.env.S3_PUBLIC_URL || "http://minio:9000";
-    return `${s3Url}/${process.env.S3_BUCKET || "peakform"}/${key}`;
+    return await this.mediaStore.put(key, fileContent, contentType);
   }
 }

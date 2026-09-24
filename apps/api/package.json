@@ -12,6 +12,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "exercises:import": "ts-node --transpile-only src/import-exercises.ts",
+    "sync:exercise-media": "ts-node --project tsconfig.json --transpile-only src/sync-exercise-media.ts",
     "seed": "ts-node --transpile-only src/seed.ts"
   },
   "dependencies": {

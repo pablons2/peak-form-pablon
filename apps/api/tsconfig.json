@@ -14,7 +14,10 @@
     "experimentalDecorators": true,
     "strictNullChecks": true,
     "noImplicitAny": true,
-    "isolatedModules": false
+    "isolatedModules": false,
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "test"]
