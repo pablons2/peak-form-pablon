@@ -2,16 +2,19 @@ import Link from "next/link";
 import { Badge, Alert } from "@peakform/ui";
 import type { CheckInSchedule, LinkStatus, PublicLink } from "@/features/relationships/api-client";
 import type { ClientIntake } from "@/features/relationships/api-client";
+import { BODY_REGION_LABELS, MEDICAL_CONDITION_LABELS } from "@/features/intake/labels";
 import { AlertTriangle } from "lucide-react";
 
 export function ClientProfileCard({
   link,
   schedules,
   intake,
+  plansCount = 0,
 }: {
   link: PublicLink;
   schedules: CheckInSchedule[];
   intake: ClientIntake | null;
+  plansCount?: number;
 }) {
   const statusColors: Record<LinkStatus, { bg: string; text: string }> = {
     ACTIVE: { bg: "bg-success/10", text: "text-success" },
@@ -50,13 +53,21 @@ export function ClientProfileCard({
               {intake.painFlags && intake.painFlags.length > 0 && (
                 <div>
                   <p className="font-medium">Dores/Lesões:</p>
-                  <p>{intake.painFlags.map((pf) => pf.tag).join(", ")}</p>
+                  <p>
+                    {intake.painFlags
+                      .map((pf) => BODY_REGION_LABELS[pf.region] ?? pf.region)
+                      .join(", ")}
+                  </p>
                 </div>
               )}
               {intake.medicalConditions && intake.medicalConditions.length > 0 && (
                 <div>
                   <p className="font-medium">Condições Médicas:</p>
-                  <p>{intake.medicalConditions.join(", ")}</p>
+                  <p>
+                    {intake.medicalConditions
+                      .map((mc) => MEDICAL_CONDITION_LABELS[mc] ?? mc)
+                      .join(", ")}
+                  </p>
                 </div>
               )}
               {intake.contraindicationTagCodes && intake.contraindicationTagCodes.length > 0 && (
@@ -90,9 +101,13 @@ export function ClientProfileCard({
               >
                 {link.status === "ACTIVE" ? "Ativo" : "Pendente"}
               </Badge>
-              {intakePending && (
+              {intakePending ? (
                 <Badge className="flex-shrink-0 bg-warning/10 text-warning">
                   ⚠️ Triagem Pendente
+                </Badge>
+              ) : (
+                <Badge className="flex-shrink-0 bg-success/10 text-success">
+                  Triagem completa
                 </Badge>
               )}
             </div>
@@ -119,12 +134,8 @@ export function ClientProfileCard({
         </div>
 
         <div className="rounded-lg border border-border bg-card p-4">
-          <p className="text-xs font-medium text-muted-foreground">VINCULADO EM</p>
-          <p className="mt-3 text-sm font-medium text-foreground">
-            {link.linkedAt
-              ? new Date(link.linkedAt).toLocaleDateString("pt-BR")
-              : "Pendente"}
-          </p>
+          <p className="text-xs font-medium text-muted-foreground">PLANOS</p>
+          <p className="mt-3 text-3xl font-bold text-foreground">{plansCount}</p>
         </div>
 
         <div className="rounded-lg border border-border bg-card p-4">

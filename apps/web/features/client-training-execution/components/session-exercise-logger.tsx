@@ -204,6 +204,7 @@ export function SessionExerciseLogger({
             <RestTimer defaultSeconds={exercise.restSeconds ?? 90} startSignal={timerSignal} />
           </div>
         </div>
+      </div>
 
       <SessionExerciseDetail
         exercise={detailExercise}

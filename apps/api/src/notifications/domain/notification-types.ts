@@ -13,7 +13,6 @@ export const PREFERENCE_ELIGIBLE_TYPES = [
   NotificationType.MISSED_FOOD_LOG,
   NotificationType.NEW_MESSAGE,
   NotificationType.PLAN_UPDATED,
-  NotificationType.TRAINING_PLAN_CREATED,
   NotificationType.WEEKLY_SUMMARY_READY,
   NotificationType.CHECK_IN_DUE,
   NotificationType.APPROVAL_DECISION,

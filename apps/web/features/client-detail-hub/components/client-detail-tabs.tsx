@@ -8,6 +8,7 @@ export function ClientDetailTabs({
   overview,
   treino,
   execucao,
+  execucaoCount,
   nutricao,
   avaliacoes,
   mensagens,
@@ -15,16 +16,22 @@ export function ClientDetailTabs({
   overview: ReactNode;
   treino: ReactNode;
   execucao?: ReactNode;
+  /** Session count shown next to the "Execução" label (e.g. "2 sessões"). */
+  execucaoCount?: number;
   nutricao: ReactNode;
   avaliacoes: ReactNode;
   mensagens: ReactNode;
 }) {
   const [activeTab, setActiveTab] = useState<ClientDetailTab>("overview");
 
+  const execucaoLabel = execucao
+    ? `Execução (${execucaoCount ?? 0} ${execucaoCount === 1 ? "sessão" : "sessões"})`
+    : null;
+
   const tabs: Array<{ id: ClientDetailTab; label: string }> = [
     { id: "overview", label: "Visão Geral" },
     { id: "treino", label: "Treino" },
-    ...(execucao ? [{ id: "execucao" as const, label: "Execução" }] : []),
+    ...(execucao ? [{ id: "execucao" as const, label: execucaoLabel! }] : []),
     { id: "nutricao", label: "Nutrição" },
     { id: "avaliacoes", label: "Avaliações" },
     { id: "mensagens", label: "Mensagens" },

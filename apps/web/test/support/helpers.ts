@@ -184,6 +184,7 @@ export async function seedCustomExercise(
   professionalEmail: string,
   name: string,
   contraindicationCodes: string[] = [],
+  opts: { mediaUrl?: string } = {},
 ): Promise<string> {
   // Idempotent across reruns: a previous run's exercise may have been
   // promoted to GLOBAL (owner cleared), in which case deleteUser's cascade
@@ -208,6 +209,7 @@ export async function seedCustomExercise(
       cues: ["Execute devagar e com controle"],
       mistakes: ["Fazer o movimento rápido demais"],
       contraindicationCodes,
+      ...(opts.mediaUrl ? { mediaUrl: opts.mediaUrl } : {}),
     },
     login.body.accessToken as string,
   );
@@ -230,11 +232,19 @@ const PARQ_QUESTION_CODES = [
   "OTHER_MEDICAL_REASON",
 ];
 
-// Seeds a COMPLETED intake (all readiness questions "no", one CURRENT
-// LOWER_BACK pain flag) through the real API — for scenarios that need an
+// Seeds a COMPLETED intake through the real API — for scenarios that need an
 // already-finalized intake as a precondition (the Professional review
-// screen) rather than exercising the wizard itself.
-export async function seedCompletedIntake(clientEmail: string): Promise<void> {
+// screen) rather than exercising the wizard itself. Default flags mirror the
+// original single LOWER_BACK flag; scenarios that need specific
+// contraindications pass their own painFlags/medicalConditions (the API
+// derives contraindicationTagCodes from them on completion — PRD 03 §5.2).
+export async function seedCompletedIntake(
+  clientEmail: string,
+  opts: {
+    painFlags?: { region: string; severity: number; pastOrCurrent: "PAST" | "CURRENT" }[];
+    medicalConditions?: string[];
+  } = {},
+): Promise<void> {
   const login = await apiPost("/auth/login", {
     email: clientEmail,
     password: TEST_PASSWORD,
@@ -246,7 +256,10 @@ export async function seedCompletedIntake(clientEmail: string): Promise<void> {
     `/intake/${intakeId}`,
     {
       parqAnswers: Object.fromEntries(PARQ_QUESTION_CODES.map((c) => [c, false])),
-      painFlags: [{ region: "LOWER_BACK", severity: 6, pastOrCurrent: "CURRENT" }],
+      painFlags: opts.painFlags ?? [
+        { region: "LOWER_BACK", severity: 6, pastOrCurrent: "CURRENT" },
+      ],
+      ...(opts.medicalConditions ? { medicalConditions: opts.medicalConditions } : {}),
     },
     token,
   );
@@ -339,6 +352,187 @@ export async function seedPlanWithTodaySession(
   const sessionId = (sessions.body as unknown as { id: string }[])[0]?.id;
   if (!sessionId) throw new Error("today's session was not generated");
   return { sessionId };
+}
+
+// PRD 07 §5.4 — seeds a plan whose mesocycle generated two PAST sessions:
+// one already COMPLETED (with logged sets, via the real logging + complete
+// endpoints) and one MISSED (status set directly — the same end state the
+// missed-session job produces, without waiting for its cron). Used by the
+// trainer-facing session-review scenarios, which need history rather than a
+// live "today" session.
+export async function seedPlanWithCompletedAndMissedSessions(
+  professionalEmail: string,
+  clientEmail: string,
+  exerciseId: string,
+): Promise<{
+  completedSessionId: string;
+  missedSessionId: string;
+  completedSessionExerciseId: string;
+}> {
+  await seedCompletedIntake(clientEmail);
+  const proLogin = await apiPost("/auth/login", {
+    email: professionalEmail,
+    password: TEST_PASSWORD,
+  });
+  const proToken = proLogin.body.accessToken as string;
+  const clientLogin = await apiPost("/auth/login", {
+    email: clientEmail,
+    password: TEST_PASSWORD,
+  });
+  const clientToken = clientLogin.body.accessToken as string;
+
+  const daysAgoUTC = (n: number): Date => {
+    const t = todayUTC();
+    return new Date(t.getTime() - n * 86_400_000);
+  };
+  // Missed session is the more recent one (today-1) so the review tab's
+  // default-expanded first session is the missed one; completed is today-3.
+  const missedDate = daysAgoUTC(1);
+  const completedDate = daysAgoUTC(3);
+  // Plan must start on/before the earliest session date for the mesocycle
+  // span (startDate + weeks*7) to cover both.
+  const startDate = daysAgoUTC(6);
+
+  const clientRes = await apiGet("/auth/me", clientToken);
+  const plan = await apiPost(
+    "/training-plans",
+    {
+      clientId: clientRes.body.id,
+      name: "Plano BDD Histórico",
+      startDate: isoDate(startDate),
+    },
+    proToken,
+  );
+  const planId = plan.body.id as string;
+  const meso = await apiPost(
+    `/training-plans/${planId}/mesocycles`,
+    { weeks: 1, goal: "GENERAL_FITNESS", isDeload: false },
+    proToken,
+  );
+  const mesocycleId = meso.body.id as string;
+  await apiPost(
+    `/mesocycles/${mesocycleId}/weekly-template`,
+    {
+      entries: [
+        {
+          weekday: WEEKDAYS[completedDate.getUTCDay()],
+          name: "Treino A",
+          exercises: [
+            {
+              exerciseId,
+              order: 1,
+              targetSets: 3,
+              targetRepsMin: 8,
+              targetRepsMax: 10,
+              restSeconds: 90,
+            },
+          ],
+        },
+        {
+          weekday: WEEKDAYS[missedDate.getUTCDay()],
+          name: "Treino B",
+          exercises: [
+            {
+              exerciseId,
+              order: 1,
+              targetSets: 3,
+              targetRepsMin: 8,
+              targetRepsMax: 10,
+              restSeconds: 90,
+            },
+          ],
+        },
+      ],
+    },
+    proToken,
+  );
+
+  const sessions = (
+    await apiGet(`/mesocycles/${mesocycleId}/sessions`, proToken)
+  ).body as unknown as { id: string; date: string; sessionExercises: { id: string }[] }[];
+  const byDate = (d: Date) =>
+    sessions.find((s) => s.date.slice(0, 10) === isoDate(d));
+  const completed = byDate(completedDate);
+  const missed = byDate(missedDate);
+  if (!completed || !missed) {
+    throw new Error(`past sessions were not generated (${sessions.length} found)`);
+  }
+
+  // Log the full prescribed 3 sets against the completed session's exercise,
+  // then mark it complete — through the real client API, same as the UI would.
+  const sessionExerciseId = completed.sessionExercises[0]?.id;
+  if (!sessionExerciseId) throw new Error("completed session has no exercises");
+  for (const actualReps of [8, 9, 10]) {
+    const log = await apiPost(
+      `/training-execution/sessions/${completed.id}/exercises/${sessionExerciseId}/logs`,
+      { actualReps, actualLoad: 40, actualRpeOrRir: 7 },
+      clientToken,
+    );
+    if (log.status !== 201) throw new Error(`set log seed failed: ${log.status}`);
+  }
+  const complete = await apiPost(
+    `/training-execution/sessions/${completed.id}/complete`,
+    {},
+    clientToken,
+  );
+  if (complete.status !== 200) throw new Error(`session complete failed: ${complete.status}`);
+
+  // The missed-session cron job transitions past SCHEDULED sessions on a
+  // timer; a seed can't wait for it, so the same end state is applied
+  // directly (identical to run-missed-session-job's effect).
+  const repoRoot = path.resolve(process.cwd(), "../..");
+  execSync("docker compose exec -T postgres psql -U peakform -d peakform", {
+    cwd: repoRoot,
+    input: `UPDATE sessions SET status = 'MISSED' WHERE id = '${missed.id}';`,
+    stdio: "pipe",
+  });
+
+  return {
+    completedSessionId: completed.id,
+    missedSessionId: missed.id,
+    completedSessionExerciseId: sessionExerciseId,
+  };
+}
+
+// Seeds a plan with no mesocycles (and therefore no generated sessions) —
+// for the session-review empty state.
+export async function seedEmptyPlan(
+  professionalEmail: string,
+  clientEmail: string,
+): Promise<void> {
+  await seedCompletedIntake(clientEmail);
+  const proLogin = await apiPost("/auth/login", {
+    email: professionalEmail,
+    password: TEST_PASSWORD,
+  });
+  const proToken = proLogin.body.accessToken as string;
+  const clientLogin = await apiPost("/auth/login", {
+    email: clientEmail,
+    password: TEST_PASSWORD,
+  });
+  const clientRes = await apiGet("/auth/me", clientLogin.body.accessToken as string);
+  const plan = await apiPost(
+    "/training-plans",
+    {
+      clientId: clientRes.body.id,
+      name: "Plano BDD Vazio",
+      startDate: isoDate(todayUTC()),
+    },
+    proLogin.body.accessToken as string,
+  );
+  if (plan.status !== 201) throw new Error(`empty plan seed failed: ${plan.status}`);
+}
+
+// Removes every training plan authored by/professional-of the given user —
+// for scenarios that must start from "no sessions exist" after a Background
+// already seeded history (cascade removes mesocycles/sessions/logs with it).
+export function deletePlansForProfessional(email: string): void {
+  const repoRoot = path.resolve(process.cwd(), "../..");
+  execSync("docker compose exec -T postgres psql -U peakform -d peakform", {
+    cwd: repoRoot,
+    input: `DELETE FROM training_plans WHERE "professionalId" IN (SELECT id FROM users WHERE email = '${email}');`,
+    stdio: "pipe",
+  });
 }
 
 // PRD 08 §5.1 — the Mifflin-St Jeor draft needs a body assessment on file;

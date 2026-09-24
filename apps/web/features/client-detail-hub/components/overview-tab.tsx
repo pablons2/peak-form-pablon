@@ -10,18 +10,25 @@ export function OverviewTab({
   schedules,
   intake,
   viewerId,
+  plansCount = 0,
 }: {
   link: PublicLink;
   schedules: CheckInSchedule[];
   intake: ClientIntake | null;
   viewerId: string;
+  plansCount?: number;
 }) {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 lg:grid-cols-2">
         <div>
           <p className="mb-2 text-xs font-medium text-muted-foreground">CLIENTE</p>
-          <ClientProfileCard link={link} schedules={schedules} intake={intake} />
+          <ClientProfileCard
+            link={link}
+            schedules={schedules}
+            intake={intake}
+            plansCount={plansCount}
+          />
         </div>
         <div>
           <p className="mb-2 text-xs font-medium text-muted-foreground">RESPONSÁVEL</p>

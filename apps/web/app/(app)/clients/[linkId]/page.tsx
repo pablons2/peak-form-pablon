@@ -26,16 +26,19 @@ export default async function ClientDetailPage({
   if (session.user.approvalStatus !== "APPROVED") redirect("/pending-approval");
 
   const accessToken = session.accessToken!;
-  const [linksResult, schedulesResult, intakeResult] = await Promise.all([
-    listMyLinks(accessToken),
-    listCheckInSchedules(accessToken, params.linkId),
-    getClientIntake(accessToken, params.linkId),
-  ]);
-
+  const linksResult = await listMyLinks(accessToken);
   const link = linksResult.ok
     ? linksResult.data.find((l) => l.id === params.linkId)
     : undefined;
   if (!link) notFound();
+
+  // getClientIntake takes the CLIENT id (GET /intake/clients/:clientId) —
+  // passing the linkId here used to silently fail the link check and render
+  // every client as "Triagem Pendente".
+  const [schedulesResult, intakeResult] = await Promise.all([
+    listCheckInSchedules(accessToken, params.linkId),
+    getClientIntake(accessToken, link.client.id),
+  ]);
 
   // Fetch training plans and sessions if this link is for a personal trainer
   const [plansResult, sessionsResult] = await Promise.all([
@@ -84,7 +87,15 @@ export default async function ClientDetailPage({
 
       <div className="space-y-6">
         <ClientDetailTabs
-          overview={<OverviewTab link={link} schedules={schedules} intake={intake} viewerId={session.user.id!} />}
+          overview={
+            <OverviewTab
+              link={link}
+              schedules={schedules}
+              intake={intake}
+              viewerId={session.user.id!}
+              plansCount={plans.length}
+            />
+          }
           treino={
             link.specialization === "PERSONAL_TRAINER" ? (
               <TrainingPlansTab linkId={link.id} plans={plans} intake={intake} />
@@ -100,6 +111,9 @@ export default async function ClientDetailPage({
             link.specialization === "PERSONAL_TRAINER" ? (
               <SessionReviewTab sessions={sessions} exercises={exerciseDetailsMap} />
             ) : undefined
+          }
+          execucaoCount={
+            link.specialization === "PERSONAL_TRAINER" ? sessions.length : undefined
           }
           nutricao={
             link.specialization === "NUTRITIONIST" ? (

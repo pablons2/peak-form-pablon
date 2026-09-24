@@ -69,6 +69,8 @@ export interface PublicTrainingPlan {
 export interface PublicSession {
   id: string;
   mesocycleId: string;
+  /** Owning client id — present on GET /sessions/:id (used for intake fetch). */
+  clientId?: string;
   date: string;
   originalDate: string | null;
   status: "SCHEDULED" | "COMPLETED" | "MISSED" | "CANCELLED";

@@ -173,7 +173,9 @@ export interface ClientIntake {
   version: number;
   status: string;
   parqAnswers: Record<string, unknown>;
-  painFlags: Array<{ id: string; tag: string }>;
+  // Mirrors the API's PainFlag rows (apps/api intake.serializer) — region is
+  // the BodyRegion code; pt-BR labels live in features/intake/labels.ts.
+  painFlags: Array<{ region: string; severity: number; pastOrCurrent: string }>;
   medicalConditions: string[];
   medicalConditionsOtherNote: string | null;
   medications: string[];

@@ -9,6 +9,9 @@ export class GetSessionUseCase {
   async execute(input: { viewer: UserWithProfiles; sessionId: string }) {
     const { session, plan } = await this.access.requirePlanForSession(input.sessionId);
     this.access.assertCanView(plan, input.viewer);
-    return session;
+    // Phase 3.1: the session edit page needs the owning Client's id to fetch
+    // the intake that drives contraindication filtering (clientId lives on
+    // the plan, not the Session row).
+    return { ...session, clientId: plan.clientId };
   }
 }

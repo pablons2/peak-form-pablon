@@ -109,17 +109,6 @@ export class NotificationEventListener implements OnModuleInit {
       ];
     });
 
-    this.subscribe(TRAINING_PLAN_CREATED, (p) => {
-      const payload = p as TrainingPlanCreatedPayload;
-      return [
-        {
-          recipientUserId: payload.clientId,
-          type: NotificationType.TRAINING_PLAN_CREATED,
-          payload: { ...payload },
-        },
-      ];
-    });
-
     this.subscribe(WEEKLY_SUMMARY_READY, (p) => {
       const payload = p as WeeklySummaryReadyPayload;
       // §5.1 — Client and Professional-facing: one notification each.

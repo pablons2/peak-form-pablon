@@ -44,7 +44,7 @@ Feature: Professional ↔ Client relationship (web)
       | intake status indicator |
       | quick stats grid showing active check-ins count |
       | quick stats grid showing training plans count |
-      | quick stats grid showing last activity date |
+      | quick stats grid showing link type |
     And the page shows tabs for "Geral", "Treino", "Avaliações", "Mensagens"
 
   Scenario: Contraindication alert displays prominently on client detail page when client has flags
@@ -104,8 +104,8 @@ Feature: Professional ↔ Client relationship (web)
     And a training plan exists with a session
     When the professional opens the session's exercise selector
     Then contraindicated exercises display with a warning indicator:
-      | Back Squat (KNEE_LOAD_CAUTION) |
-      | Bench Press (SHOULDER_IMPINGEMENT_CAUTION) |
+      | Back Squat BDD (KNEE_LOAD_CAUTION) |
+      | Bench Press BDD (SHOULDER_IMPINGEMENT_CAUTION) |
     And the professional can see why each exercise is contraindicated
     And the professional can override and include a contraindicated exercise if they choose
 
