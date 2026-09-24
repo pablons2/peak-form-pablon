@@ -8,6 +8,7 @@ import { TodayMessagesCard } from "@/features/dashboard/components/today-message
 import { CheckInDueCard } from "@/features/dashboard/components/check-in-due-card";
 import { WeekStrip } from "@/features/dashboard/components/week-strip";
 import { WeeklySummaryCard } from "@/features/dashboard/components/weekly-summary-card";
+import { TrainingAssignmentCard } from "@/features/dashboard/components/training-assignment-card";
 import { DashboardTabs } from "@/features/dashboard/components/dashboard-tabs";
 import { TodayChecklist } from "@/features/habits/components/today-checklist";
 import { IntakeStatusCard } from "@/features/intake/components/intake-status-card";
@@ -27,6 +28,7 @@ import {
 import { listMyThreads } from "@/features/messaging/api-client";
 import { getAnalytics, listPendingProfessionals } from "@/features/admin/api-client";
 import { adminListExercises } from "@/features/exercises/api-client";
+import { listMyTrainingPlans } from "@/features/training-plans/api-client";
 
 export const metadata = { title: "Início — PeakForm" };
 
@@ -54,10 +56,11 @@ export default async function DashboardPage() {
   }
 
   const accessToken = session.accessToken!;
-  const [todayResult, weekResult, intakeResult] = await Promise.all([
+  const [todayResult, weekResult, intakeResult, plansResult] = await Promise.all([
     getTodayDashboard(accessToken),
     getWeekDashboard(accessToken),
     getMyIntake(accessToken),
+    listMyTrainingPlans(accessToken),
   ]);
 
   if (!todayResult.ok || !weekResult.ok) {
@@ -73,12 +76,15 @@ export default async function DashboardPage() {
   const today = todayResult.data;
   const week = weekResult.data;
   const intake = intakeResult.ok ? intakeResult.data.intake : null;
+  const plans = plansResult.ok ? plansResult.data : [];
 
   return (
     <main className="mx-auto max-w-2xl space-y-4 p-4">
       <h1 className="text-lg font-semibold text-foreground">Olá, {session.user.name}!</h1>
 
       <IntakeStatusCard intake={intake} />
+
+      <TrainingAssignmentCard plans={plans} todaySession={today.training.session} />
 
       <DashboardTabs
         today={
