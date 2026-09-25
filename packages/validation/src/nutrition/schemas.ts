@@ -32,19 +32,68 @@ export type MacroTargetsInput = z.infer<typeof macroTargetsSchema>;
 const mealSlotEnumSchema = z.enum(["BREAKFAST", "LUNCH", "DINNER", "SNACK"]);
 export type MealSlotInput = z.infer<typeof mealSlotEnumSchema>;
 
+// §5.2 — one planned food in a meal slot. Exactly one of the two identity
+// paths, same refine rule as the diary entry schema below: a cached food
+// (nutrients resolved server-side) or a manual-entry custom food with
+// caller-supplied per-100g values. `quantityGrams` is the planned portion;
+// the server scales nutrients by it (never trusting caller-computed totals).
+const mealPlanItemSchema = z
+  .object({
+    foodItemCacheId: z.string().trim().min(1).nullish(),
+    customFoodName: z.string().trim().min(1).max(200).nullish(),
+    customNutrients: z
+      .object({
+        calories: z.number().nonnegative().max(10000),
+        protein: z.number().nonnegative().max(2000),
+        carbs: z.number().nonnegative().max(2000),
+        fat: z.number().nonnegative().max(2000),
+      })
+      .nullish(),
+    quantityGrams: z.number().positive().max(5000),
+  })
+  .refine(
+    (v) =>
+      (v.foodItemCacheId != null) !==
+      (v.customFoodName != null && v.customNutrients != null),
+    {
+      message:
+        "Provide either foodItemCacheId, or both customFoodName and customNutrients — not both.",
+    },
+  );
+export type MealPlanItemInput = z.infer<typeof mealPlanItemSchema>;
+
+// Legacy plans (before the structured builder) store `suggestedFoods`
+// free-text lists; the builder writes `items`. Both remain readable —
+// the serializer/UI render whichever a given plan row carries.
+const mealPlanSlotSchema = z.object({
+  mealSlot: mealSlotEnumSchema,
+  items: z.array(mealPlanItemSchema).max(20).optional(),
+  suggestedFoods: z.array(z.string().trim().min(1).max(200)).max(20).optional(),
+});
+export type MealPlanSlotInput = z.infer<typeof mealPlanSlotSchema>;
+
 const mealPlanSchema = z
   .object({
-    slots: z
-      .array(
-        z.object({
-          mealSlot: mealSlotEnumSchema,
-          suggestedFoods: z.array(z.string().trim().min(1).max(200)).max(20),
-        }),
-      )
-      .max(10),
+    slots: z.array(mealPlanSlotSchema).max(10),
   })
   .nullish();
 export type MealPlanInput = z.infer<typeof mealPlanSchema>;
+
+// §5.2 — the Nutritionist's structured meal-plan save (builder UI). The
+// server resolves each foodItemCacheId, scales nutrients by quantityGrams,
+// and stores per-item snapshots + per-slot/day totals — the same
+// compute-server-side rule as the food diary.
+export const savePlanMealsSchema = z.object({
+  slots: z
+    .array(
+      z.object({
+        mealSlot: mealSlotEnumSchema,
+        items: z.array(mealPlanItemSchema).max(20),
+      }),
+    )
+    .max(10),
+});
+export type SavePlanMealsInput = z.infer<typeof savePlanMealsSchema>;
 
 // §5.2 — the Nutritionist's confirm/edit action: sets ACTIVE +
 // confirmedByProfessionalAt in the same write, server-side (never

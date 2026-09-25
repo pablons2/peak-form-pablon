@@ -10,10 +10,12 @@ import {
   confirmNutritionPlanSchema,
   logFoodDiaryEntrySchema,
   logHydrationSchema,
+  savePlanMealsSchema,
   type ActivityLevelInput,
   type ConfirmNutritionPlanInput,
   type LogFoodDiaryEntryInput,
   type LogHydrationInput,
+  type SavePlanMealsInput,
 } from "@peakform/validation";
 import { authOptions } from "../auth/nextauth-options";
 import * as api from "./api-client";
@@ -59,6 +61,23 @@ export async function confirmPlanAction(
   revalidatePath(`/clients`);
   revalidatePath(`/nutrition`);
   void clientId;
+  return { ok: true };
+}
+
+export async function savePlanMealsAction(
+  planId: string,
+  clientId: string,
+  input: SavePlanMealsInput,
+): Promise<ActionResult> {
+  const session = await requireSession();
+  if (!session) return fail("Sessão expirada — entre novamente.");
+  const parsed = savePlanMealsSchema.safeParse(input);
+  if (!parsed.success) return fail("Dados inválidos.");
+  const result = await api.savePlanMeals(session.token, planId, parsed.data);
+  if (!result.ok) return fail(result.message);
+  revalidatePath(`/clients/${clientId}/nutrition`);
+  revalidatePath(`/clients/${clientId}/nutrition/plan`);
+  revalidatePath("/nutrition");
   return { ok: true };
 }
 

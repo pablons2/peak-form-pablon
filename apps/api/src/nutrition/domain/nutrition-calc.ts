@@ -88,3 +88,21 @@ export function computeDraftMacroTargets(calorieTarget: number): DraftMacroTarge
     fat: Math.round((calorieTarget * 0.3) / 9),
   };
 }
+
+// Shared by the food-diary log and the meal-plan builder (§5.2/§5.3): scale
+// a per-100g nutrient object to a specific gram quantity. kcal rounds to a
+// whole number, macros to one decimal — same rounding the diary entries
+// have always stored, kept identical so diary and plan numbers are
+// directly comparable in the acompanhamento views.
+export function scaleNutrients(
+  per100g: { calories: number; protein: number; carbs: number; fat: number },
+  quantityGrams: number,
+): { calories: number; protein: number; carbs: number; fat: number } {
+  const factor = quantityGrams / 100;
+  return {
+    calories: Math.round(per100g.calories * factor),
+    protein: Math.round(per100g.protein * factor * 10) / 10,
+    carbs: Math.round(per100g.carbs * factor * 10) / 10,
+    fat: Math.round(per100g.fat * factor * 10) / 10,
+  };
+}

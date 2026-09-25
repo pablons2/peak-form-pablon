@@ -160,7 +160,11 @@ When(
 
 Then("generated sessions appear on the mesocycle page", async ({ page }) => {
   const sessionsSection = page.getByRole("region", { name: "Sessões geradas" });
-  await expect(sessionsSection.getByText("2026-02-02")).toBeVisible();
+  // The session list renders pt-BR long dates (weekday, day de month de year)
+  // — 2026-02-02 is a Monday, so the first generated session is that Monday.
+  await expect(
+    sessionsSection.getByText("segunda-feira, 2 de fevereiro de 2026"),
+  ).toBeVisible();
   await expect(sessionsSection.getByText("Agachamento BDD").first()).toBeVisible();
 });
 

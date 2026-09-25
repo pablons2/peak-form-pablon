@@ -7,24 +7,29 @@ import { FoodLookupService } from "./application/food-lookup.service";
 import { NutritionAccess } from "./application/nutrition-access.service";
 import { ConfirmNutritionPlanUseCase } from "./application/use-cases/confirm-nutrition-plan.use-case";
 import { GenerateDraftNutritionPlanUseCase } from "./application/use-cases/generate-draft-nutrition-plan.use-case";
+import { GetAdherenceHistoryUseCase } from "./application/use-cases/get-adherence-history.use-case";
 import { GetClientNutritionPlanUseCase } from "./application/use-cases/get-client-nutrition-plan.use-case";
 import { GetDailyFoodDiaryUseCase } from "./application/use-cases/get-daily-food-diary.use-case";
 import { GetHydrationUseCase } from "./application/use-cases/get-hydration.use-case";
 import { GetMyActiveNutritionPlanUseCase } from "./application/use-cases/get-my-active-nutrition-plan.use-case";
 import { GetWeeklyAdherenceSummaryUseCase } from "./application/use-cases/get-weekly-adherence-summary.use-case";
+import { ListClientPlansUseCase } from "./application/use-cases/list-client-plans.use-case";
 import { LogFoodDiaryEntryUseCase } from "./application/use-cases/log-food-diary-entry.use-case";
 import { LogHydrationUseCase } from "./application/use-cases/log-hydration.use-case";
 import { LookupBarcodeUseCase } from "./application/use-cases/lookup-barcode.use-case";
 import { RunMissedFoodLogJobUseCase } from "./application/use-cases/run-missed-food-log-job.use-case";
+import { SavePlanMealsUseCase } from "./application/use-cases/save-plan-meals.use-case";
 import { SearchFoodUseCase } from "./application/use-cases/search-food.use-case";
 import {
   OPEN_FOOD_FACTS_CLIENT,
+  TACO_FOOD_CLIENT,
   USDA_FOOD_DATA_CLIENT,
 } from "./domain/ports/food-lookup.port";
 import { NUTRITION_REPOSITORY } from "./domain/ports/nutrition.repository.port";
 import { HttpOpenFoodFactsClient } from "./infrastructure/open-food-facts-client";
 import { MissedFoodLogJobService } from "./infrastructure/missed-food-log-job.service";
 import { PrismaNutritionRepository } from "./infrastructure/prisma-nutrition.repository";
+import { HttpTacoApiClient } from "./infrastructure/taco-api.client";
 import { HttpUsdaFoodDataClient } from "./infrastructure/usda-food-data-client";
 import { NutritionController } from "./presentation/nutrition.controller";
 
@@ -41,12 +46,15 @@ import { NutritionController } from "./presentation/nutrition.controller";
     { provide: NUTRITION_REPOSITORY, useClass: PrismaNutritionRepository },
     { provide: OPEN_FOOD_FACTS_CLIENT, useClass: HttpOpenFoodFactsClient },
     { provide: USDA_FOOD_DATA_CLIENT, useClass: HttpUsdaFoodDataClient },
+    { provide: TACO_FOOD_CLIENT, useClass: HttpTacoApiClient },
 
     NutritionAccess,
     FoodLookupService,
 
     GenerateDraftNutritionPlanUseCase,
     ConfirmNutritionPlanUseCase,
+    SavePlanMealsUseCase,
+    ListClientPlansUseCase,
     GetClientNutritionPlanUseCase,
     GetMyActiveNutritionPlanUseCase,
     LookupBarcodeUseCase,
@@ -56,6 +64,7 @@ import { NutritionController } from "./presentation/nutrition.controller";
     LogHydrationUseCase,
     GetHydrationUseCase,
     GetWeeklyAdherenceSummaryUseCase,
+    GetAdherenceHistoryUseCase,
 
     // PRD 12 §5.1 — the missed-food-log producer (delivery lives in
     // NotificationsModule via the MISSED_FOOD_LOG event).

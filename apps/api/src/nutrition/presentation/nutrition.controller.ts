@@ -5,6 +5,7 @@ import {
   HttpCode,
   Param,
   Post,
+  Put,
   Query,
   UseGuards,
 } from "@nestjs/common";
@@ -15,11 +16,13 @@ import {
   logFoodDiaryEntrySchema,
   logHydrationSchema,
   lookupBarcodeSchema,
+  savePlanMealsSchema,
   searchFoodSchema,
   type ConfirmNutritionPlanInput,
   type GenerateDraftNutritionPlanInput,
   type LogFoodDiaryEntryInput,
   type LogHydrationInput,
+  type SavePlanMealsInput,
 } from "@peakform/validation";
 import { ZodValidationPipe } from "../../shared/pipes/zod-validation.pipe";
 import { CurrentUser } from "../../auth/presentation/decorators/current-user.decorator";
@@ -29,14 +32,17 @@ import { NutritionistGuard } from "../../auth/presentation/guards/nutritionist.g
 import type { UserWithProfiles } from "../../auth/domain/ports/user.repository.port";
 import { ConfirmNutritionPlanUseCase } from "../application/use-cases/confirm-nutrition-plan.use-case";
 import { GenerateDraftNutritionPlanUseCase } from "../application/use-cases/generate-draft-nutrition-plan.use-case";
+import { GetAdherenceHistoryUseCase } from "../application/use-cases/get-adherence-history.use-case";
 import { GetClientNutritionPlanUseCase } from "../application/use-cases/get-client-nutrition-plan.use-case";
 import { GetDailyFoodDiaryUseCase } from "../application/use-cases/get-daily-food-diary.use-case";
 import { GetHydrationUseCase } from "../application/use-cases/get-hydration.use-case";
 import { GetMyActiveNutritionPlanUseCase } from "../application/use-cases/get-my-active-nutrition-plan.use-case";
 import { GetWeeklyAdherenceSummaryUseCase } from "../application/use-cases/get-weekly-adherence-summary.use-case";
+import { ListClientPlansUseCase } from "../application/use-cases/list-client-plans.use-case";
 import { LogFoodDiaryEntryUseCase } from "../application/use-cases/log-food-diary-entry.use-case";
 import { LogHydrationUseCase } from "../application/use-cases/log-hydration.use-case";
 import { LookupBarcodeUseCase } from "../application/use-cases/lookup-barcode.use-case";
+import { SavePlanMealsUseCase } from "../application/use-cases/save-plan-meals.use-case";
 import { SearchFoodUseCase } from "../application/use-cases/search-food.use-case";
 import {
   toPublicFoodDiaryEntry,
@@ -69,6 +75,9 @@ export class NutritionController {
     private readonly logHydration: LogHydrationUseCase,
     private readonly getHydration: GetHydrationUseCase,
     private readonly getWeeklyAdherence: GetWeeklyAdherenceSummaryUseCase,
+    private readonly savePlanMeals: SavePlanMealsUseCase,
+    private readonly listClientPlans: ListClientPlansUseCase,
+    private readonly getAdherenceHistory: GetAdherenceHistoryUseCase,
   ) {}
 
   // §5.1 — generates a DRAFT; never visible to the Client until confirmed.
@@ -130,6 +139,42 @@ export class NutritionController {
     return { plan: plan ? toPublicNutritionPlan(plan) : null };
   }
 
+  // §5.2 — the meal-plan builder's save: writes the structured mealPlan
+  // (server-computed per-item snapshots + per-slot/day totals) onto a
+  // DRAFT or ACTIVE plan. Cannot change status/targets — only `confirm`
+  // moves a plan to ACTIVE (§3's Non-Goal).
+  @Roles(Role.PROFESSIONAL, Role.ADMIN)
+  @UseGuards(NutritionistGuard, ApprovalStatusGuard)
+  @Put("plans/:id/meals")
+  async savePlanMealsHandler(
+    @Param("id") id: string,
+    @CurrentUser() user: UserWithProfiles,
+    @Body(new ZodValidationPipe(savePlanMealsSchema)) body: SavePlanMealsInput,
+  ) {
+    const plan = await this.savePlanMeals.execute({
+      actor: { id: user.id, role: user.role },
+      planId: id,
+      data: body,
+    });
+    return toPublicNutritionPlan(plan);
+  }
+
+  // §7 — the acompanhamento panel's plan history (all statuses, newest
+  // first). Same wrapped-array convention as the diary endpoints.
+  @Roles(Role.PROFESSIONAL, Role.ADMIN)
+  @UseGuards(NutritionistGuard, ApprovalStatusGuard)
+  @Get("clients/:clientId/plans")
+  async listClientPlansHandler(
+    @Param("clientId") clientId: string,
+    @CurrentUser() user: UserWithProfiles,
+  ) {
+    const plans = await this.listClientPlans.execute({
+      actor: { id: user.id, role: user.role },
+      clientId,
+    });
+    return { plans: plans.map(toPublicNutritionPlan) };
+  }
+
   // §7 — the Client's own view: ACTIVE only, structurally (see the
   // repository/use-case contract) incapable of returning a DRAFT.
   @Roles(Role.CLIENT)
@@ -141,8 +186,10 @@ export class NutritionController {
 
   // §5.3 — barcode lookup; a null `item` (not an error) means "not found",
   // the frontend's cue to fall back to manual entry. Wrapped for the same
-  // reason as the plan endpoints above.
-  @Roles(Role.CLIENT)
+  // reason as the plan endpoints above. Also open to Nutritionists (own
+  // linked clients' meal-plan builder uses the same lookup).
+  @Roles(Role.CLIENT, Role.PROFESSIONAL, Role.ADMIN)
+  @UseGuards(NutritionistGuard, ApprovalStatusGuard)
   @Get("food/barcode/:barcode")
   async lookupBarcodeHandler(@Param("barcode") barcode: string) {
     lookupBarcodeSchema.parse({ barcode });
@@ -150,8 +197,12 @@ export class NutritionController {
     return { item: item ? toPublicFoodItemCache(item) : null };
   }
 
-  // §5.3 — generic/whole-food search (USDA).
-  @Roles(Role.CLIENT)
+  // §5.3 — generic/whole-food search (TACO first, USDA fallback). Also open
+  // to Nutritionists: the meal-plan builder searches the same normalized
+  // FoodItemCache the Client diary does. NutritionistGuard is a no-op for
+  // the CLIENT role (see the guard) so the Client path is unchanged.
+  @Roles(Role.CLIENT, Role.PROFESSIONAL, Role.ADMIN)
+  @UseGuards(NutritionistGuard, ApprovalStatusGuard)
   @Get("food/search")
   async searchFoodHandler(@Query("query") query: string) {
     const parsed = searchFoodSchema.parse({ query });
@@ -240,6 +291,33 @@ export class NutritionController {
     const d = date ?? todayIso();
     const log = await this.getHydration.execute({ clientId: user.id, date: d });
     return toPublicHydrationLog(log, d);
+  }
+
+  // §5.6 — the acompanhamento panel's 4-week adherence trend (oldest
+  // window first). Same use-case for the Client's own view and the
+  // Nutritionist's view of a linked Client (parity convention).
+  @Roles(Role.CLIENT)
+  @Get("mine/adherence-history")
+  async getMyAdherenceHistoryHandler(@CurrentUser() user: UserWithProfiles) {
+    return this.getAdherenceHistory.execute({
+      viewer: { id: user.id, role: user.role },
+      clientId: user.id,
+      now: new Date(),
+    });
+  }
+
+  @Roles(Role.PROFESSIONAL, Role.ADMIN)
+  @UseGuards(NutritionistGuard, ApprovalStatusGuard)
+  @Get("clients/:clientId/adherence-history")
+  async getClientAdherenceHistoryHandler(
+    @Param("clientId") clientId: string,
+    @CurrentUser() user: UserWithProfiles,
+  ) {
+    return this.getAdherenceHistory.execute({
+      viewer: { id: user.id, role: user.role },
+      clientId,
+      now: new Date(),
+    });
   }
 
   // §5.6/§10 — weekly adherence, Client's own.

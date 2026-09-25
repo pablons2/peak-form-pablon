@@ -34,3 +34,14 @@ export const USDA_FOOD_DATA_CLIENT = Symbol("USDA_FOOD_DATA_CLIENT");
 export interface UsdaFoodDataClient {
   search(query: string): Promise<NormalizedFoodItem[]>;
 }
+
+export const TACO_FOOD_CLIENT = Symbol("TACO_FOOD_CLIENT");
+
+/// §5.3 — Brazilian whole-food search against the self-hosted taco-api
+/// GraphQL service (Tabela Brasileira de Composição de Alimentos). Same
+/// degradation contract as the USDA client: an unconfigured
+/// (TACO_API_URL empty) or unreachable service returns an empty list, never
+/// throws — the search UI falls through to the next source instead.
+export interface TacoFoodClient {
+  search(query: string): Promise<NormalizedFoodItem[]>;
+}

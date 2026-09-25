@@ -963,6 +963,9 @@ model FoodDiaryEntry {
 enum FoodSource {
   OPEN_FOOD_FACTS
   USDA
+  /// TACO (Tabela Brasileira de Composição de Alimentos) — self-hosted
+  /// taco-api GraphQL service; Brazilian whole-food data, pt-BR names.
+  TACO
   CUSTOM
 }
 

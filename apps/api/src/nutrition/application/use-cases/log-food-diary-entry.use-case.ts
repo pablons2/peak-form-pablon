@@ -1,6 +1,7 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { MealSlot, type FoodDiaryEntry } from "@prisma/client";
 import type { LogFoodDiaryEntryInput } from "@peakform/validation";
+import { scaleNutrients } from "../../domain/nutrition-calc";
 import {
   NUTRITION_REPOSITORY,
   type NutritionRepository,
@@ -60,15 +61,3 @@ export class LogFoodDiaryEntryUseCase {
   }
 }
 
-function scaleNutrients(
-  per100g: { calories: number; protein: number; carbs: number; fat: number },
-  quantityGrams: number,
-): { calories: number; protein: number; carbs: number; fat: number } {
-  const factor = quantityGrams / 100;
-  return {
-    calories: Math.round(per100g.calories * factor),
-    protein: Math.round(per100g.protein * factor * 10) / 10,
-    carbs: Math.round(per100g.carbs * factor * 10) / 10,
-    fat: Math.round(per100g.fat * factor * 10) / 10,
-  };
-}

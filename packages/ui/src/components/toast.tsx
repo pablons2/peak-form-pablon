@@ -43,6 +43,9 @@ const Toast = React.forwardRef<
 ));
 Toast.displayName = ToastPrimitives.Root.displayName;
 
+type ToastProps = React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> &
+  VariantProps<typeof toastVariants>;
+
 const ToastAction = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Action>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Action>
@@ -113,6 +116,9 @@ ToastViewport.displayName = ToastPrimitives.Viewport.displayName;
 
 export {
   type ToastActionElement,
+  // The component props as a type — use-toast builds its ToasterToast from
+  // this (Toast itself is a value/component, not usable as a type).
+  type ToastProps,
   ToastProvider,
   Toast,
   ToastAction,

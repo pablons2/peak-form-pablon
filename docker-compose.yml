@@ -50,6 +50,22 @@ services:
       timeout: 5s
       retries: 10
 
+  # TACO (Tabela Brasileira de Composição de Alimentos) — self-hosted
+  # GraphQL food database used by the Nutrition module's food search
+  # (PRD 08 §5.3). Pinned to the maintainer's published v4.0.1 image.
+  taco-api:
+    image: raulfdm/taco-api:v4.0.1
+    ports:
+      - "4000:4000"
+    volumes:
+      - taco_data:/app/apps/api/prisma
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://localhost:4000/graphql -X POST >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
   adminer:
     image: adminer:latest
     ports:
@@ -100,5 +116,6 @@ services:
 volumes:
   postgres_data:
   minio_data:
+  taco_data:
   api_node_modules:
   web_node_modules:

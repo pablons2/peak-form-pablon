@@ -18,6 +18,7 @@ import { MEDIA_STORE } from "../../src/exercises/domain/ports/media-store.port";
 import { SIGNED_MEDIA_STORE } from "../../src/body-assessments/domain/ports/signed-media-store.port";
 import {
   OPEN_FOOD_FACTS_CLIENT,
+  TACO_FOOD_CLIENT,
   USDA_FOOD_DATA_CLIENT,
 } from "../../src/nutrition/domain/ports/food-lookup.port";
 import type { UserWithProfiles } from "../../src/auth/domain/ports/user.repository.port";
@@ -28,6 +29,7 @@ import {
   FakeMediaStore,
   FakeOpenFoodFactsClient,
   FakeSignedMediaStore,
+  FakeTacoApiClient,
   FakeUsdaFoodDataClient,
   ProfessionalOnlyProbeController,
 } from "./fakes";
@@ -51,6 +53,7 @@ export class AuthTestWorld {
     public readonly signedMediaStore: FakeSignedMediaStore,
     public readonly openFoodFacts: FakeOpenFoodFactsClient,
     public readonly usda: FakeUsdaFoodDataClient,
+    public readonly taco: FakeTacoApiClient,
   ) {}
 
   static async boot(): Promise<AuthTestWorld> {
@@ -60,6 +63,7 @@ export class AuthTestWorld {
     const signedMediaStore = new FakeSignedMediaStore();
     const openFoodFacts = new FakeOpenFoodFactsClient();
     const usda = new FakeUsdaFoodDataClient();
+    const taco = new FakeTacoApiClient();
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
       controllers: [ProfessionalOnlyProbeController],
@@ -76,6 +80,8 @@ export class AuthTestWorld {
       .useValue(openFoodFacts)
       .overrideProvider(USDA_FOOD_DATA_CLIENT)
       .useValue(usda)
+      .overrideProvider(TACO_FOOD_CLIENT)
+      .useValue(taco)
       .compile();
 
     const app = moduleRef.createNestApplication();
@@ -93,6 +99,7 @@ export class AuthTestWorld {
       signedMediaStore,
       openFoodFacts,
       usda,
+      taco,
     );
   }
 

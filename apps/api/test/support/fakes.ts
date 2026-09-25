@@ -18,6 +18,7 @@ import type { SignedMediaStore } from "../../src/body-assessments/domain/ports/s
 import type {
   NormalizedFoodItem,
   OpenFoodFactsClient,
+  TacoFoodClient,
   UsdaFoodDataClient,
 } from "../../src/nutrition/domain/ports/food-lookup.port";
 
@@ -139,6 +140,23 @@ export class FakeOpenFoodFactsClient implements OpenFoodFactsClient {
 // against a controllable stand-in.
 @Injectable()
 export class FakeUsdaFoodDataClient implements UsdaFoodDataClient {
+  private readonly results = new Map<string, NormalizedFoodItem[]>();
+
+  seedResults(query: string, items: NormalizedFoodItem[]): void {
+    this.results.set(query, items);
+  }
+
+  async search(query: string): Promise<NormalizedFoodItem[]> {
+    return this.results.get(query) ?? [];
+  }
+}
+
+// PRD 08 §5.3 — the self-hosted TACO service, faked identically to the USDA
+// stand-in: scenarios seed exact-match query results and prove the
+// TACO-first search order + cache normalization against a controllable
+// stand-in instead of a live GraphQL service.
+@Injectable()
+export class FakeTacoApiClient implements TacoFoodClient {
   private readonly results = new Map<string, NormalizedFoodItem[]>();
 
   seedResults(query: string, items: NormalizedFoodItem[]): void {

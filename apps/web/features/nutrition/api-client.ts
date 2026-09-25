@@ -6,10 +6,32 @@ import type {
   ActivityLevelInput,
   ConfirmNutritionPlanInput,
   LogFoodDiaryEntryInput,
+  SavePlanMealsInput,
 } from "@peakform/validation";
 import { apiBaseUrl } from "../auth/api-client";
 
 export type NutritionPlanStatus = "DRAFT" | "ACTIVE" | "ARCHIVED";
+
+export interface PublicMealPlanItem {
+  foodItemCacheId: string | null;
+  customFoodName: string | null;
+  name: string;
+  quantityGrams: number;
+  nutrients: { calories: number; protein: number; carbs: number; fat: number };
+}
+
+export interface PublicMealPlanSlot {
+  mealSlot: "BREAKFAST" | "LUNCH" | "DINNER" | "SNACK";
+  items?: Array<PublicMealPlanItem>;
+  /// Legacy free-text plans (pre-builder) — rendered read-only.
+  suggestedFoods?: string[];
+  totals?: { calories: number; protein: number; carbs: number; fat: number };
+}
+
+export interface PublicMealPlan {
+  slots: Array<PublicMealPlanSlot>;
+  dayTotals?: { calories: number; protein: number; carbs: number; fat: number };
+}
 
 export interface PublicNutritionPlan {
   id: string;
@@ -19,7 +41,7 @@ export interface PublicNutritionPlan {
   macroTargets: { protein: number; carbs: number; fat: number };
   status: NutritionPlanStatus;
   confirmedByProfessionalAt: string | null;
-  mealPlan: unknown;
+  mealPlan: PublicMealPlan | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -53,6 +75,14 @@ export interface DailyDiaryResult {
 export interface WeeklyAdherenceSummary {
   daysLogged: number;
   averageAdherencePercent: number;
+}
+
+export interface AdherenceHistory {
+  weeks: Array<
+    WeeklyAdherenceSummary & {
+      weekStart: string;
+    }
+  >;
 }
 
 export type ApiResult<T> =
@@ -112,6 +142,24 @@ export function confirmPlan(
     method: "POST",
     body: input,
   });
+}
+
+export function savePlanMeals(
+  accessToken: string,
+  planId: string,
+  input: SavePlanMealsInput,
+) {
+  return request<PublicNutritionPlan>(accessToken, `/nutrition/plans/${planId}/meals`, {
+    method: "PUT",
+    body: input,
+  });
+}
+
+export function listClientPlans(accessToken: string, clientId: string) {
+  return request<{ plans: PublicNutritionPlan[] }>(
+    accessToken,
+    `/nutrition/clients/${clientId}/plans`,
+  );
 }
 
 export function getClientPlan(accessToken: string, clientId: string) {
@@ -182,5 +230,16 @@ export function getClientWeeklySummary(accessToken: string, clientId: string) {
   return request<WeeklyAdherenceSummary>(
     accessToken,
     `/nutrition/clients/${clientId}/weekly-summary`,
+  );
+}
+
+export function getMyAdherenceHistory(accessToken: string) {
+  return request<AdherenceHistory>(accessToken, "/nutrition/mine/adherence-history");
+}
+
+export function getClientAdherenceHistory(accessToken: string, clientId: string) {
+  return request<AdherenceHistory>(
+    accessToken,
+    `/nutrition/clients/${clientId}/adherence-history`,
   );
 }

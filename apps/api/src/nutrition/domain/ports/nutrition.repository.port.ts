@@ -59,7 +59,16 @@ export interface NutritionRepository {
   findActiveForClient(clientId: string): Promise<NutritionPlan | null>;
   /// The Nutritionist-facing read: latest plan of any status for review.
   findLatestForClient(clientId: string): Promise<NutritionPlan | null>;
+  /// Full plan history for a Client, newest first (the acompanhamento
+  /// panel's "Histórico" tab). No status filter — DRAFT rows included,
+  /// access is enforced by the caller (NutritionAccess).
+  listForClient(clientId: string): Promise<NutritionPlan[]>;
   confirm(id: string, data: ConfirmPlanData): Promise<NutritionPlan>;
+  /// The meal-plan builder's write: replaces the plan's mealPlan Json with
+  /// the server-computed structure (per-item snapshots + per-slot totals).
+  /// Deliberately cannot touch status/targets — those only move via
+  /// `confirm` (§3's Non-Goal).
+  updateMeals(id: string, mealPlan: Record<string, unknown>): Promise<NutritionPlan>;
 
   createFoodDiaryEntry(data: CreateFoodDiaryEntryData): Promise<FoodDiaryEntry>;
   listFoodDiaryEntriesForClientOnDate(

@@ -51,6 +51,20 @@ export class PrismaNutritionRepository implements NutritionRepository {
     });
   }
 
+  listForClient(clientId: string): Promise<NutritionPlan[]> {
+    return this.prisma.nutritionPlan.findMany({
+      where: { clientId },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  updateMeals(id: string, mealPlan: Record<string, unknown>): Promise<NutritionPlan> {
+    return this.prisma.nutritionPlan.update({
+      where: { id },
+      data: { mealPlan: mealPlan as Prisma.InputJsonValue },
+    });
+  }
+
   confirm(id: string, data: ConfirmPlanData): Promise<NutritionPlan> {
     return this.prisma.nutritionPlan.update({
       where: { id },

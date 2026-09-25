@@ -6,8 +6,9 @@ const { Given, When, Then } = createBdd();
 
 // playwright-bdd passes Gherkin data tables as its own DataTable class, which
 // @playwright/test does not re-export — a structural stand-in is enough here.
+// bddgen emits `dataTable.raw()` call sites, so the stand-in matches that.
 interface BddDataTable {
-  rows(): string[][];
+  raw(): string[][];
 }
 
 // Shared UI flows — mirrors 01-authentication-account-management's
@@ -462,7 +463,7 @@ Then("the professional sees a profile card with:", async ({ page }, dataTable) =
     } else if (row === "quick stats grid showing training plans count") {
       await expect(page.getByText("PLANOS", { exact: true })).toBeVisible();
     } else if (row === "quick stats grid showing link type") {
-      await expect(page.getByText("TIPO")).toBeVisible();
+      await expect(page.getByText("TIPO", { exact: true })).toBeVisible();
     } else {
       throw new Error(`Unhandled profile-card row: ${row}`);
     }

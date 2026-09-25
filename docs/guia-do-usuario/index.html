@@ -407,10 +407,12 @@
           </h3>
           <div class="chapter__body" id="prd-05-body" hidden>
             <p class="chapter__roles"><strong>Papéis:</strong> Cliente, Profissional, Administrador</p>
+            <p class="chapter__roles"><strong>Papéis:</strong> Cliente, Profissional, Administrador</p>
             <p>
               Catálogo de exercícios pesquisável por todos os papéis. Profissionais
               podem criar exercícios personalizados; o Administrador cura o catálogo
-              global.
+              global. Os exercícios do catálogo podem ter uma <strong>imagem de
+              demonstração</strong>, exibida na biblioteca, nos planos e durante o treino.
             </p>
 
             <h4>Passo a passo — Buscar exercícios (qualquer papel)</h4>
@@ -418,7 +420,15 @@
               <li>Abra <strong>"Exercícios"</strong> no menu.</li>
               <li>Digite um termo de busca (nome do exercício, grupo muscular) na caixa de pesquisa.</li>
               <li>Clique em um exercício para ver detalhes, instruções e contraindicações associadas.</li>
+              <li>Use o botão <strong>"Visualizar em detalhes"</strong> para abrir um modal com a imagem de demonstração e os dados do exercício em tela cheia — útil para conferir a execução antes de prescrever ou treinar.</li>
             </ol>
+
+            <div class="tip">
+              Exercícios que ainda não têm imagem cadastrada mostram um espaço
+              reservado <strong>"Sem mídia"</strong> no lugar da foto — o restante
+              das informações (nome, grupo muscular, instruções) continua igual e
+              o fluxo não é afetado.
+            </div>
 
             <h4>Passo a passo — Profissional cria um exercício personalizado</h4>
             <ol class="steps">
@@ -452,6 +462,27 @@
               as sessões geradas automaticamente a partir dele.
             </p>
 
+            <h4>Como um plano aparece na lista</h4>
+            <p>
+              Todos os planos — na visão do Cliente ("Planos") e na do Profissional —
+              usam o mesmo formato de card: <strong>nome do plano</strong>, um
+              <strong>selo de status</strong> (Rascunho, Ativo, Concluído ou Arquivado),
+              a <strong>data de início</strong> e, quando houver, a <strong>próxima
+              sessão</strong> com o número de exercícios. O botão de ação muda conforme
+              o papel: <strong>"Ver treino →"</strong> para o Cliente e
+              <strong>"Abrir plano →"</strong> para o Profissional que pode editar.
+            </p>
+
+            <h4>Ciclo de vida do plano: Rascunho → Ativo</h4>
+            <p>
+              Todo plano novo começa como <strong>Rascunho</strong>. Enquanto está em
+              rascunho, o Cliente não é notificado — o plano só "existe" para ele quando
+              o Profissional o publica (ativa). Publicar um plano novo gera a
+              notificação <strong>"Novo plano de treino"</strong> para o Cliente
+              (módulo 12); edições em um plano já ativo continuam chegando como
+              "plano de treino atualizado".
+            </p>
+
             <h4>Passo a passo — Profissional cria um plano</h4>
             <ol class="steps">
               <li>Abra a página do Cliente vinculado e acesse <strong>"Planos"</strong>.</li>
@@ -459,6 +490,15 @@
               <li>Monte o <strong>modelo semanal</strong> escolhendo exercícios, séries, repetições, carga e descanso, dia a dia.</li>
               <li>Confirme — o sistema gera automaticamente as <strong>sessões</strong> do calendário a partir do modelo.</li>
             </ol>
+
+            <h4>Visão do mesociclo com cards de exercício</h4>
+            <p>
+              Ao abrir um plano, cada sessão do mesociclo lista seus exercícios em
+              cards com a <strong>imagem de demonstração</strong> do exercício, o nome,
+              o alvo de <strong>séries × repetições</strong>, o <strong>descanso</strong>
+              (quando definido) e as <strong>observações</strong> do Profissional.
+              Exercícios sem imagem cadastrada mostram o espaço reservado "Sem mídia".
+            </p>
 
             <div class="tip tip--warning">
               Se você tentar incluir um exercício que conflita com uma contraindicação
@@ -501,7 +541,8 @@
             <h4>Passo a passo — Cliente treina hoje</h4>
             <ol class="steps">
               <li>Abra <strong>"Hoje"</strong> ou <strong>"Treino"</strong> no menu.</li>
-              <li>Veja a sessão programada para o dia, com a lista de exercícios.</li>
+              <li>Veja a sessão programada para o dia, com a lista de exercícios — cada exercício mostra sua <strong>imagem de demonstração</strong> ao lado do nome (ou o espaço reservado "Sem mídia", se ainda não houver imagem cadastrada).</li>
+              <li>Precisa conferir como executar? Use o <strong>detalhe do exercício</strong> para ver a imagem ampliada e as informações completas sem sair da tela de treino.</li>
               <li>Para cada série, registre peso e repetições executadas.</li>
               <li>Ao concluir todas as séries planejadas, a sessão é marcada automaticamente como <strong>concluída</strong>.</li>
               <li>Se não houver sessão programada, a tela mostra claramente um estado de <strong>dia de descanso</strong> — não uma tela vazia.</li>
@@ -512,6 +553,12 @@
               desabilitado nesta versão — é um recurso futuro reservado, não uma
               funcionalidade quebrada.
             </p>
+
+            <div class="tip">
+              Os campos de registro (repetições, carga) e os botões da tela de treino
+              têm <strong>áreas de toque grandes</strong> (mínimo de 44px), pensados
+              para uso com uma mão na academia — inclusive em telas de celular.
+            </div>
 
             <h4>Passo a passo — Profissional acompanha a execução (somente leitura)</h4>
             <ol class="steps">
@@ -580,6 +627,13 @@
               <li>Na aba <strong>"Hoje"</strong>, veja os cartões: <strong>treino do dia</strong> (a sessão programada, ou um estado claro de dia de descanso), <strong>nutrição</strong> (totais do dia vs. meta ativa), <strong>hábitos e tarefas</strong> pendentes, <strong>mensagens não lidas</strong> e o <strong>próximo check-in</strong> agendado.</li>
               <li>Use os cartões como ponto de partida — cada um aponta para a área correspondente (Treino, Nutrição, Hábitos, Mensagens).</li>
             </ol>
+
+            <div class="tip">
+              As telas de "Hoje", "Planos" e "Início" se adaptam ao tamanho da tela:
+              no celular tudo fica empilhado em coluna única; no desktop, o conteúdo
+              é reorganizado em <strong>duas colunas</strong> para aproveitar melhor
+              o espaço — sem rolagem horizontal em nenhum dos casos.
+            </div>
 
             <h4>Passo a passo — Cliente usa a aba "Esta Semana"</h4>
             <ol class="steps">
@@ -713,6 +767,7 @@
             <ul class="feature-gap-list">
               <li>Lembrete de sessão agendada e avisos de sessão/registro alimentar perdidos.</li>
               <li>Nova mensagem recebida.</li>
+              <li><strong>Novo plano de treino</strong> — quando o Profissional publica (ativa) um plano novo para você. Rascunhos não geram notificação: você é avisado apenas quando o plano é publicado de fato.</li>
               <li>Plano de treino ou meta nutricional atualizado pelo Profissional.</li>
               <li>Resumo semanal disponível.</li>
               <li>Check-in vencido, conforme a agenda definida no vínculo (módulo 02).</li>
@@ -953,7 +1008,17 @@
 
           <details class="faq-item">
             <summary>Recebo notificações por e-mail ou push do sistema?</summary>
-            <p>Sim. A página "Notificações" centraliza os avisos no aplicativo e permite configurar, por tipo de evento, se você quer receber também por e-mail e/ou push no navegador (lembrete de treino, sessão perdida, nova mensagem, plano atualizado, resumo semanal, check-in vencido, decisão de aprovação). O push depende de configuração do ambiente e de autorização do navegador.</p>
+            <p>Sim. A página "Notificações" centraliza os avisos no aplicativo e permite configurar, por tipo de evento, se você quer receber também por e-mail e/ou push no navegador (novo plano de treino, plano atualizado, lembrete de treino, sessão perdida, nova mensagem, resumo semanal, check-in vencido, decisão de aprovação). O push depende de configuração do ambiente e de autorização do navegador.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>Por que alguns exercícios aparecem sem foto?</summary>
+            <p>A biblioteca de exercícios está sendo populada com imagens de demonstração gradualmente. Enquanto um exercício não tem imagem, aparece o espaço reservado "Sem mídia" no lugar da foto — nada muda no fluxo: o exercício continua pesquisável, prescritável e treinável normalmente.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>Quando sou avisado sobre um plano de treino novo?</summary>
+            <p>Assim que o seu Profissional publica o plano — planos começam como rascunho e não geram notificação; a notificação "Novo plano de treino" chega no momento da publicação (ativação). Edições em um plano que já está ativo chegam como "plano de treino atualizado".</p>
           </details>
 
           <details class="faq-item">

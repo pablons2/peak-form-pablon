@@ -14,6 +14,7 @@ let professional: UserWithProfiles;
 let client: UserWithProfiles;
 let admin: UserWithProfiles;
 let draftId: string;
+let cachedFoodItemId: string;
 const tokens: Record<string, string> = {};
 
 async function loginAndGetToken(email: string): Promise<string> {
@@ -481,6 +482,186 @@ defineFeature(feature, (test) => {
     then("both summaries report the same days logged and the same average adherence percent", () => {
       expect(response.body).toEqual(clientSummary);
       expect(response.body.daysLogged).toBeGreaterThan(0);
+    });
+  });
+
+  test("A Nutritionist saves a structured meal plan and the server computes the nutrients", ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    given(
+      "an active NUTRITIONIST link between a professional and a client with a recorded body assessment",
+      async () => {
+        await setupLinkedPair("NUTRITIONIST", true);
+      },
+    );
+
+    and("the nutritionist has generated a draft nutrition target for the client", async () => {
+      const draft = await authed(
+        "post",
+        `/nutrition/clients/${client.id}/draft`,
+        professional.email,
+      ).send({});
+      draftId = draft.body.id;
+    });
+
+    and("a cached food item is seeded with known nutrients", async () => {
+      world.openFoodFacts.seedProduct("3333333333333", {
+        name: "Arroz branco cozido",
+        nutrients: { calories: 128, protein: 2.5, carbs: 28, fat: 0.2 },
+      });
+      const lookup = await authed("get", "/nutrition/food/barcode/3333333333333", client.email);
+      cachedFoodItemId = lookup.body.item.id;
+    });
+
+    when("the nutritionist saves a meal plan referencing that cached food item", async () => {
+      response = await authed("put", `/nutrition/plans/${draftId}/meals`, professional.email).send({
+        slots: [
+          {
+            mealSlot: "LUNCH",
+            items: [{ foodItemCacheId: cachedFoodItemId, quantityGrams: 200 }],
+          },
+        ],
+      });
+    });
+
+    then(
+      "the plan's mealPlan stores per-item nutrient snapshots scaled by the planned grams",
+      () => {
+        expect(response.status).toBe(200);
+        const slot = response.body.mealPlan.slots[0];
+        expect(slot.items[0].nutrients).toEqual({
+          calories: 256,
+          protein: 5,
+          carbs: 56,
+          fat: 0.4,
+        });
+      },
+    );
+
+    and("the plan's mealPlan stores per-slot and day totals computed server-side", () => {
+      const slot = response.body.mealPlan.slots[0];
+      expect(slot.totals).toEqual({ calories: 256, protein: 5, carbs: 56, fat: 0.4 });
+      expect(response.body.mealPlan.dayTotals).toEqual({
+        calories: 256,
+        protein: 5,
+        carbs: 56,
+        fat: 0.4,
+      });
+    });
+  });
+
+  test("A meal-plan save referencing an unknown food item is rejected", ({
+    given,
+    and,
+    when,
+    then,
+  }) => {
+    given(
+      "an active NUTRITIONIST link between a professional and a client with a recorded body assessment",
+      async () => {
+        await setupLinkedPair("NUTRITIONIST", true);
+      },
+    );
+
+    and("the nutritionist has generated a draft nutrition target for the client", async () => {
+      const draft = await authed(
+        "post",
+        `/nutrition/clients/${client.id}/draft`,
+        professional.email,
+      ).send({});
+      draftId = draft.body.id;
+    });
+
+    when("the nutritionist saves a meal plan referencing a nonexistent food item", async () => {
+      response = await authed("put", `/nutrition/plans/${draftId}/meals`, professional.email).send({
+        slots: [
+          {
+            mealSlot: "LUNCH",
+            items: [{ foodItemCacheId: "nonexistent-id", quantityGrams: 100 }],
+          },
+        ],
+      });
+    });
+
+    then("the request is rejected with a not-found status", () => {
+      expect(response.status).toBe(404);
+    });
+
+    and("the plan's mealPlan is unchanged", async () => {
+      const plan = await world.prisma.nutritionPlan.findUniqueOrThrow({ where: { id: draftId } });
+      expect(plan.mealPlan).toBeNull();
+    });
+  });
+
+  test("A Client cannot save meal plans", ({ given, and, when, then }) => {
+    given(
+      "an active NUTRITIONIST link between a professional and a client with a recorded body assessment",
+      async () => {
+        await setupLinkedPair("NUTRITIONIST", true);
+      },
+    );
+
+    and("the nutritionist has generated a draft nutrition target for the client", async () => {
+      const draft = await authed(
+        "post",
+        `/nutrition/clients/${client.id}/draft`,
+        professional.email,
+      ).send({});
+      draftId = draft.body.id;
+    });
+
+    when("the client tries to save a meal plan on that draft", async () => {
+      response = await authed("put", `/nutrition/plans/${draftId}/meals`, client.email).send({
+        slots: [{ mealSlot: "LUNCH", items: [{ customFoodName: "X", customNutrients: { calories: 1, protein: 0, carbs: 0, fat: 0 }, quantityGrams: 50 }] }],
+      });
+    });
+
+    then("the request is rejected with a client-error status", () => {
+      expect(response.status).toBe(403);
+    });
+  });
+
+  test("The plan history lists every plan for the client newest first", ({
+    given,
+    when,
+    then,
+    and,
+  }) => {
+    given(
+      "an active NUTRITIONIST link between a professional and a client with a recorded body assessment",
+      async () => {
+        await setupLinkedPair("NUTRITIONIST", true);
+      },
+    );
+
+    when("the nutritionist generates two drafts for the client", async () => {
+      // A tiny sleep keeps Prisma's createdAt ordering unambiguous even at
+      // sub-millisecond clock resolution.
+      await authed("post", `/nutrition/clients/${client.id}/draft`, professional.email).send({});
+      await new Promise((r) => setTimeout(r, 5));
+      const second = await authed(
+        "post",
+        `/nutrition/clients/${client.id}/draft`,
+        professional.email,
+      ).send({});
+      draftId = second.body.id;
+    });
+
+    then("the plan history endpoint returns both plans newest first", async () => {
+      response = await authed("get", `/nutrition/clients/${client.id}/plans`, professional.email);
+      expect(response.status).toBe(200);
+      expect(response.body.plans).toHaveLength(2);
+      expect(new Date(response.body.plans[0].createdAt).getTime()).toBeGreaterThanOrEqual(
+        new Date(response.body.plans[1].createdAt).getTime(),
+      );
+    });
+
+    and("the client cannot fetch the plan history at all", async () => {
+      response = await authed("get", `/nutrition/clients/${client.id}/plans`, client.email);
+      expect(response.status).toBe(403);
     });
   });
 });

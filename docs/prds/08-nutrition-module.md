@@ -44,15 +44,17 @@ Per base doc §4: "Create/edit nutrition plans" — Admin ✅, Professional ✅ 
 ### 5.2 Nutritionist confirmation
 - Nutritionist reviews the draft, edits calorie/macro values as needed, and explicitly confirms — this sets `status: ACTIVE` and `confirmedByProfessionalAt`. Only after this does the Client see the target on their food-diary screen.
 - Any subsequent change to an active target also requires an explicit Nutritionist save action — there is no "auto-adjust" background job that silently changes a Client's active target.
-- Optional: a structured meal plan (meal slots with suggested foods) can be attached to an active `NutritionPlan`, authored by the Nutritionist.
+- **Structured meal plan (implemented 2026-09):** the Nutritionist composes meals per slot from cached foods (TACO/Open Food Facts/USDA) or manual entries with planned grams (`PUT /nutrition/plans/:id/meals`). The server resolves every `foodItemCacheId`, scales the per-100g nutrients by the planned grams, and stores per-item snapshots plus per-slot/day totals inline on the plan's `mealPlan` Json — the same compute-server-side, snapshot-once pattern as the diary. Saving meals cannot change status/targets; only `confirm` moves a plan to ACTIVE. Legacy free-text `suggestedFoods` rows remain readable.
+- The Client sees the confirmed plan's meals ("Minha dieta") and can log a planned item to their diary with one tap.
 
 ### 5.3 Food diary (Client)
 - Search or barcode-scan food lookup, backed by:
+  - **TACO** (Tabela Brasileira de Composição de Alimentos, implemented 2026-09) for Brazilian whole-food search with pt-BR names — self-hosted `taco-api` GraphQL service (docker-compose), tried first for text search.
   - **Open Food Facts** for barcode/packaged-food lookup (no API key required) — must check the response's `status` field, not just HTTP status, since a "not found" still returns HTTP 200 (base doc §8.2 caveat).
-  - **USDA FoodData Central** for generic/whole-food search (requires a free `data.gov` key, ~1,000 req/hour rate limit).
-  - Both sources are normalized into the local `FoodItemCache` (base doc §6) so the Client experience doesn't depend on live third-party latency, per the caching architecture in base doc §7.5.
+  - **USDA FoodData Central** for generic/whole-food search fallback (requires a free `data.gov` key, ~1,000 req/hour rate limit).
+  - All sources are normalized into the local `FoodItemCache` (base doc §6, `FoodSource` enum now includes `TACO`) so the Client experience doesn't depend on live third-party latency, per the caching architecture in base doc §7.5.
 - Client logs an entry: food item, quantity, meal slot (breakfast/lunch/dinner/snack), timestamp. A nutrient snapshot is stored on the `FoodDiaryEntry` at log time (not just a foreign key to the cache) so historical entries remain accurate even if the cached food data is later corrected/updated.
-- Running macro totals vs. active target shown for the current day.
+- Running macro totals vs. active target shown for the current day; the Nutritionist's acompanhamento panel adds date navigation, a 4-week adherence trend (`/nutrition/clients/:clientId/adherence-history`), and the full plan history (`/nutrition/clients/:clientId/plans`).
 
 ### 5.4 Hydration log
 - Simple counter (e.g., glasses/liters of water per day), feeding the same daily view as food logging.

@@ -61,3 +61,30 @@ Feature: Nutrition Module (API)
     When the client fetches their own weekly adherence summary
     And the nutritionist fetches the client's weekly adherence summary
     Then both summaries report the same days logged and the same average adherence percent
+
+  Scenario: A Nutritionist saves a structured meal plan and the server computes the nutrients
+    Given an active NUTRITIONIST link between a professional and a client with a recorded body assessment
+    And the nutritionist has generated a draft nutrition target for the client
+    And a cached food item is seeded with known nutrients
+    When the nutritionist saves a meal plan referencing that cached food item
+    Then the plan's mealPlan stores per-item nutrient snapshots scaled by the planned grams
+    And the plan's mealPlan stores per-slot and day totals computed server-side
+
+  Scenario: A meal-plan save referencing an unknown food item is rejected
+    Given an active NUTRITIONIST link between a professional and a client with a recorded body assessment
+    And the nutritionist has generated a draft nutrition target for the client
+    When the nutritionist saves a meal plan referencing a nonexistent food item
+    Then the request is rejected with a not-found status
+    And the plan's mealPlan is unchanged
+
+  Scenario: A Client cannot save meal plans
+    Given an active NUTRITIONIST link between a professional and a client with a recorded body assessment
+    And the nutritionist has generated a draft nutrition target for the client
+    When the client tries to save a meal plan on that draft
+    Then the request is rejected with a client-error status
+
+  Scenario: The plan history lists every plan for the client newest first
+    Given an active NUTRITIONIST link between a professional and a client with a recorded body assessment
+    When the nutritionist generates two drafts for the client
+    Then the plan history endpoint returns both plans newest first
+    And the client cannot fetch the plan history at all
