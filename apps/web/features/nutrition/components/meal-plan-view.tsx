@@ -59,8 +59,8 @@ export function MealPlanView({
                       {item.name} — {item.quantityGrams}g
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {item.nutrients.calories} kcal · P {item.nutrients.protein}g · C{" "}
-                      {item.nutrients.carbs}g · G {item.nutrients.fat}g
+                      {item?.nutrients?.calories} kcal · P {item?.nutrients?.protein}g · C{" "}
+                      {item?.nutrients?.carbs}g · G {item?.nutrients?.fat}g
                     </p>
                   </div>
                   {showQuickLog ? (

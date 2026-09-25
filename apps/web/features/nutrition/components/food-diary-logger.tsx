@@ -1,13 +1,10 @@
 "use client";
 
-// PRD 08 §5.3/§7 — search or barcode-scan food lookup, with a manual-entry
-// fallback for Open Food Facts' "not found" case (§7's explicit
-// requirement: handle it gracefully, not as a dead end). Barcode capture
-// uses the device camera via a standard file input with `capture` — this
-// repo has no existing camera-access pattern and a dedicated scanning
-// library is more investment than this flow needs; the browser's own
-// camera picker is enough to get a barcode number, and manual entry always
-// works regardless.
+// PRD 08 §5.3/§7 — food lookup by text search (TACO) or typed barcode
+// (Open Food Facts), with a manual-entry fallback for the "not found"
+// case (§7's explicit requirement: handle it gracefully, not as a dead
+// end). Camera-based barcode scanning was removed: the capture-only file
+// input never processed the image, so the button was decorative.
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { inputClass } from "../../auth/components/fields";
@@ -146,25 +143,11 @@ export function FoodDiaryLogger() {
             type="text"
             inputMode="numeric"
             aria-label="Código de barras"
-            placeholder="Digite ou escaneie o código"
+            placeholder="Digite o código de barras"
             className={inputClass}
             value={barcode}
             onChange={(e) => setBarcode(e.target.value)}
           />
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            aria-label="Usar câmera para escanear"
-            className="hidden"
-            id="barcode-camera"
-          />
-          <label
-            htmlFor="barcode-camera"
-            className="cursor-pointer rounded-md border border-border px-3 py-2 text-sm"
-          >
-            📷
-          </label>
           <button
             type="button"
             onClick={handleBarcodeSearch}
